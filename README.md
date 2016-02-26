@@ -1,5 +1,5 @@
 # AceDB to Datomic 
-```
+
 - Reading and writing ACeDB model files.
 - Generating Datomic schemas based on ACeDB models.
 - Model-driven import of ACeDB data into multiple databases (currently Datomic and MongoDB).
@@ -14,6 +14,12 @@ sudo yum -y install perl-autodie perl-IPC-System-Simple
 
 This tool is used to import databases from ACeDB to Datomic
 
+##DEVELOPMENT PROCEDURE
+
+Follow the GitFlow mechanism for branching and commiting changes as detailed [here](https://datasift.github.io/gitflow/IntroducingGitFlow.html)
+   
+## DATA
+>>>>>>> develop
 
    - To get help run the following command
 
@@ -55,5 +61,3 @@ Actions: (required options for each action are provided in square brackets)
 Example command
 
 lein run ace-to-datomic generate-datomic-database-report --url datomic:free://localhost:4334/WS250 --datomic-database-report-filename /home/ec2-user/git/db/pseudoace/hello.t -v
-
-```
