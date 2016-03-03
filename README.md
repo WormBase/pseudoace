@@ -51,6 +51,6 @@ Actions: (required options for each action are provided in square brackets)
   backup-database                      Select if you would like to backup a datomic database into a file
 ```
 
-Example command
+##Example command
 
-lein run ace-to-datomic generate-datomic-database-report --url datomic:free://localhost:4334/WS250 --datomic-database-report-filename /home/ec2-user/git/db/pseudoace/hello.t -v
+lein run ace-to-datomic all-import-actions --url="datomic:ddb://us-east-1/wormbase/WS252" --log-dir=/datastore/datomic/tmp/datomic/import-logs-WS252/ --model=models.wrm.WS252.annot --acedump-dir=/datastore/datomic/dumps/WS252_dump/ --schema-filename=schema252.edn -v
