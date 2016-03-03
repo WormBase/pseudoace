@@ -315,14 +315,14 @@
         (datomic/delete-database helper_uri)))
 
 (defn all-import-actions [options]
-;;      (create-database options)
-;;     (acedump-to-datomic-log options)
+      (create-database options)
+      (acedump-to-datomic-log options)
 ;;      (create-helper-database options)
-;;      (generate-datomic-schema-view options)
+      (generate-datomic-schema-view options)
 ;;      (import-helper-log-into-datomic options)
 ;;      (run-locatables-importer-for-helper options)
 ;;      (delete-helper-database options)
-;;      (sort-datomic-log options)
+      (sort-datomic-log options)
       (import-logs-into-datomic options)
 ;;    (excise-tmp-data options)
 ;;    (test-datomic-data options))
