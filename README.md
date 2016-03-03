@@ -17,16 +17,9 @@ This tool is used to import databases from ACeDB to Datomic
 ##DEVELOPMENT PROCEDURE
 
 Follow the GitFlow mechanism for branching and commiting changes as detailed [here](https://datasift.github.io/gitflow/IntroducingGitFlow.html)
-   
-## DATA
->>>>>>> develop
-
-   - To get help run the following command
-
-lein run ace-to-datomic --help
 
 ###Help Output
-
+```
 Ace to dataomic is tool for importing data from ACeDB into to Datomic database
 
 Usage: ace-to-datomic [options] action
@@ -56,7 +49,7 @@ Actions: (required options for each action are provided in square brackets)
   list-databases                       Select if you would like to get a list of the database names [url]
   delete-database                      Select this option if you would like to delete a database in datomic [url]. If the force option you will not be asked if you are certain about your decision
   backup-database                      Select if you would like to backup a datomic database into a file
-
+```
 
 Example command
 
