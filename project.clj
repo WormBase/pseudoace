@@ -1,7 +1,7 @@
 (defproject pseudoace "0.0.3-SNAPSHOT"
   :dependencies [[org.clojure/clojure "1.7.0"]
  ;;                [com.datomic/datomic-free "0.9.5186" :exclusions [joda-time]]
-                 [com.datomic/datomic-pro "0.9.5344" :exclusions [joda-time org.slf4j/slf4j-nop]] ;; added
+                 [com.datomic/datomic-pro "0.9.5344" :exclusions [joda-time]] ;; added
                  [com.amazonaws/aws-java-sdk-dynamodb "1.9.39" :exclusions [joda-time]] ;; added
                  [datomic-schema "1.3.0"]
                  [org.clojure/tools.cli "0.3.1"]
