@@ -116,16 +116,16 @@
        (tx-quiet con (conj schema
                     {:db/id          #db/id[:db.part/tx]
                      :db/txInstant   #inst "1970-01-01T00:00:01"}))
-       (catch Exception e(str "Caught Exception: " (.getMessage e))))) 
+       (catch Exception e (str "Caught Exception: " (.getMessage e)))))
 
 (defn load-schema [uri options]
     (if (:verbose options) (println (string/join " " ["Loading Schema into:" uri])))
     (if (:verbose options) (println "\tCreating database connection"))
     (let [con (datomic/connect uri)]
-        ;; define function tx-quiet that runs a transaction, 
+        ;; define function tx-quiet that runs a transaction,
         ;; ensures it completes and throws away all of the output so it runs quietly
         (defn tx-quiet
-           "Run a transaction but suppress the (potentially-large) report if it succeeds." 
+           "Run a transaction but suppress the (potentially-large) report if it succeeds."
            [con tx]
            @(datomic/transact con tx)
            nil)
