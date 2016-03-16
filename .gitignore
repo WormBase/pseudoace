@@ -9,6 +9,7 @@ Build
 Build.bat
 .lein-*
 .last_cover_stats
+.nrepl-port
 Makefile
 Makefile.old
 MANIFEST.bak
