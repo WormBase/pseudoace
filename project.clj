@@ -9,7 +9,7 @@
                   :exclusions [joda-time]]
                  [com.andrewmcveigh/cljs-time "0.3.0"]
                  [com.cemerick/friend "0.2.1"]
-                 [com.datomic/datomic-pro "0.9.5344"
+                 [com.datomic/datomic-pro "0.9.5350"
                   :exclusions [joda-time]]
                  [com.ninjudd/eventual "0.4.1"]
                  [com.ninjudd/ring-async "0.3.1"]
