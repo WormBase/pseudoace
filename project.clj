@@ -37,7 +37,7 @@
   :description "ACeDB migration tools"
   :source-paths ["src/clj/pseudoace", "src/clj/"]
   :plugins [[lein-environ "1.0.0"]]
-  :javac-options ["-target" "1.6" "-source" "1.6"]
+  :javac-options ["-target" "1.8" "-source" "1.8"]
   :license "MIT"
   :repositories [["dasmoth" {:url "http://www.biodalliance.org/people/thomas/repo"}]]
   :jvm-opts ["-Xmx6G"
