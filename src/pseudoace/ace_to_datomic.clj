@@ -1,4 +1,4 @@
-(ns ace-to-datomic
+(ns pseudoace.ace-to-datomic
   (:require [pseudoace.model :as model]
             [pseudoace.model2schema :as model2schema]
 
