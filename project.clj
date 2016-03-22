@@ -36,7 +36,6 @@
                  [secretary "1.2.3"]]
   :description "ACeDB migration tools"
   :source-paths ["src/clj/pseudoace", "src/clj/"]
-  :java-source-paths ["src/java"]
   :plugins [[lein-environ "1.0.0"]]
   :javac-options ["-target" "1.6" "-source" "1.6"]
   :license "MIT"
