@@ -268,7 +268,11 @@
   (. (java.io.File. ".") getCanonicalPath))
 
 (defn sort-datomic-log-command [file]
-  (shell/sh "./src/perl/sort-edn-log.pl" file :dir (get-current-directory)))
+  "Invoke the perl helper script to sort EDN files.
+
+Assumes that the current working directory is the top level project
+directory."
+  (shell/sh "./scripts/sort-edn-log.pl" file :dir (get-current-directory)))
 
 (defn sort-datomic-log [options]
   (if (:verbose options) (println "Sorting datomic log"))
