@@ -1,4 +1,4 @@
-(ns wb.binning
+(ns pseudoace.binning
   (:import clojure.lang.Murmur3))
 
 ;;

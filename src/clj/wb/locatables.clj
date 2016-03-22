@@ -1,12 +1,11 @@
 (ns wb.locatables
-  (:use pseudoace.utils
-        wb.binning)
-  (:require [datomic.api :as d :refer (q entity)]))
+  (:use [pseudoace.binning :as binning]))
 
 ;;
 ;; Don't pay too much attention to the details here.  Binning scheme and method
 ;; handling are likely to change in wb248-imp2
 ;;
+
 
 (defn root-segment
   ([entity]
@@ -22,7 +21,7 @@
 
 (def ^:private child-rule  
   '[[(child ?parent ?min ?max ?c ?cmin ?cmax) [?parent :sequence/id ?seq-name]
-                                              [(wb.binning/bins ?seq-name ?min ?max) [?bin ...]]
+                                              [(binning/bins ?seq-name ?min ?max) [?bin ...]]
                                               [?c :locatable/murmur-bin ?bin]
                                               [?c :locatable/parent ?parent]
                                               [?c :locatable/min ?cmin]
