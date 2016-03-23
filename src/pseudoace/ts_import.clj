@@ -40,16 +40,16 @@
       {:timestamps (nthrest (:timestamps (meta l)) (count path))})))
 
 (defn take-ts
-  "`take` for sequences with :timestamps metadata."
-  [n seq]
-  (with-meta (take n seq)
-    {:timestamps (take n (:timestamps (meta seq)))}))
+  "Take `n` maps from `seq-of-maps` for sequences with :timestamps metadata."
+  [n seq-of-maps]
+  (with-meta (take n seq-of-maps)
+    {:timestamps (take n (:timestamps (meta seq-of-maps)))}))
 
 (defn drop-ts
-  "`drop` for sequences with :timestamps metadata."
-  [n seq]
-  (with-meta (drop n seq)
-    {:timestamps (drop n (:timestamps (meta seq)))}))
+  "Drop `n` maps from `seq-of-maps` having :timestamps metadata."
+  [n seq-of-maps]
+  (with-meta (drop n seq-of-maps)
+    {:timestamps (drop n (:timestamps (meta seq-of-maps)))}))
 
 (defn- lur
   "Helper to turn 3-element pseudo-lookup-refs into plain lookup-refs."
@@ -85,23 +85,22 @@
   ([l1 l2 & ls]
      (reduce merge-logs (merge-logs l1 l2) ls)))
 
-(defn- log-datomize-value [ti db imp val]
+(defn- log-datomize-value [ti db imp value]
   (case (:db/valueType ti)
     :db.type/string
-      (or (ace/unescape (first val))
+      (or (ace/unescape (first value))
           (if (:pace/fill-default ti) ""))
     :db.type/long
-      (utils/parse-int (first val))  
+      (utils/parse-int (first value))  
     :db.type/float
-      (utils/parse-double (first val))
+      (utils/parse-double (first value))
     :db.type/double
-      (utils/parse-double (first val))
+      (utils/parse-double (first value))
     :db.type/instant
-      (if-let [v (first val)]
+      (if-let [v (first value)]
         (if (= v "now")
           (java.util.Date.)
-          (-> (str/replace v #"_" "T")
-              (read-instant-date)))
+          (read-instant-date (str/replace v #"_" "T")))
         (if (:pace/fill-default ti)
           (read-instant-date "1977-10-29")))
     :db.type/boolean
@@ -134,7 +133,7 @@
        ent))
    {} currents))
 
-(defn- log-components [[_ _ part :as this] current-db current ti imp vals]
+(defn- log-components [[_ _ part :as this] current-db current ti imp values]
   (let [single?  (not= (:db/cardinality ti) :db.cardinality/many)
         current  ((:db/ident ti) current)
         current  (or (and current single? [current])
@@ -150,7 +149,7 @@
                    (entity (:db imp) (keyword ns "id")))]      ;; performance?
     (reduce
      (fn [log [index lines]]
-       (if (and (> index 0) single?)
+       (if (and (pos? index) single?)
          (do
            (println "WARNING: can't pack into cardinality-one component: " this lines)
            log)
@@ -213,7 +212,7 @@
                         (if ordered?
                           [:db/add compid :ordered/index index]))))))))
        {}
-       (utils/indexed (partition-by (partial take (count concs)) vals)))))
+       (utils/indexed (partition-by (partial take (count concs)) values)))))
 
 
 (defn- find-keys
