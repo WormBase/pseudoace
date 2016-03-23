@@ -21,11 +21,11 @@
    nil (partition 2 args)))
 
 (defn vassoc
-  "Associate `value`s with `key`s in m, ignoring any keys associated with
+  "Associate `k`eys with `v`alues in `m`, ignoring any keys associated with
   nil values."
-  ([m key value]
-     (if value
-       (assoc m key value)
+  ([m k v]
+     (if v
+       (assoc m k v)
        m))
   ([m k v & kvs]
      (when-not (even? (count kvs))
@@ -34,9 +34,10 @@
              (vassoc m k v)
              (partition 2 kvs))))
 
-(defn conj-in [m k v]
+(defn conj-in
   "If `k` is already present in map `m`, conj `v` onto the existing
    seq of values, otherwise assoc a new vector of `v`."
+  [m k v]
   (assoc m k (if-let [o (m k)]
                (conj o v)
                [v])))
@@ -92,8 +93,9 @@
         i
         (recur is)))))
 
-(defmacro with-outfile [f & body]
+(defmacro with-outfile
   "Execute `body` with *out* bound to `(writer f)`."
+  [f & body]
   (let [fh (gensym)]
     `(with-open [~fh (writer ~f)]
        (binding [*out* ~fh]
