@@ -2,7 +2,7 @@
   (:require [clojure.string :as str])
   (:import [java.util.regex Matcher]))
 
-(defrecord ModelNode [type name unique? repeat? xref children])
+(defrecord ModelNode [node-type node-name unique? repeat? xref children])
 
 (defn- indexed-tokens* [^Matcher m]
   (lazy-seq
@@ -91,7 +91,7 @@
       (parse-model-line* n (rest toks)))))
 
 (defn- append-model-line [model line]
-  (when (not model)
+  (when-not model
     (throw (Exception. (str "Couldn't insert " (:name line)))))
   (if line
     (let [children    (:children model)
