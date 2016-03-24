@@ -30,50 +30,117 @@
            (java.lang.Runtimea))
   (:gen-class))
 
+;; First three strings describe a short-option, long-option with optional
+;; example argument description, and a description. All three are optional
+;; and positional.
 (def cli-options
-  [;; First three strings describe a short-option, long-option with optional
-  ;; example argument description, and a description. All three are optional
-  ;; and positional.
-  [nil "--model PATH" "Specify the model file that you would like to use that is found in the models folder e.g. models.wrm.WS250.annot"]
-  [nil "--url URL" "Specify the url of the Dataomic transactor you would like to connect. Example: datomic:free://localhost:4334/WS250"]
-  [nil "--schema-filename PATH" "Specify the name of the file for the schema view to be written to when selecting Action: generate-schema-view exampls schema250.edn"]
-  [nil "--log-dir PATH" "Specifies the path to and empty directory to store the Datomic logs in. Example: /datastore/datomic/tmp/datomic/import-logs-WS250/"]
-  [nil "--acedump-dir PATH" "Specifies the path to the directory of the desired acedump. Example /datastore/datomic/tmp/acedata/WS250/"]
-  [nil "--backup-file PATH" "Secify the path to the file in which you would like to have the database dumped into"]
-  [nil "--datomic-database-report-filename PATH" "Specify the relative or full path to the file that you would like the report to be written to"]
-  ["-v" "--verbose"]
-  ["-f" "--force"]
-  ["-h" "--help"]])
+  [[nil
+    "--model PATH"
+    (str "Specify the model file that you would "
+         "like to use that is found in the models folder "
+         "e.g. \"models.wrm.WS250.annot\"")]
+    [nil
+     "--url URL"
+     (str "Specify the url of the Dataomic transactor "
+          "you would like to connect to. "
+          "Example: datomic:free://localhost:4334/WS250")]
+   [nil
+    "--schema-filename PATH"
+    (str "Specify the name of the file for the schema view "
+         "to be written to when selecting "
+         "Action: dumps the generated generate example \"schema250.edn\"")]
+   [nil
+    "--log-dir PATH"
+    (str "Specifies the path to and empty directory "
+         "to store the Datomic logs in. "
+         "Example: /datastore/datomic/tmp/datomic/import-logs-WS250/")]
+   [nil
+    "--acedump-dir PATH"
+    (str "Specifies the path to the directory of the desired acedump. "
+         "Example /datastore/datomic/tmp/acedata/WS250/")]
+   [nil
+    "--backup-file PATH"
+    (str "Specify the path to the file in which you would like "
+         "to have the database dumped into")]
+   [nil
+    "--datomic-database-report-filename PATH"
+    (str "Specify the relative or full path to the file that you "
+         "would like the report to be written to")]
+   ["-v" "--verbose"]
+   ["-f" "--force"]
+   ["-h" "--help"]])
 
 (defn usage [options-summary]
-  (->>
-   ["Ace to dataomic is tool for importing data from ACeDB into to Datomic database"
+  (str/join
+   \newline
+   [(str "Ace to dataomic is tool for importing data from ACeDB "
+         "into to Datomic database")
     ""
     "Usage: ace-to-datomic [options] action"
     ""
     "Options:"
     options-summary
     ""
-    "Actions: (required options for each action are provided in square brackets)"
-    "  create-database                      Select this option if you would like to create a Datomic database from a schema. Required options [model, url]"
-    "  create--helper-database              Select this option if you would like to create a helper Datomic database from a schema. Required options [model, url]"
-    "  generate-datomic-schema-view         Select if you would like the schema to the database to be exported to a file. Required options [schema-filename, url]"
-    "  acedump-to-datomic-log               Select if you are importing data from ACeDB to Datomic and would like to create the Datomic log files [url, log-dir, acedump-dir]"
-    "  sort-datomic-log                     Select if you would like to sort the log files generated from your ACeDB dump [log-dir]"
-    "  import-logs-into-datomic             Select if you would like to import the sorted logs into datomic [log-dir, url]"
-    "  import-helper-log-into-datomic       Select if you would like to import the helper log into datomic [log-dir, url]"
-    "  excise-tmp-data                      Select in order to remove all the tmp data that was created in the database to import the data [url]"
-    "  test-datomic-data                    Select if you would like to perform tests on the generated database [url acedump-dir]"
-    "  all-import-actions                   Select if you would like to perform all actions from acedb to datomic [model url schema-filename log-dir acedump-dir]"
-    "  generate-datomic-database-report     Select if you want to generate a summary report of the contents of a particular Datomic database [url datomic-database-report-filename]"
-    "  list-databases                       Select if you would like to get a list of the database names [url]"
-    "  delete-database                      Select this option if you would like to delete a database in datomic [url]. If the force option you will not be asked if you are certain about your decision"
-    "  backup-database                      Select if you would like to backup a datomic database into a file"]
-   (string/join \newline)))
+    (str "Actions: (required options for each action "
+         "are provided in square brackets)")
+    (str "create-database"
+         \tab
+         "Create a Datomic database from a schema generated "
+         "from an annoted ACeDB models file."
+         "Required options [model, url]")
+    (str "create--helper-database"
+         \tab
+         "Create a helper Datomic database from a schema."
+         "Required options [model, url]")
+    (str "generate-datomic-schema-view"
+         \tab
+         "Export the geneated database schema to a file. "
+         "Required options [schema-filename, url]")
+    (str "acedump-to-datomic-log"
+         \tab
+         "Create the EDN log files."
+         "Required options: [url, log-dir, acedump-dir]")
+    (str "sort-datomic-log"
+         \tab
+         "Sort the log files generated from ACeDB dump files."
+         "Required options: [log-dir]")
+    (str "import-logs-into-datomic"
+         \tab
+         "Import the sorted EDN log files."
+         "Required options: [log-dir, url]")
+    (str "import-helper-log-into-datomic"
+         \tab
+         "Import the helper log files."
+         "Required options: [log-dir, url]")
+    (str "excise-tmp-data"
+         \tab
+         "Remove all the temporary data created during processing."
+         "Required options: [url]")
+    (str "test-datomic-data"
+         \tab
+         "Perform tests on the generated database."
+         "Required options: [url acedump-dir]")
+    (str "all-import-actions"
+         "Perform all actions required to import data from ACeDB dump files."
+         "Required options: [model url schema-filename log-dir acedump-dir]")
+    (str "generate-datomic-database-report"
+         \tab
+         "Generate a summary report of database content."
+         "Requried options: [url datomic-database-report-filename]")
+    (str "list-databases"
+         \tab
+         "List all databases."
+         "Required options: [url]")
+    (str "delete-database"
+         "Delete the database at the given URL."
+         "Required options: [url].")
+    (str "backup-database"
+         \tab
+         "Backup the database at a given URL to  file.")]))
 
 (defn error-msg [errors]
   (str "The following errors occurred while parsing your command:\n\n"
-    (string/join \newline errors)))
+    (str/join \newline errors)))
 
 (defn exit [status msg]
   (println msg)
