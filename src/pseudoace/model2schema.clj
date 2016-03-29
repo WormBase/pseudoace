@@ -559,16 +559,18 @@
                     our-tabs           []]
                (if node
                  (if (not= node llnode)
-                   (let [ns    (if (:unique? node)
-                                 (str (:name node) " UNIQUE")
-                                 (:name node))
-                         pos   (max (or tab 0) (+ cur 2))]
-                     (print (apply str (repeat (- pos (max cur 0)) \space)))
-                     (print ns)
+                   (let [node-ns (if (:unique? node)
+                                   (str (:name node) " UNIQUE")
+                                   (:name node))
+                         pos     (max (or tab 0) (+ cur 2))]
+                     (print
+                      (str/join (repeat (- pos (max cur 0)) \space)))
+                     (print node-ns)
                      (recur nodes
-                            nil    ; Once we've hit a unique node, stop trying to dedup.
+                            nil ; Once we've hit a unique node, stop
+                                ; trying to dedup.
                             nil
-                            (+ pos (count ns))
+                            (+ pos (count node-ns))
                             (conj our-tabs pos)))
                    (recur nodes llnodes tabs cur (conj our-tabs tab)))
                  (do
