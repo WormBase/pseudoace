@@ -1,7 +1,7 @@
 (ns pseudoace.model2schema
-  (:use pseudoace.utils)
   (:require [datomic.api :as d :refer (tempid q touch entity entity-db)]
             [pseudoace.model :as model]
+            [pseudoace.utils :as utils]
             [clojure.string :as str])
   (:import [pseudoace.model ModelNode]))
 
@@ -150,10 +150,10 @@
               (not (if-let [x (:xref fchild)]    ;; Becomes complex if there's a hash at the other end of the XREF.
                      (:use-ns (tpm [(datomize-name (:name fchild)) x])))))
        ;; "simple datum" case
-       (when (not (:suppress-xref fchild))
+       (when-not (:suppress-xref fchild)
          (let [cname       (:name fchild)
                type        (modeltype-to-datomic  (:type fchild))
-               schema [(vmap
+               schema [(utils/vmap
                         :db/id           (tempid :db.part/db)
                         :db/ident        attribute
                         :db/valueType    type
@@ -173,38 +173,46 @@
                (conj schema
                      {:db/id          (tempid :db.part/db)
                       :pace/identifies-class (.substring cname 1)
-                      :pace/xref  (vmap :db/id                (tempid :db.part/user)
-                                        :pace.xref/tags       (or tags x)
-                                        :pace.xref/view       true
-                                        :pace.xref/import     (= mode "INXREF")
-                                        :pace.xref/export     (= mode "INXREF")
-                                        :pace.xref/attribute  {:db/id    (tempid :db.part/db)
-                                                               :db/ident attribute}
-                                        :pace.xref/obj-ref    sid)}))
+                      :pace/xref  (utils/vmap
+                                   :db/id                (tempid :db.part/user)
+                                   :pace.xref/tags       (or tags x)
+                                   :pace.xref/view       true
+                                   :pace.xref/import     (= mode "INXREF")
+                                   :pace.xref/export     (= mode "INXREF")
+                                   :pace.xref/attribute  {:db/id (tempid :db.part/db)
+                                                          :db/ident attribute}
+                                   :pace.xref/obj-ref    sid)}))
              schema)))
 
        ;; "compound datum" case
        (let [cns        (str (namespace attribute) "." (name attribute))
              enum       (:enum node)
              enum-keys* (if enum
-                          (enum-keys (str cns "." (if (string? enum) enum "value")) (:children node)))
-             fc         (->> (if enum-keys*
-                               (let [longest (->> (vals enum-keys*)
-                                                  (sort-by count)
-                                                  (reverse)
-                                                  (first))]
-                                 (doseq [v (vals enum-keys*)]
-                                   (if-not (prefix? longest v)
-                                     (except "Bad enum: " v " is not a prefix of " longest)))
-                                 longest)
-                               (flatten-children node))
-                             (take-while (complement :suppress-xref)))
+                          (enum-keys
+                           (str cns "." (if (string? enum) enum "value"))
+                           (:children node)))
+             fc         (take-while (complement :suppress-xref)
+                         (if enum-keys*
+                           (let [longest (->>
+                                          (vals enum-keys*)
+                                          (sort-by count)
+                                          (reverse)
+                                          (first))]
+                             (doseq [v (vals enum-keys*)]
+                               (if-not (prefix? longest v)
+                                 (utils/except
+                                  "Bad enum:"
+                                  v
+                                  " is not a prefix of "
+                                  longest)))
+                             longest)
+                           (flatten-children node)))
              hashes     (filter #(= (:type %) :hash) fc)
              concretes  (filter #(not= (:type %) :hash) fc)]
          (cond
           (seq fc)
           (concat
-            [(vmap
+            [(utils/vmap
                     :db/id           (tempid :db.part/db)
                     :db/ident        attribute
                     :db/valueType    :db.type/ref
@@ -237,7 +245,7 @@
                (let [type     (modeltype-to-datomic (:type c))
                      cname    (:name c)
                      cattr    (keyword cns mname)
-                     schema [(vmap
+                     schema [(utils/vmap
                               :db/id           (tempid :db.part/db)
                               :db/ident        cattr
                               :db/valueType    type
@@ -316,14 +324,14 @@
         pid (if (not is-hash?)
               (tempid :db.part/db))
         sid (tempid :db.part/db)]
-    (conj-if
+    (utils/conj-if
      (mapcat (partial node->schema sid mns [] tpm) (:children model))
      (if pid
        {:db/id       pid
         :db/ident    (keyword "wb.part" mns)
         :pace/_prefer-part sid
         :db.install/_partition :db.part/db})
-     (vmap
+     (utils/vmap
       :db/id          sid
       :db/ident       (keyword mns "id")
       :db/valueType   :db.type/string
