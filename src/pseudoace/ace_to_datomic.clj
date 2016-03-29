@@ -3,31 +3,29 @@
             [pseudoace.model2schema :as model2schema]
 
             [datomic.api :as datomic]
-            [pseudoace.metadata-schema :as metadata-schema]
-            [pseudoace.locatable-schema :as locatable-schema]
-            [pseudoace.wormbase-schema-fixups :as wormbase-schema-fixups]
+            [pseudoace.schemata :as schemata]
 
-            [pseudoace.schema-datomic :as schema-datomic]
             [pseudoace.utils :as utils]
             [clojure.pprint :as pp]
 
             [pseudoace.import :as old-import]
             [pseudoace.ts-import :as ts-import]
             [pseudoace.locatable-import :as loc-import]
+            [pseudoace.schema-datomic :as schema-datomic]
             [acetyl.parser :as ace]
 
             [clojure.java.io :as io]
-            [clojure.string :as string]
-            [clojure.tools.cli :refer [parse-opts]]
+            [clojure.string :as str]
+            [clojure.tools.cli :refer (parse-opts)]
 
             [clojure.test :as t]
             [clojure.java.shell :as shell])
   (:import (java.lang.Runtime)
+           (java.lang.Runtimea)
            (java.net InetAddress)
            (java.io.FileInputStream)
            (java.io.File)
-           (java.util.zip.GZIPInputStream)
-           (java.lang.Runtimea))
+           (java.util.zip.GZIPInputStream))
   (:gen-class))
 
 ;; First three strings describe a short-option, long-option with optional
