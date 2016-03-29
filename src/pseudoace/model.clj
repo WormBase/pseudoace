@@ -2,7 +2,7 @@
   (:require [clojure.string :as str])
   (:import [java.util.regex Matcher]))
 
-(defrecord ModelNode [node-type node-name unique? repeat? xref children])
+(defrecord ModelNode [type name unique? repeat? xref children])
 
 (defn- indexed-tokens* [^Matcher m]
   (lazy-seq
