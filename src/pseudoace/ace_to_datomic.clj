@@ -46,7 +46,8 @@
     "--schema-filename PATH"
     (str "Specify the name of the file for the schema view "
          "to be written to when selecting "
-         "Action: dumps the generated generate example \"schema250.edn\"")]
+         "Action: dumps the generated generate; "
+         "example: \"schema250.edn\"")]
    [nil
     "--log-dir PATH"
     (str "Specifies the path to and empty directory "
@@ -149,25 +150,30 @@
   (if (:verbose options) (println "Deleting database: " (:url options))))
 
 (defn check-if-delete [url]
-  (println "Are you sure you would like to delete the database: ", url, " [y/n]")
-  (read-line))
+  (println
+   "Are you sure you would like to delete the database: "
+   url
+   " [y/n]")
+  (.toLowerCase (read-line)))
 
 (defn delete-database [options]
   (if (or (:force options) (= (check-if-delete (:url options)) (str "y")))
-      (run-delete-database options)
-      (println "Not deleting database")))
+    (run-delete-database options)
+    (println "Not deleting database")))
 
 (defn generate-datomic-schema-view [options]
-  (if (:verbose options) (println "Generating Datomic schema view"))
-  (if (:verbose options) (println "\tCreating database connection"))
+  (when (:verbose options)
+    (println "Generating Datomic schema view")
+    (println "\tCreating database connection"))
   (let [uri (:url options)
         con (datomic/connect uri)]
      (utils/with-outfile (:schema-filename options)
-     (doseq [s (schema-datomic/schema-from-db (datomic/db con))]
+       (doseq [s (schema-datomic/schema-from-db (datomic/db con))]
          (pp/pprint s)
-         (println))
-     (if (:verbose options) (println "\tReleasing database connection"))
-     (datomic/release con))))
+         (println)))
+     (if (:verbose options)
+         (println "\tReleasing database connection"))
+     (datomic/release con)))
 
 (defn generate-schema [options]
   (when (:verbose options)
