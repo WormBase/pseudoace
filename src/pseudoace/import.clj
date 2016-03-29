@@ -69,10 +69,8 @@
 
      :default
      ;;; (except "We're confused..."))))
-     (do
-       ;(println "We're confused at " (:db/ident ti))
-       {:db/id    (tempid :db.part/user)
-        :db/doc   "confused placeholder!"}))))  ;; Temp workaround for ?Rearrangement
+     {:db/id    (tempid :db.part/user)
+      :db/doc   "confused placeholder!"})))  ; Temp workaround for ?Rearrangement
      
 
 (defn datomize-value [ti imp val]
