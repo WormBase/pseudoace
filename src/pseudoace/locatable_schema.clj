@@ -12,37 +12,35 @@
        ;;
 
        [parent :ref
-          "An entity (e.g. sequence or protein) which defines the coordinate system for this locatable."]
+        (str "An entity (e.g. sequence or protein) which defines "
+             "the coordinate system for this locatable.")]
        [min :long :indexed
-          "The lower bound of a half-open (UCSC-style) interval defining the location."]
+        (str "The lower bound of a half-open (UCSC-style) interval defining "
+             "the location.")]
        [max :long :indexed
-          "The upper bound of a half-open (UCSC-style) interval defining the location."]
+        (str "The upper bound of a half-open (UCSC-style) interval defining "
+             "the location.")]
        [strand :enum [:positive :negative]
-          "Token designating the strand or orientation of this feature.  Omit if unknown or irrelevant."]
+        (str "Token designating the strand or orientation of this feature. "
+             "Omit if unknown or irrelevant.")]
        [method :ref
-          "Method entity defining the meaning of this feature.  Required for lightweight features."]
-
+        (str "Method entity defining the meaning of this feature. "
+             "Required for lightweight features.")]
        ;;
-       ;; Attributes from ?Feature_data and #Feature_info -- used for lightweight features
-       ;;
-
+       ;; Attributes from ?Feature_data and #Feature_info
+       ;; -- used for lightweight features
        [score :float
           "Feature score, as used in ?Feature_data."]
        [note :string :many
           "Human-readable note associated with a lightweight feature."]
-
        ;;
        ;; Binning system
-       ;;
-
        [murmur-bin :long :indexed
-          "Bottom 20 bits contain a UCSC/BAM-style bin number.  High bits contain a Murmur3 hash code
-           for the parent sequence.  Only used for locatables attached to a parent with a :sequence/id."]
-
+        (str "Bottom 20 bits contain a UCSC/BAM-style bin number. "
+             "High bits contain a Murmur3 hash code for the parent sequence."
+             "Only used for locatables attached to a parent with a :sequence/id.")]
        ;;
        ;; Assembly support
-       ;;
-
        [assembly-parent :ref
           "The parent sequence in a genome assembly."]
        ))
@@ -50,27 +48,30 @@
    (schema splice-confirm
     (fields
      [cdna :ref
-        "cdna entity which supports this intron."]
+      "cdna entity which supports this intron."]
      [est :ref
-        "sequence entity of an EST which supports this intron."]
+      "sequence entity of an EST which supports this intron."]
      [ost :ref
-        "sequence entity of an OST which supports this intron."]
+      "sequence entity of an OST which supports this intron."]
      [rst :ref
-        "sequence entity of an RST which supports this intron."]
+      "sequence entity of an RST which supports this intron."]
      [mrna :ref
-        "sequence entity of an mRNA which supports this intron."]
+      "sequence entity of an mRNA which supports this intron."]
      [utr :ref
-        "sequence entity of a UTR which supports this intron."]
+      "sequence entity of a UTR which supports this intron."]
      [rnaseq :ref :component
-        "Details of RNA-seq data supporting this intron (uses splice-confirm.rna namespace)."]
+      (str "Details of RNA-seq data supporting this intron "
+           "(uses splice-confirm.rna namespace).")]
      [mass-spec :ref
-        "mass-spec-peptide entity which supports this intron."]
+      "mass-spec-peptide entity which supports this intron."]
      [homology :string
-        "accession number of an external database record which supports this intron (is this used?)."]
+      (str "accession number of an external database record which "
+           "supports this intron (is this used?).")]
      [false-splice :ref
-        "sequence entity providing evidence for a false splice site call."]
+      "sequence entity providing evidence for a false splice site call."]
      [inconsistent :ref
-        "sequence entity providing evidence for an inconsistent splice site call."]))
+      (str "sequence entity providing evidence for an inconsistent "
+           "splice site call.")]))
 
    (schema splice-confirm.rnaseq
     (fields
@@ -145,17 +146,18 @@
   [{:db/id          #db/id[:db.part/tx]
     :db/txInstant   #inst "1970-01-01T00:00:01"}]))
 
-  ;;
-  ;; Fake pseudoace metadata for locatable-model entities so that
-  ;; they are visible in TrACeView and Colonnade
-  ;;
-
-
+;;
+;; Fake pseudoace metadata for locatable-model entities so that
+;; they are visible in TrACeView and Colonnade
+;;
 (def locatable-extras
  (concat
   [{:db/id          #db/id[:db.part/db]
     :db/ident       :locatable/parent
-    :pace/obj-ref   :sequence/id        ;; this isn't always true, but needed for current Colonnade code.
+
+    ;; this isn't always true, but needed for current Colonnade code.
+    :pace/obj-ref   :sequence/id 
+
     :pace/tags      "Parent"}
    
    {:db/id          #db/id[:db.part/db]
