@@ -341,7 +341,7 @@
      (if (:verbose options) (println "Sort completed Successfully"))))
 
 (defn get-current-directory []
-  (. (java.io.File. ".") getCanonicalPath))
+  (.getCanonicalPath (java.io.File. ".")))
 
 (defn sort-datomic-log-command [file]
   "Invoke the perl helper script to sort EDN files.

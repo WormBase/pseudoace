@@ -87,13 +87,12 @@
     :db.type/double
       (parse-double (first val))
     :db.type/instant
-      (if-let [v (first val)]  
-        (-> (str/replace v #"_" "T")
-            (read-instant-date))
-        (if (:pace/fill-default ti)
-          (read-instant-date "1977-10-29")))
+    (if-let [v (first val)]
+      (read-instant-date (str/replace v #"_" "T"))
+      (if (:pace/fill-default ti)
+        (read-instant-date "1977-10-29")))
     :db.type/boolean
-      true      ; ACeDB just has tag presence/absence rather than booleans.  
+      true  ; ACeDB just has tag presence/absence rather than booleans.  
     :db.type/ref
       (if-let [objref (:pace/obj-ref ti)]
         (if (first val)
