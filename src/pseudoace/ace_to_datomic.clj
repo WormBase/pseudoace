@@ -436,7 +436,7 @@ directory."
 
 (defn all-import-actions
   "Perform all actions required to import data from ACeDB dump files."
-  [& {:keys [url model log-dir acedump-dir verbose]
+  [& {:keys [url model log-dir acedump-dir schema-filename verbose]
       :or {verbose false}}]
   (create-database :url url :model model :verbose verbose)
   (acedump-to-edn-logs :url url
@@ -444,7 +444,10 @@ directory."
                        :acedump-dir acedump-dir
                        :verbose verbose)
   ;; DISABLED: (create-helper-database options)
-  (generate-schema-view :url url :model model :verbose verbose)
+  (generate-schema-view
+   :url url
+   :schema-filename schema-filename
+   :verbose verbose)
   ;; DISABLED: (run-locatables-importer-for-helper url log-dir aceedump-dir verbose)
   ;; DISABLED: (delete-helper-database options)
   (sort-edn-logs :log-dir log-dir :verbose verbose)
