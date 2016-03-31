@@ -333,13 +333,14 @@ directory."
          (println "Sorting file " file))
        (let [filepath (str/join "" [log-dir file])
              result (sort-edn-logs-command filepath)]
-         (check-sh-result result verbose)))))
+         (check-sh-result result :verbose verbose)))))
 
 (defn import-edn-logs
   "Import the sorted EDN log files."
-  [& [{:keys [url log-dir verbose]}]]
+  [& {:keys [url log-dir verbose]
+      :or {verbose false}}]
   (if verbose
-    (println "Importing logs into datomic"))
+    (println "Importing logs into datomic" url log-dir verbose))
   (let [con (datomic/connect url)
         log-files (get-sorted-edn-log-files log-dir)]
     (if verbose
