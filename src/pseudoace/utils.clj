@@ -1,6 +1,8 @@
 (ns pseudoace.utils
   (:require [clojure.java.io :refer (writer)]))
 
+(def not-nil? (complement nil?))
+
 (defn vmap
   "Construct a map from alternating key-value pairs, discarding any keys
   associated with nil values."
