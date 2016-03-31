@@ -265,9 +265,11 @@
    (if verbose
      (println "\tMoving helper log file"))
    (.mkdir (java.io.File. (helper-folder log-dir)))
-   (let [source (str/join "" [log-dir "/" helper-filename])]
-     (io/copy (io/file source) (io/file (helper-dest log-dir)))
-     (io/delete-file (io/file source)))))
+   (let [source-path (str/join "" [log-dir "/" helper-filename])
+         source (io/file source-path)]
+     (if (.exists source)
+       (io/copy source (io/file (helper-dest log-dir)))
+       (io/delete-file source)))))
 
 (defn acedump-to-edn-logs
   "Create the EDN log files."
