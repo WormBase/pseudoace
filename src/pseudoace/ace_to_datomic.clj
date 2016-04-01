@@ -19,7 +19,6 @@
    [pseudoace.model :as model]  
    [pseudoace.model2schema :as model2schema]
    [pseudoace.schema-datomic :as schema-datomic]
-   [pseudoace.schemata :as schemata]
    [pseudoace.ts-import :as ts-import]
    [pseudoace.utils :as utils]
    [pseudoace.wormbase-schema-fixups :refer (schema-fixups)])
@@ -151,6 +150,9 @@
   @(datomic/transact con tx)
   nil)
 
+;; TODO: consolidate schemata (metaschema, basetypes, locatable{,-extras})
+;;       consider moving to e.g: pseudoace.schemata/load-schema
+;;
 (defn load-schema
   "Load the schema for the database."
   ([url model]
@@ -162,8 +164,6 @@
    (let [con (datomic/connect url)
          tx-quiet (partial transact-silenced con)
          main-schema (generate-schema model verbose)]
-
-     ;; TODO: consolidate schemata (metaschema, basetypes, locatable{,-extras})
      ;; Built-in schemas include explicit 1970-01-01 timestamps.
      ;; the 'metaschema' and 'locatable-schema' lines simply execute
      ;; what was read in on the previous two lines for metadata and locatables
