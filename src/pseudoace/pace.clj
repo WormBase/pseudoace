@@ -1,10 +1,7 @@
 (ns pseudoace.pace
   (:require [datomic.api :as d :refer (q entity touch entity-db)]
-            [clojure.string :as str]))
-
-(defn- not-nil?
-  [x]
-  (not (nil? x)))
+            [clojure.string :as str]
+            [pseudoace.utils :refer (not-nil?)]))
 
 (defrecord AceNode [typ value children]
   java.lang.Comparable
