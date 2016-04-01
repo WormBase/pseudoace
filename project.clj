@@ -1,6 +1,6 @@
-(defproject pseudoace "0.0.3-SNAPSHOT"
-  :dependencies [
-                 [acetyl "0.0.9-SNAPSHOT"]
+(defproject wormbase/pseudoace "0.0.3-SNAPSHOT"
+  :dependencies [;; TODO: this should pull from wormbase/acetyl when available.
+                 [acetyl "0.0.9-SNAPSHOT"] 
                  [com.amazonaws/aws-java-sdk-dynamodb "1.9.39"
                   :exclusions [joda-time]]
                  [com.datomic/datomic-pro "0.9.5350"
