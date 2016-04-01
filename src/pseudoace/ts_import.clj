@@ -103,17 +103,24 @@
           (read-instant-date (str/replace v #"_" "T")))
         (if (:pace/fill-default ti)
           (read-instant-date "1977-10-29")))
+
     :db.type/boolean
       true      ; ACeDB just has tag presence/absence rather than booleans.
+
     :db.type/ref
       (if-let [objref (:pace/obj-ref ti)]
-        (if-let [val (first val)]
-          (if-let [[_ alloc? alloc-name] (re-matches #"__(ALLOCATE|ASSIGN)__(.+)?" val)]
+      (if-let [v (first value)]
+        (if-let [[_ alloc? alloc-name] (re-matches #"__(ALLOCATE|ASSIGN)__(.+)?" v)]
             (if alloc-name
               [:importer/temp (str (d/basis-t db) ":" alloc-name)]
-              (utils/except "Can't link to a non-named tempid: " val))
-            [objref val (or (get-in imp [:classes objref :pace/prefer-part]) :db.part/user)]))
-        (datomize-objval ti imp val))
+            (utils/except "Can't link to a non-named tempid: " v))
+          [objref
+           v
+           (or
+            (get-in imp [:classes objref :pace/prefer-part])
+            :db.part/user)]))
+      (datomize-objval ti imp value))
+
     ;;default
       (utils/except "Can't handle " (:db/valueType ti))))
 
