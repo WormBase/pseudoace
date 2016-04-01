@@ -1,6 +1,5 @@
 (ns pseudoace.ace-to-datomic
   (:require
-   [pseudoace.model :as model]  
    [acetyl.parser :as ace]
    [clojure.data :refer (diff)]
    [clojure.java.io :as io]
@@ -17,12 +16,13 @@
    [pseudoace.locatable-import :as loc-import]
    [pseudoace.locatable-schema :refer (locatable-schema locatable-extras)]
    [pseudoace.metadata-schema :refer (basetypes metaschema)]
+   [pseudoace.model :as model]  
    [pseudoace.model2schema :as model2schema]
    [pseudoace.schema-datomic :as schema-datomic]
    [pseudoace.schemata :as schemata]
-   [pseudoace.wormbase-schema-fixups :refer (schema-fixups)]
    [pseudoace.ts-import :as ts-import]
-   [pseudoace.utils :as utils])
+   [pseudoace.utils :as utils]
+   [pseudoace.wormbase-schema-fixups :refer (schema-fixups)])
   (:import
    (java.lang.Runtime)
    (java.lang.Runtimea)
@@ -250,13 +250,10 @@
      (ts-import/split-logs-to-dir imp blk log-dir))))
 
 (def helper-filename "helper.edn.gz")
+(def helper-folder-name "helper")
 
-(defn helper-folder [log-dir]
-  (str/join "" [log-dir "helper/"]))
-
-(defn helper-dest [log-dir]
-  (let [helper_folder (helper-folder log-dir )]
-    (str/join "" [(helper-folder log-dir) helper-filename])))
+(defn helper-dest-file [log-dir]
+  (io/file log-dir helper-folder-name helper-filename))
 
 (defn move-helper-log-file
   ([log-dir]
@@ -264,12 +261,14 @@
   ([log-dir verbose]
    (if verbose
      (println "\tMoving helper log file"))
-   (.mkdir (java.io.File. (helper-folder log-dir)))
-   (let [source-path (str/join "" [log-dir "/" helper-filename])
-         source (io/file source-path)]
-     (if (.exists source)
-       (io/copy source (io/file (helper-dest log-dir)))
-       (io/delete-file source)))))
+   (let [dest-file (helper-dest-file log-dir)
+         helper-dir (io/file (.getParent dest-file))]
+     (if-not (.exists helper-dir)
+       (.mkdir helper-dir))
+     (let [source (io/file log-dir helper-filename)]
+       (when (.exists source)
+         (io/copy source dest-file)
+         (io/delete-file source))))))
 
 (defn acedump-to-edn-logs
   "Create the EDN log files."
@@ -292,12 +291,6 @@
       (acedump-file-to-datalog imp file directory verbose))
     (move-helper-log-file log-dir verbose)
     (datomic/release con)))
-
-(defn remove-from-end [s end]
-  (if (.endsWith s end)
-   (.substring s 0 (- (count s)
-                      (count end)))
-  s))
 
 (defn check-sh-result
   [result & {:keys [verbose]
@@ -373,14 +366,16 @@ directory."
                         :in $
                         :where
                         [?c :gene/id "WBGene00018635"]]
-        results (datomic/q datalog-query (datomic/db con))]
+        results (datomic/q datalog-query (datomic/db con))
+        n-results (count results)]
     (when verbose
       (println "Testing datomic data, expecting exactly" n-expected "result")
-      (println "Datalog query:" datalog-query))
-    (when-let [success (t/is (= (count results) 1))]
-      (when (and verbose success)
-        (print "Results: ")
-        (pprint results)))
+      (println "Datalog query:" datalog-query)
+      (print "Results: ")
+      (pprint results))
+    (if-let [success (t/is (= n-results 1))]
+      (println "OK")
+      (println "Failed to find record matching " datalog-query))
     (datomic/release con)))
 
 (defn import-helper-edn-logs
@@ -390,12 +385,12 @@ directory."
   (if verbose
     (println "Importing helper log into helper database"))
   (let [helper-uri (uri-to-helper-uri url)
-        helper-connection (datomic/connect helper-uri)
-        helper-destination (helper-dest log-dir)]
+        helper-connection (datomic/connect helper-uri)]
     (binding [ts-import/*suppress-timestamps* true]
       (ts-import/play-logfile
        helper-connection
-       (java.util.zip.GZIPInputStream. (io/input-stream helper-destination))))
+       (java.util.zip.GZIPInputStream.
+        (io/input-stream (helper-dest-file log-dir)))))
     (if verbose
       (println "\tReleasing helper database connection"))
     (datomic/release helper-connection)))
