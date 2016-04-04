@@ -1,4 +1,4 @@
-(ns pseudoace.ace-to-datomic
+(ns pseudoace.core
   (:require
    [acetyl.parser :as ace]
    [clojure.data :refer (diff)]

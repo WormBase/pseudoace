@@ -20,5 +20,5 @@
              ;; Uncomment to prevent missing trace (HotSpot optimisation)
              ;; "-XX:-OmitStackTraceInFastThrow"
              ]
-  :main ^:skip-aot pseudoace.ace-to-datomic
+  :main ^:skip-aot pseudoace.core
   :profiles {:uberjar {:aot :all}})
