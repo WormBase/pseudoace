@@ -78,7 +78,8 @@ The `import-all-actions` sub-command performs a "full import":
 The following command uses the [DynamoDB storage back-end][5],
 configured to use a database located in the Amazon cloud:
 
-```lein run ace-to-datomic 
+```
+lein run ace-to-datomic 
      --url="datomic:ddb://us-east-1/wormbase/WS252" 
 	 --log-dir=/datastore/datomic/tmp/datomic/import-logs-WS252/ 
 	 --model=models.wrm.WS252.annot 
