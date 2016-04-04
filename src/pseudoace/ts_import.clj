@@ -4,7 +4,7 @@
    [clojure.java.io :refer (file reader writer)]
    [clojure.string :as str]
    [datomic.api :as d :refer (db q entity touch tempid)]
-   [pseudoace.ace.parser :as ace]
+   [pseudoace.aceparser :as ace]
    [pseudoace.binning :refer (bin)]
    [pseudoace.import :refer (datomize-objval get-tags)]
    [pseudoace.utils :as utils])
