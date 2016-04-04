@@ -1,4 +1,4 @@
-(ns pseudoace.ts-import
+ (ns pseudoace.ts-import
   (:require
    [clojure.instant :refer (read-instant-date)]
    [clojure.java.io :refer (file reader writer)]
@@ -7,7 +7,13 @@
    [pseudoace.aceparser :as ace]
    [pseudoace.binning :refer (bin)]
    [pseudoace.import :refer (datomize-objval get-tags)]
-   [pseudoace.utils :as utils])
+   [pseudoace.utils :refer (except
+                            conj-if
+                            conjv
+                            indexed
+                            parse-double
+                            parse-int
+                            vmap)])
   (:import java.io.FileInputStream
            java.io.FileOutputStream
            java.util.zip.GZIPInputStream
@@ -29,6 +35,8 @@
 (def timestamp-pattern #"(\d{4}-\d{2}-\d{2})_(\d{2}:\d{2}:\d{2})(?:\.\d+)?_(.*)")
 
 (def pmatch @#'ace/pmatch)
+
+(def assign-alloc-re #"__(ALLOCATE|ASSIGN)__(.+)?")
 
 (defn select-ts
   "Return any lines in acedb object `obj` with leading tags matching `path`"
@@ -70,20 +78,20 @@
 
 (defn merge-logs
   ([l1 l2]
-     (cond
-      (nil? l2)
-      l1
+   (cond
+     (nil? l2)
+     l1
 
-      (nil? l1)
-      l2
+     (nil? l1)
+     l2
 
-      :default
-      (reduce
-       (fn [m [key vals]]
-         (assoc m key (into (get m key []) vals)))
-       l1 l2)))
+     :default
+     (reduce
+      (fn [m [key vals]]
+        (assoc m key (into (get m key []) vals)))
+      l1 l2)))
   ([l1 l2 & ls]
-     (reduce merge-logs (merge-logs l1 l2) ls)))
+   (reduce merge-logs (merge-logs l1 l2) ls)))
 
 (defn- log-datomize-value [ti db imp value]
   (case (:db/valueType ti)
@@ -92,13 +100,13 @@
         (if (:pace/fill-default ti) ""))
 
     :db.type/long
-    (utils/parse-int (first value))
+    (parse-int (first value))
 
     :db.type/float
-    (utils/parse-double (first value))
+    (parse-double (first value))
 
     :db.type/double
-    (utils/parse-double (first value))
+    (parse-double (first value))
 
     :db.type/instant
     (if-let [v (first value)]
@@ -114,10 +122,10 @@
     :db.type/ref
     (if-let [objref (:pace/obj-ref ti)]
       (if-let [v (first value)]
-        (if-let [[_ alloc? alloc-name] (re-matches #"__(ALLOCATE|ASSIGN)__(.+)?" v)]
+        (if-let [[_ alloc? alloc-name] (re-matches assign-alloc-re v)]
           (if alloc-name
             [:importer/temp (str (d/basis-t db) ":" alloc-name)]
-            (utils/except "Can't link to a non-named tempid: " v))
+            (except "Can't link to a non-named tempid: " v))
           [objref
            v
            (or
@@ -126,7 +134,7 @@
       (datomize-objval ti imp value))
 
     ;;default
-    (utils/except "Can't handle " (:db/valueType ti))))
+    (except "Can't handle " (:db/valueType ti))))
 
 (defn- current-by-concs
   "Index a set of component entities by their concrete values."
@@ -134,14 +142,14 @@
   (reduce
    (fn [cbc ent]
      (assoc cbc
-       (mapv (fn [conc]
-               (if-let [obj-ref (:pace/obj-ref conc)]
-                 [obj-ref
-                  (obj-ref ((:db/ident conc) ent))
-                  (get-in imp [:classes obj-ref :pace/prefer-part])]
-                 ((:db/ident conc) ent)))
-             concs)
-       ent))
+            (mapv (fn [conc]
+                    (if-let [obj-ref (:pace/obj-ref conc)]
+                      [obj-ref
+                       (obj-ref ((:db/ident conc) ent))
+                       (get-in imp [:classes obj-ref :pace/prefer-part])]
+                      ((:db/ident conc) ent)))
+                  concs)
+            ent))
    {} currents))
 
 (defn- log-components [[_ _ part :as this] current-db current ti imp values]
@@ -157,21 +165,25 @@
         nss      (:pace/use-ns ti)
         ordered? (get nss "ordered")
         hashes   (for [ns nss]
-                   (entity (:db imp) (keyword ns "id")))]      ;; performance?
+                   (entity (:db imp) (keyword ns "id")))] ; performance?
     (reduce
      (fn [log [index lines]]
        (if (and (pos? index) single?)
          (do
-           (println "WARNING: can't pack into cardinality-one component: " this lines)
+           (println
+            "WARNING: can't pack into cardinality-one component: "
+            this
+            lines)
            log)
          (let [cvals  (take-ts (count concs) (first lines))
-               cdata  (map (fn [conc val stamp]
-                             [conc
-                              (log-datomize-value conc current-db imp [val])
-                              stamp])
-                           concs cvals (lazy-cat
-                                        (:timestamps (meta cvals))
-                                        (repeat nil)))]
+               cdata  (map
+                       (fn [conc val stamp]
+                         [conc
+                          (log-datomize-value conc current-db imp [val])
+                          stamp])
+                       concs cvals (lazy-cat
+                                    (:timestamps (meta cvals))
+                                    (repeat nil)))]
            (if-let [current-comp (cbc (mapv second cdata))]
              ;; Component with these concrete values already exists
              (log-nodes
@@ -184,13 +196,20 @@
 
              ;; Otherwise synthesize a component ID and start from scratch
              (let [clean-this (lur this)
-                   temp (str/join " "
-                           (apply vector clean-this (:db/ident ti)
-                                  (map (fn [cv]
-                                         (if-let [[_ alloc? alloc-name] (re-matches #"__(ALLOCATE|ASSIGN)__(.+)?" cv)]
-                                           (str (d/basis-t current-db) ":" alloc-name)
-                                           cv))
-                                       cvals)))
+                   temp
+                   (str/join
+                    " "
+                    (apply
+                     vector
+                     clean-this
+                     (:db/ident ti)
+                     (map (fn [cv]
+                            (if-let [[_
+                                      alloc?
+                                      alloc-name] (re-matches assign-alloc-re cv)]
+                              (str (d/basis-t current-db) ":" alloc-name)
+                              cv))
+                          cvals)))
                    compid [:importer/temp temp part]]
                (->
                 (merge-logs
@@ -215,15 +234,18 @@
                   (map (partial drop-ts (count concs)) lines)
                   imp
                   nss))
-                (update (first (:timestamps (meta (first lines))))
-                        conj
-                        [:db/add this (:db/ident ti) compid])
-                (update (first (:timestamps (meta (first lines))))
-                        utils/conj-if
-                        (if ordered?
-                          [:db/add compid :ordered/index index]))))))))
-       {}
-       (utils/indexed (partition-by (partial take (count concs)) values)))))
+                (update
+                 (first (:timestamps (meta (first lines))))
+                 conj
+                 [:db/add this (:db/ident ti) compid])
+                (update
+                 (first (:timestamps (meta (first lines))))
+                 conj-if
+                 (if ordered?
+                   [:db/add compid :ordered/index index]))))))))
+     {}
+     (indexed
+      (partition-by (partial take (count concs)) values)))))
 
 
 (defn- find-keys
@@ -236,14 +258,16 @@
      (loop [[node & nodes]   line
             path             []
             [stamp & stamps] (:timestamps (meta line))]
-       (if (and node (not= node "-D"))   ;; Skip deletion nodes, which should be handled elsewhere.
+       ;; Skip deletion nodes, which should be handled elsewhere.
+       (if (and node (not= node "-D")) 
          (let [path (conj path node)]
            (if-let [ti (tags path)]
-             (update-in m [ti]
-                        utils/conjv
-                        (with-meta
-                          (or nodes [])
-                          {:timestamps (or (seq stamps) [stamp])}))
+             (update-in
+              m [ti]
+              conjv
+              (with-meta
+                (or nodes [])
+                {:timestamps (or (seq stamps) [stamp])}))
              (recur nodes path stamps)))
          m)))
    {} lines))
@@ -285,7 +309,7 @@
                 attr    :pace.xref/attribute
                 :as xref}
                lines]]
-       (let [lines (filter seq lines)    ;; Ignore empty inbound XREF lines.
+       (let [lines (remove empty? lines) ; Ignore empty inbound XREF lines.
              remote-class (entity (d/entity-db clent) obj-ref)]
          (if (= (namespace obj-ref) (namespace attr))
            ;; Simple case
@@ -295,9 +319,10 @@
                log
                (first (:timestamps (meta line)))
                conj
-               [:db/add [obj-ref (first line) (:pace/prefer-part remote-class)]
-                        attr
-                        this]))
+               [:db/add
+                [obj-ref (first line) (:pace/prefer-part remote-class)]
+                attr
+                this]))
             log lines)
 
            ;; Complex case
@@ -307,15 +332,29 @@
              (if (and link-ent (= ns (namespace obj-ref)))
                (reduce-kv
                 (fn [log xo lines]
-                  (let [remote (if-let [[_ alloc? alloc-name] (re-matches #"__(ALLOCATE|ASSIGN)__(.+)?" xo)]
+                  (let [remote (if-let [[_
+                                         alloc?
+                                         alloc-name] (re-matches
+                                                      assign-alloc-re
+                                                      xo)]
                                  (if alloc-name
-                                   [:importer/temp (str (d/basis-t current-db) ":" alloc-name)]
-                                   (utils/except "Can't link to a non-named tempid: " val))
+                                   [:importer/temp
+                                    (str
+                                     (d/basis-t current-db) ":" alloc-name)]
+                                   (except
+                                    "Can't link to a non-named tempid: "
+                                    xo)) ; bug fix
                                  [obj-ref xo (:pace/prefer-part remote-class)])
-                        temp (str/join " " [(lur remote) link-attr (if (vector? this)
-                                                                     (second this)
-                                                                     this)])
-                        compid [:importer/temp temp (:pace/prefer-part remote-class)]]
+                        temp (str/join
+                              " "
+                              [(lur remote)
+                               link-attr
+                               (if (vector? this)
+                                 (second this)
+                                 this)])
+                        compid [:importer/temp
+                                temp
+                                (:pace/prefer-part remote-class)]]
                     (merge-logs
                      (update
                       log
@@ -324,12 +363,12 @@
                       [:db/add remote link-attr compid]
                       [:db/add compid attr this])
                      (log-nodes
-                        compid
-                        current-db
-                        nil
-                        (map (partial drop-ts 1) lines)
-                        imp
-                        (:pace.xref/use-ns xref)))))
+                      compid
+                      current-db
+                      nil
+                      (map (partial drop-ts 1) lines)
+                      imp
+                      (:pace.xref/use-ns xref)))))
                 log (group-by first lines))
 
                (do
@@ -340,7 +379,9 @@
      (find-keys tags lines))))
 
 (defn- find-delete-component
-  "Attempt to find which component entity is meant in a delete.  Currently a somewhat-conservative impl."
+  "Attempt to find which component entity is meant in a delete.
+
+  Currently a somewhat-conservative impl."
   [this db imp ti nodes]
   (if-let [current-obj (and db (entity db this))]
     (let [single? (not= (:db/cardinality ti) :db.cardinality/many)
@@ -348,9 +389,9 @@
           current (or (and current single? [current])
                       current)
           concs   (sort-by
-                  :pace/order
-                  ((:tags imp)
-                   (str (namespace (:db/ident ti)) "." (name (:db/ident ti)))))
+                   :pace/order
+                   ((:tags imp)
+                    (str (namespace (:db/ident ti)) "." (name (:db/ident ti)))))
           cbc     (current-by-concs imp current concs)
           cvals   (take-ts (count concs) nodes)
           cdata   (map (fn [conc val stamp]
@@ -376,17 +417,19 @@
                (update
                 log
                 stamp
-                utils/conj-if
+                conj-if
                 (if (:db/isComponent ti)
-                  (if (seq nodes)  ;; Need to special-case delete-with-value for components.
+                  ;; Need to special-case delete-with-value for components.
+                  (if (seq nodes)  
                     (if-let [comp (find-delete-component this db imp ti nodes)]
                       (conj retract comp))
                     retract)
-                  (utils/conj-if
+                  (conj-if
                    retract
-                   (log-datomize-value     ;; If no value then this returns nil and
-                    ti                     ;; we get a "wildcard" retract that will be handled
-                    db                     ;; at playback time.
+                   (log-datomize-value ; If no value then this returns nil and
+                    ti                 ; we get a "wildcard"
+                                       ; retract that will be handled
+                    db                 ; at playback time.
                     imp
                     (if nodes
                       (with-meta nodes {:timestamps stamps})))))))))))
@@ -425,8 +468,14 @@
            (for [base ["A" "C" "G" "T"]
                  :let [val (bgs base)]]
              [(first (:timestamps (meta val)))
-              [:db/add holder (keyword "position-matrix.value" (.toLowerCase base)) (utils/parse-double (first val))]])
-           [timestamp [:db/add [:position-matrix/id id] :position-matrix/background holder]])))
+              [:db/add holder
+               (keyword
+                "position-matrix.value"
+                (.toLowerCase base))
+               (parse-double (first val))]])
+           [timestamp
+            [:db/add [:position-matrix/id id]
+             :position-matrix/background holder]])))
       (if (seq values)
         (mapcat
          (fn [index
@@ -435,12 +484,14 @@
               [g g-ts]
               [t t-ts]]
            (let [holder [:importer/temp (str (d/squuid))]]
-             [[timestamp [:db/add [:position-matrix/id id] :position-matrix/values holder]]
+             [[timestamp [:db/add
+                          [:position-matrix/id id]
+                          :position-matrix/values holder]]
               [timestamp [:db/add holder :ordered/index index]]
-              [a-ts [:db/add holder :position-matrix.value/a (utils/parse-double a)]]
-              [c-ts [:db/add holder :position-matrix.value/c (utils/parse-double c)]]
-              [g-ts [:db/add holder :position-matrix.value/g (utils/parse-double g)]]
-              [t-ts [:db/add holder :position-matrix.value/t (utils/parse-double t)]]]))
+              [a-ts [:db/add holder :position-matrix.value/a (parse-double a)]]
+              [c-ts [:db/add holder :position-matrix.value/c (parse-double c)]]
+              [g-ts [:db/add holder :position-matrix.value/g (parse-double g)]]
+              [t-ts [:db/add holder :position-matrix.value/t (parse-double t)]]]))
          (iterate inc 0)
          (pair-ts (values "A"))
          (pair-ts (values "C"))
@@ -449,25 +500,28 @@
 
      (reduce
       (fn [log [ts datom]]
-        (update log ts utils/conjv datom))
+        (update log ts conjv datom))
       {}))))
 
 (defmethod log-custom "Sequence" [obj this imp]
   (if-let [subseqs (select-ts obj ["Structure" "Subsequence"])]
     (reduce
      (fn [log [subseq start end :as m]]
-      (if (and subseq start end)    ;; WS248 contains ~30 clones with empty Subsequence tags.
-       (let [child [:sequence/id subseq :wb.part/sequence]
-             start (utils/parse-int start)
-             end   (utils/parse-int end)]
-         (update
-          log
-          (first (:timestamps (meta m)))
-          utils/conj-if
-          [:db/add child :locatable/assembly-parent this]
-          [:db/add child :locatable/min (dec start)]
-          [:db/add child :locatable/max end]
-          [:db/add child :locatable/murmur-bin (bin (second this) (dec start) end)]))))
+       ;; WS248 contains ~30 clones with empty Subsequence tags.
+       (if (and subseq start end)    
+         (let [child [:sequence/id subseq :wb.part/sequence]
+               start (parse-int start)
+               end   (parse-int end)]
+           (update
+            log
+            (first (:timestamps (meta m)))
+            conj-if
+            [:db/add child :locatable/assembly-parent this]
+            [:db/add child :locatable/min (dec start)]
+            [:db/add child :locatable/max end]
+            [:db/add child
+             :locatable/murmur-bin
+             (bin (second this) (dec start) end)]))))
      {}
      subseqs)))
 
@@ -499,8 +553,8 @@
      (if-let [ident (s-child-types type)]
        (let [child [ident link (or (get-in imp [:classes ident :pace/prefer-part])
                                    :db.part/user)]
-             start (utils/parse-int start)
-             end   (utils/parse-int end)
+             start (parse-int start)
+             end   (parse-int end)
              timestamp (case type
                          "Feature_data"
                          "helper"
@@ -514,17 +568,21 @@
            (update
             log
             timestamp
-            utils/conj-if
+            conj-if
             [:db/add child :locatable/parent this]
             [:db/add child :locatable/min (dec (min start end))]
             [:db/add child :locatable/max (max start end)]
-            [:db/add child :locatable/strand (if (< start end)
-                                               :locatable.strand/positive
-                                               :locatable.strand/negative)]
+            [:db/add child
+             :locatable/strand
+             (if (< start end)
+               :locatable.strand/positive
+               :locatable.strand/negative)]
             (if (= (first this) :sequence/id)
-              [:db/add child :locatable/murmur-bin (bin (second this)
-                                                        (dec (min start end))
-                                                        (max start end))]))
+              [:db/add child
+               :locatable/murmur-bin
+               (bin (second this)
+                    (dec (min start end))
+                    (max start end))]))
            (update
             log
             timestamp
@@ -552,7 +610,7 @@
   (obj->log imp nil obj))
  ([imp db {:keys [id] :as obj}]
   (let [ci                     ((:classes imp) (:class obj))
-        [_ alloc? alloc-name]  (re-matches #"__(ALLOCATE|ASSIGN)__(.+)?" id)
+        [_ alloc? alloc-name]  (re-matches assign-alloc-re id)
         part                   (or (:pace/prefer-part ci) :db.part/user)
         this                   (if ci
                                  (if alloc?
@@ -560,7 +618,10 @@
                                     (if alloc-name
                                       (if db
                                         (str (d/basis-t db) ":" alloc-name)
-                                        (utils/except "Can't use named allocation when a db is not provided: " id))
+                                        (except
+                                         (str "Can't use named allocation "
+                                              "when a db is not provided: ")
+                                         id))
                                       (str (d/squuid)))
                                     part]
                                    [(:db/ident ci)
@@ -610,7 +671,9 @@
 (defn patch->log [imp db {:keys [id] :as obj}]
   (let [ci     ((:classes imp) (:class obj))
         this   (if ci
-                 [(:db/ident ci) (:id obj)])] ;; No partition hint, so we can use this as a plain Lookup ref.
+                 ;; No partition hint, so we can use this as a plain
+                 ;; Lookup ref.
+                 [(:db/ident ci) (:id obj)])] 
     (if-let [orig (entity db this)]
       (cond
        (:delete obj)
@@ -646,7 +709,8 @@
            (map (partial drop-ts 1) dels)  ; Remove the leading "-D"
            imp
            #{(namespace (:db/ident ci))}))))
-      (obj->log imp db obj))))     ;; Patch for a non-existant object is equivalent to import.
+      ;; Patch for a non-existant object is equivalent to import.
+      (obj->log imp db obj)))) 
 
 (defn objs->log [imp objs]
   (reduce
@@ -671,7 +735,8 @@
             lref       [k v]]
         (if v
           (if (entity db lref)
-            [(assoc datom index lref) temps]    ; turn 3-element refs into normal lookup-refs
+            ;; turn 3-element refs into normal lookup-refs
+            [(assoc datom index lref) temps]
             (if-let [tid (temps ref)]
               [(assoc datom index tid) temps]
               (let [tid (d/tempid (or part :db.part/user))]
@@ -694,7 +759,7 @@
     (fn [{:keys [done temps] :as last} datom]
       (if-let [[datom temps ex1] (temp-datom db datom temps 1)]
         (if-let [[datom temps ex2] (temp-datom db datom temps 3)]
-          {:done  (utils/conj-if done datom ex1 ex2)
+          {:done  (conj-if done datom ex1 ex2)
            :temps temps}
           last)
         last))
@@ -717,7 +782,7 @@
 (defn- txmeta [stamp]
   (let [[_ ds ts name] (re-matches timestamp-pattern stamp)
         time           (if ds (read-instant-date (str ds "T" ts)))]
-    (utils/vmap
+    (vmap
      :db/id             (d/tempid :db.part/tx)
      :importer/ts-name  name
      :db/txInstant      (if-not *suppress-timestamps*
@@ -734,9 +799,8 @@
    "original" "1970-01-02_01:01:01_original"})
 
 (defn clean-log-keys [log]
-  (->> (for [[k v] log]
-         [(or (log-fixups k) k) v])
-       (into {})))
+  (into {} (for [[k v] log]
+             [(or (log-fixups k) k) v])))
 
 (defn logs-to-dir
   [logs dir]
@@ -796,4 +860,4 @@
           (try
               @(d/transact-async con (conj datoms (txmeta stamp)))
           (catch Throwable t
-            (.printStackTrace t) )))))))
+            (.printStackTrace t))))))))
