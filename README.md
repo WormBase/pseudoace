@@ -27,12 +27,9 @@ sudo apt-get install -y libautodie-perl libipc-system-simple-perl
 
 ## Development
 
-Follow the GitFlow mechanism for branching and committing changes as
-detailed
-[here](https://datasift.github.io/gitflow/IntroducingGitFlow.html).
+Follow the [GitFlow][6] mechanism for branching and committing changes.
 
-Please attempt to use the Clojure coding-style conventions outlined
-[here](https://github.com/bbatsov/clojure-style-guide).
+Please attempt to adhere to the [Clojure coding-style][7] conventions.
 
 ## Usage
 
@@ -96,3 +93,5 @@ you run it on.
 [3]: http://leiningen.org/
 [4]: https://github.com/edn-format/edn/
 [5]: http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html
+[6]: https://datasift.github.io/gitflow/IntroducingGitFlow.html
+[7]: https://github.com/bbatsov/clojure-style-guide
