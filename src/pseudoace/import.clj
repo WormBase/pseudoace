@@ -77,37 +77,44 @@
        :db/doc   "confused placeholder!"})))  ; Temp workaround for ?Rearrangement
 
 
-(defn datomize-value [ti imp val]
+(defn datomize-value [ti imp value]
   (case (:db/valueType ti)
     :db.type/string
-    (or (ace/unescape (first val))
+    (or (ace/unescape (first value))
         (if (:pace/fill-default ti) ""))
+
     :db.type/long
-    (parse-int (first val))
+    (parse-int (first value))
+
     :db.type/float
-    (parse-double (first val))
+    (parse-double (first value))
+
     :db.type/double
-    (parse-double (first val))
+    (parse-double (first value))
+
     :db.type/instant
-    (if-let [v (first val)]
+    (if-let [v (first value)]
       (read-instant-date (str/replace v #"_" "T"))
       (if (:pace/fill-default ti)
         (read-instant-date "1977-10-29")))
+
     :db.type/boolean
     true  ; ACeDB just has tag presence/absence rather than booleans.
+
     :db.type/ref
     (if-let [objref (:pace/obj-ref ti)]
-      (if (first val)
+      (if (first value)
         {:db/id (tempid :db.part/user)
-         objref (first val)})
-      (datomize-objval ti imp val))
+         objref (first value)})
+      (datomize-objval ti imp value))
+
     ;;default
     (except "Can't handle " (:db/valueType ti))))
 
 (defn- pace-items-for-ns [imp ns]
   ((:tags imp) ns))
 
-(defn datomize-components [ti imp vals]
+(defn datomize-components [ti imp values]
   (let [concs    (sort-by
                   :pace/order
                   (pace-items-for-ns
@@ -127,8 +134,8 @@
                (if (seq cvals)
                  (into {}
                        (map
-                        (fn [conc val]
-                          [(:db/ident conc) (datomize-value conc imp [val])])
+                        (fn [conc value]
+                          [(:db/ident conc) (datomize-value conc imp [value])])
                         concs cvals))
                  {})
                :ordered/index
@@ -140,28 +147,30 @@
          (if (empty? comp)
            {:db/doc "placeholder"}
            comp)))
-     (group-by (partial take (count concs)) vals))))
+     (group-by (partial take (count concs)) values))))
 
 (defn import-acenodes [base lines tags imp]
   (reduce
-   (fn [ent [ti vals]]
-     (vassoc ent
-             (:db/ident ti)
-             (if (:db/isComponent ti)
-               (let [dc (datomize-components ti imp vals)]
-                 (if (= (:db/cardinality ti) :db.cardinality/one)
-                   (do
-                     (if (not= (count dc) 1)
-                       (println "Expected only one value for " (:db/ident ti)))
-                     (first dc))
-                   dc))
-               (if (= (:db/cardinality ti) :db.cardinality/one)
-                 (datomize-value ti imp (first vals))
-                 (seq
-                  (filter
-                   identity
-                   (map (partial datomize-value ti imp) vals))))))) ; drop nil values.
-   base
+   (fn [ent [ti values]]
+     (vassoc
+      ent
+      (:db/ident ti)
+      (if (:db/isComponent ti)
+        (let [dc (datomize-components ti imp values)]
+          (if (= (:db/cardinality ti) :db.cardinality/one)
+            (do
+              (if (not= (count dc) 1)
+                (println "Expected only one value for " (:db/ident ti)))
+              (first dc))
+            dc))
+        (if (= (:db/cardinality ti) :db.cardinality/one)
+          (datomize-value ti imp (first values))
+          (seq
+           (filter
+            identity
+            ;; drop nil values.
+            (map (partial datomize-value ti imp) values)))))))
+   base 
    (reduce (fn [n line]
              (if-let [[ti data] (datomize-tags tags line)]
                (conj-in n ti data)
