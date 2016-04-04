@@ -5,7 +5,7 @@ Converts ACeDB database dump files into a datomic database for the
 
  * Reading and writing ACeDB model files.
  * Generating Datomic schema based on ACeDB models.
- * Model-driven import of ACeDB data into a [Datomic][2]database.
+ * Model-driven import of ACeDB data into a [Datomic][2] database.
  * Emulating an ACeDB server (currently incomplete).
 
 ## Installation
