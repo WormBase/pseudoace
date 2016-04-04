@@ -91,8 +91,8 @@ Using a full dump of a recent release of Wormbase, you can expect this
 command to take in the region of 8-12 hours depending on the platform
 you run it on.
 
-[1] http://www.wormbase.org/
-[2] http://www.datomic.com/
-[3] http://leiningen.org/
-[4] https://github.com/edn-format/edn/
-[5] http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html
+[1]: http://www.wormbase.org/
+[2]: http://www.datomic.com/
+[3]: http://leiningen.org/
+[4]: https://github.com/edn-format/edn/
+[5]: http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html
