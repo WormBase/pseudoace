@@ -11,12 +11,13 @@
       [tok (.start m)]
       (indexed-tokens* m)))))
 
-(defn- indexed-tokens [s]
+(defn- indexed-tokens
   "Return the tokens of s, along with the column indices in which they start"
+  [s]
   (doall (indexed-tokens* (re-matcher #"[A-Za-z0-9_\?\#\^\|-]+" s))))
 
 (defn- positive? [i]
-  (> i 0))
+  (pos? i))
 
 (defn- conj-if [col maybe-add]
   (if maybe-add
@@ -28,10 +29,10 @@
     (cond
      (zero? i)
      ""
-     
+
      (positive? i)
      (.substring s 0 i)
-     
+
      :default
      s)))
 
@@ -41,11 +42,11 @@
   (let [[peek _] (first toks)]
     (cond
      (nil? peek)
-       n 
+       n
      (= peek "UNIQUE")
        (parse-model-line* (assoc n :unique? true) (rest toks))
      (= peek "REPEAT")
-       (parse-model-line* (assoc n :repeat? true) (rest toks))  
+       (parse-model-line* (assoc n :repeat? true) (rest toks))
      (#{"XREF" "NOXREF" "YESXREF" "INXREF" "OUTXREF"} peek)
        (parse-model-line* (assoc n :xref (first (second toks))
                                    :suppress-xref (#{"NOXREF" "INXREF"} peek))
@@ -58,7 +59,7 @@
          (if (.startsWith p2 "^")
            (parse-model-line* (assoc n :enum (.substring p2 1)) (drop 2 toks))
            (parse-model-line* (assoc n :enum true) (rest toks))))
-     
+
      (.startsWith peek "^")
        (parse-model-line* (assoc n :alt-name (.substring peek 1)) (rest toks))
      :default
@@ -90,7 +91,7 @@
       (parse-model-line* n (rest toks)))))
 
 (defn- append-model-line [model line]
-  (when (not model)
+  (when-not model
     (throw (Exception. (str "Couldn't insert " (:name line)))))
   (if line
     (let [children    (:children model)
@@ -112,9 +113,10 @@
        :default
        (throw (Exception. (str "Couldn't insert model node " (:name line) " at index " new-index ", tried at " insert-index)))))
     model))
-    
-(defn parse-models [r]
+
+(defn parse-models
   "Read ACeDB models from Reader `r`"
+  [r]
   (loop [lines          (map uncomment (line-seq r))
          models         []
          cmodel         nil]

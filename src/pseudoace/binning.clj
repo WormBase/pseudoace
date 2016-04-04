@@ -1,4 +1,4 @@
-(ns wb.binning
+(ns pseudoace.binning
   (:import clojure.lang.Murmur3))
 
 ;;
@@ -40,17 +40,21 @@
 ;;
 
 (defn bin
-  "Return a WB bin number for a feature attached to `[:sequence/id seq]`
-   with coordinates `min` and `max`."
-  [^String seq min max]
+  "Return a WB bin number for features overlapping the region from
+  `coord-min` to `coord-max` attached to `s`.
+
+  (Where `s` may be found for example by: `[:sequence/id seq]`)."
+  [^String s coord-min coord-max]
   (bit-or
-   (bit-shift-left (Murmur3/hashUnencodedChars seq) 20)
-   (reg2bin min max)))
+   (bit-shift-left (Murmur3/hashUnencodedChars s) 20)
+   (reg2bin coord-min coord-max)))
 
 (defn bins
-  "Return WB bin numbers for features overlapping the region from `min` to `max`
-   attached to `[:sequence/id seq]`."
-  [^String seq min max]
-  (mapv (partial bit-or (bit-shift-left (Murmur3/hashUnencodedChars seq) 20))
-        (reg2bins min max)))
+  "Return WB bin numbers for features overlapping the region from
+  `coord-min` to `coord-max` attached to `s`.
+
+  (Where `s` may be found for example by: `[:sequence/id seq]`)."
+  [^String s coord-min coord-max]
+  (let [bits (bit-shift-left (Murmur3/hashUnencodedChars s) 20)]
+    (mapv (partial bit-or bits) (reg2bins coord-min coord-max))))
 

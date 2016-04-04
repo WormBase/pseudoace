@@ -1,12 +1,9 @@
 (ns pseudoace.pace
   (:require [datomic.api :as d :refer (q entity touch entity-db)]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [pseudoace.utils :refer (not-nil?)]))
 
-(defn- not-nil?
-  [x]
-  (not (nil? x)))
-
-(defrecord AceNode [type value children]
+(defrecord AceNode [typ value children]
   java.lang.Comparable
     (compareTo [this a] (compare (:value this) (:value a))))
 
@@ -26,14 +23,14 @@
        (when tags
          (let [v        (k ent)
                card     (:db/cardinality schema)
-               type     (:db/valueType schema)
+               typ      (:db/valueType schema)
                vs       (if (= card :db.cardinality/one)
                           [v]
                           v)
                obj-ref  (:pace/obj-ref schema)
                nodetype (if obj-ref
                           (:pace/identifies-class (entity db obj-ref))
-                          type)
+                          typ)
                vv       (if obj-ref
                           (filter not-nil? (map obj-ref vs))
                           vs)]
@@ -119,12 +116,12 @@
       (concat (objectify* db ent)
               (mapcat (partial objectify-xref db ent) xrefs)))))
  ([clazz ent ^String tag]
-  (let [{:keys [type value children] :as root} (objectify clazz ent)
+  (let [{:keys [typ value children] :as root} (objectify clazz ent)
         tag-filter (fn [node]
                      (and (= (:type node) :tag)
                           (.equalsIgnoreCase tag (:value node))))]
      (AceNode.
-      type
+      typ
       value
       (tag-walker tag-filter root)))))
              
@@ -202,19 +199,19 @@
          :default
          (str "?" (type-to-ace (:type pn)) "?" (:value pn) "?")))))))
 
-(defn wrap-lines [^String str ^Integer width]
+(defn wrap-lines [^String s ^Integer width]
   (lazy-seq
-   (if (> (.length str) width)
+   (if (> (.length s) width)
      (let [i   (.lastIndexOf str 32 width)
            i2  (if (>= i 0)
                  i
-                 (.indexOf str 32))]
+                 (.indexOf s 32))]
        (cons (if (>= i2 0)
-               (.substring str 0 i2)
+               (.substring s 0 i2)
                str)
              (if (and (>= i2 0) (< i2 (dec (.length str))))
-               (wrap-lines (.substring str (inc i2)) width))))
-     (cons str nil))))
+               (wrap-lines (.substring s (inc i2)) width))))
+     (cons s nil))))
 
 (defmethod print-ace :human-readable-format
   [_ node]

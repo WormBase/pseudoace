@@ -8,14 +8,14 @@
   (vec (filter identity args)))
 
 (defn- enum-keys
-  [db namespace]
+  [db key-ns]
   (->>
    (q '[:find [?key ...]
         :in $ ?ns
         :where [_ :db/ident ?i]
                [(namespace ?i) ?ns]
         [(name ?i) ?key]]
-      db namespace)
+      db key-ns)
    (map keyword)
    (seq)))
      
