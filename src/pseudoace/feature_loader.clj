@@ -3,9 +3,9 @@
        clojure.instant
        clojure.java.io)
   (require [datomic.api :as d :refer (db q entity touch tempid)]
-           [acetyl.parser :as ace]
            [clojure.string :as str]
-           [clojure.edn :as edn])
+           [clojure.edn :as edn]
+           [pseudoace.aceparser :as ace])
   (import java.io.FileInputStream
           java.io.PushbackReader
           java.util.zip.GZIPInputStream))

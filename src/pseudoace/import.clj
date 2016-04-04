@@ -2,8 +2,8 @@
   (use pseudoace.utils
        clojure.instant)
   (require [datomic.api :as d :refer (db q entity touch tempid)]
-           [acetyl.parser :as ace]
-           [clojure.string :as str])
+           [clojure.string :as str]
+           [pseudoace.aceparser :as ace])
   (import java.io.FileInputStream java.util.zip.GZIPInputStream))
 
 (defrecord Importer [db classes tags])
