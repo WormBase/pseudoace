@@ -1,10 +1,14 @@
 (ns pseudoace.import
-  (use pseudoace.utils
-       clojure.instant)
-  (require [datomic.api :as d :refer (db q entity touch tempid)]
-           [clojure.string :as str]
-           [pseudoace.aceparser :as ace])
-  (import java.io.FileInputStream java.util.zip.GZIPInputStream))
+  (:require [datomic.api :as d :refer (db q entity touch tempid)]
+            [clojure.string :as str]
+            [clojure.instant :refer (read-instant-date)]
+            [pseudoace.aceparser :as ace]
+            [pseudoace.utils :refer (except
+                                     parse-double
+                                     parse-int
+                                     vassoc)])
+  (:import java.io.FileInputStream
+           java.util.zip.GZIPInputStream))
 
 (defrecord Importer [db classes tags])
 
@@ -52,63 +56,63 @@
       [ltt (rest line)]
       (recur tags (rest line)))))
 
-(defn datomize-objval [ti imp val]
+(defn datomize-objval [ti imp value]
   (let [ident      (:db/ident ti)
         tags       (get-tagpaths imp #{(str (namespace ident) "." (name ident))
-                                        "evidence"})
-        ;; Unusually, we want to be greedy here -- so will iterate backwards through "val"
-        maybe-obj  (loop [vals val]
-                     (if (seq vals)
-                       (or (tags (str/join " " vals))
-                           (recur (butlast vals)))))]
+                                       "evidence"})
+        ;; Unusually, we want to be greedy here --
+        ;; so will iterate backwards through "value"
+        maybe-obj  (loop [values value]
+                     (if (seq values)
+                       (or (tags (str/join " " values))
+                           (recur (butlast values)))))]
     (cond
-     maybe-obj
-     (if (zero? (d/part (:db/id maybe-obj)))
-       (except "Refers to a schema entity: " val)
-       (:db/ident maybe-obj))
+      maybe-obj
+      (if (zero? (d/part (:db/id maybe-obj)))
+        (except "Refers to a schema entity: " value)
+        (:db/ident maybe-obj))
 
-     :default
-     ;;; (except "We're confused..."))))
-     {:db/id    (tempid :db.part/user)
-      :db/doc   "confused placeholder!"})))  ; Temp workaround for ?Rearrangement
-     
+      :default
+      {:db/id    (tempid :db.part/user)
+       :db/doc   "confused placeholder!"})))  ; Temp workaround for ?Rearrangement
+
 
 (defn datomize-value [ti imp val]
   (case (:db/valueType ti)
     :db.type/string
-      (or (ace/unescape (first val))
-          (if (:pace/fill-default ti) ""))
+    (or (ace/unescape (first val))
+        (if (:pace/fill-default ti) ""))
     :db.type/long
-      (parse-int (first val))  
+    (parse-int (first val))
     :db.type/float
-      (parse-double (first val))
+    (parse-double (first val))
     :db.type/double
-      (parse-double (first val))
+    (parse-double (first val))
     :db.type/instant
     (if-let [v (first val)]
       (read-instant-date (str/replace v #"_" "T"))
       (if (:pace/fill-default ti)
         (read-instant-date "1977-10-29")))
     :db.type/boolean
-      true  ; ACeDB just has tag presence/absence rather than booleans.  
+    true  ; ACeDB just has tag presence/absence rather than booleans.
     :db.type/ref
-      (if-let [objref (:pace/obj-ref ti)]
-        (if (first val)
-          {:db/id (tempid :db.part/user)
-           objref (first val)})
-        (datomize-objval ti imp val))
+    (if-let [objref (:pace/obj-ref ti)]
+      (if (first val)
+        {:db/id (tempid :db.part/user)
+         objref (first val)})
+      (datomize-objval ti imp val))
     ;;default
-      (except "Can't handle " (:db/valueType ti))))
+    (except "Can't handle " (:db/valueType ti))))
 
 (defn- pace-items-for-ns [imp ns]
   ((:tags imp) ns))
 
 (defn datomize-components [ti imp vals]
   (let [concs    (sort-by
-                    :pace/order
-                    (pace-items-for-ns
-                      imp
-                      (str (namespace (:db/ident ti)) "." (name (:db/ident ti)))))
+                  :pace/order
+                  (pace-items-for-ns
+                   imp
+                   (str (namespace (:db/ident ti)) "." (name (:db/ident ti)))))
         nss      (:pace/use-ns ti)
         ordered? (if nss
                    (nss "ordered"))
