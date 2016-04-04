@@ -259,7 +259,7 @@
             path             []
             [stamp & stamps] (:timestamps (meta line))]
        ;; Skip deletion nodes, which should be handled elsewhere.
-       (if (and node (not= node "-D")) 
+       (if (and node (not= node "-D"))
          (let [path (conj path node)]
            (if-let [ti (tags path)]
              (update-in
@@ -420,7 +420,7 @@
                 conj-if
                 (if (:db/isComponent ti)
                   ;; Need to special-case delete-with-value for components.
-                  (if (seq nodes)  
+                  (if (seq nodes)
                     (if-let [comp (find-delete-component this db imp ti nodes)]
                       (conj retract comp))
                     retract)
@@ -508,7 +508,7 @@
     (reduce
      (fn [log [subseq start end :as m]]
        ;; WS248 contains ~30 clones with empty Subsequence tags.
-       (if (and subseq start end)    
+       (if (and subseq start end)
          (let [child [:sequence/id subseq :wb.part/sequence]
                start (parse-int start)
                end   (parse-int end)]
@@ -673,7 +673,7 @@
         this   (if ci
                  ;; No partition hint, so we can use this as a plain
                  ;; Lookup ref.
-                 [(:db/ident ci) (:id obj)])] 
+                 [(:db/ident ci) (:id obj)])]
     (if-let [orig (entity db this)]
       (cond
        (:delete obj)
@@ -710,7 +710,7 @@
            imp
            #{(namespace (:db/ident ci))}))))
       ;; Patch for a non-existant object is equivalent to import.
-      (obj->log imp db obj)))) 
+      (obj->log imp db obj))))
 
 (defn objs->log [imp objs]
   (reduce

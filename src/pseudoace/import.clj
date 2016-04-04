@@ -142,21 +142,22 @@
   (reduce
    (fn [ent [ti vals]]
      (vassoc ent
-       (:db/ident ti)
-       (if (:db/isComponent ti)
-         (let [dc (datomize-components ti imp vals)]
-           (if (= (:db/cardinality ti) :db.cardinality/one)
-             (do
-               (if (not= (count dc) 1)
-                 (println "Expected only one value for " (:db/ident ti)))
-               (first dc))
-             dc))
-         (if (= (:db/cardinality ti) :db.cardinality/one)
-           (datomize-value ti imp (first vals))
-           (seq (filter identity (map (partial datomize-value ti imp) vals))))))) ; drop nil values.
-   
+             (:db/ident ti)
+             (if (:db/isComponent ti)
+               (let [dc (datomize-components ti imp vals)]
+                 (if (= (:db/cardinality ti) :db.cardinality/one)
+                   (do
+                     (if (not= (count dc) 1)
+                       (println "Expected only one value for " (:db/ident ti)))
+                     (first dc))
+                   dc))
+               (if (= (:db/cardinality ti) :db.cardinality/one)
+                 (datomize-value ti imp (first vals))
+                 (seq
+                  (filter
+                   identity
+                   (map (partial datomize-value ti imp) vals))))))) ; drop nil values.
    base
-   
    (reduce (fn [n line]
              (if-let [[ti data] (datomize-tags tags line)]
                (conj-in n ti data)
@@ -185,7 +186,7 @@
      (map-indexed
       (fn [idx item]
         (assoc item :ordered/index idx))
-      (map 
+      (map
        (fn [a c g t]
          {:position-matrix.value/a a
           :position-matrix.value/c c
@@ -207,7 +208,7 @@
   {})
 
 (defn import-acefile
-  "Read ACeDB objects from r and attempt to convert them to match the 
+  "Read ACeDB objects from r and attempt to convert them to match the
    pseudoace schema in con"
   [f imp]
   (let [classes (get-classes (:db imp))]
@@ -219,7 +220,6 @@
           [{:db/id            (d/tempid :db.part/user)
             :longtext/id      (:id obj)
             :longtext/text    (ace/unescape (:text obj))}]
-
           "DNA"
           [{:db/id            (d/tempid :db.part/user)
             :dna/id           (:id obj)
@@ -232,21 +232,27 @@
 
           ;; default
           (when-let [ci (classes (:class obj))]
-            [(merge 
+            [(merge
               (import-aceobj obj ci imp)
               (import-custom obj))])))
       (ace/ace-seq (ace/ace-reader f))))))
 
 
-(defn do-import [con path blocks]
+(defn do-import
+  [con path blocks & {:keys [verbose]
+                      :or {verbose true}}]
   (let [imp (importer con)]
-    (doseq [b blocks] 
-      (println b)
-      (let [txd (import-acefile (GZIPInputStream. (FileInputStream. (str path b ".ace.gz"))) imp)
+    (doseq [b blocks]
+      (if verbose
+        (println b))
+      (let [txd (import-acefile (GZIPInputStream.
+                                 (FileInputStream.
+                                  (str path b ".ace.gz"))) imp)
             num (count txd)
             bs (int (Math/ceil (/ num 500)))]
-        (println "Objects: " num " (" bs ")")
+        (if bs
+          (println "Objects: " num " (" bs ")"))
         (doseq [blk (partition-all bs txd)]
-          (count @(d/transact 
-                   con 
-                   blk)))))))
+          (let [n (count @(d/transact con blk))]
+            (if verbose
+              (println "N transctions:" n))))))))
