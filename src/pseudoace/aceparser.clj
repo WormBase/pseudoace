@@ -1,4 +1,4 @@
-(ns psedudoace.aceparser
+(ns pseudoace.aceparser
   "Parsing routines for ACeDB 'dump' files."
   (:require
    [clojure.java.io :refer (reader)]
