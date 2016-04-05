@@ -14,18 +14,7 @@ Features include:
   
 ## Installation
 
-Fedora/Redhat:
-
-```bash
-sudo yum -y install perl-autodie perl-IPC-System-Simple
-```
-
-Debian/Ubuntu:
-
-```bash
-sudo apt-get install -y libautodie-perl libipc-system-simple-perl
-```
-
+Install Java 1.8.
 
 [Install leiningen][3].
 

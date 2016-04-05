@@ -28,7 +28,8 @@
    (java.net InetAddress)
    (java.io.FileInputStream)
    (java.io.File)
-   (java.util.zip.GZIPInputStream))
+   (java.util.zip.GZIPInputStream)
+   (java.util.zip.GZIPOutputStream))
   (:gen-class))
 
 ;; First three strings describe a short-option, long-option with optional
@@ -306,15 +307,26 @@
 (defn get-current-directory []
   (.getCanonicalPath (java.io.File. ".")))
 
-(defn sort-edn-logs-command [file]
-  "Invoke the perl helper script to sort EDN files.
 
-Assumes that the current working directory is the top level project
-directory."
-  (shell/sh
-   "./scripts/sort-edn-log.pl"
-   file
-   :dir (get-current-directory)))
+(defn- sort-edn-log-file
+  [gz-path]
+  (with-open [in (-> gz-path
+               io/input-stream
+               (java.util.zip.GZIPInputStream.))]
+    (let [data (slurp in)
+          lines (str/split-lines data)
+          coll (map #(str/split % #"\s{1,}" 2) lines)
+          sorted-coll (sort-by first coll)
+          out-lines (map #(str/join " " %) sorted-coll)
+          out-path (str/replace gz-path ".gz" ".sort.gz")]
+      (with-open [w (-> out-path
+                        io/output-stream
+                        (java.util.zip.GZIPOutputStream.)
+                        io/writer)]
+        (binding [*out* w]
+          (doseq [line out-lines]
+            (.write w line)
+            (.newLine w)))))))
 
 (defn sort-edn-logs
   "Sort the log files generated from ACeDB dump files."
@@ -328,9 +340,10 @@ directory."
         (if verbose
           (print "Sorting file:" file " ... "))
         (let [gzipped-file (io/file log-dir file)
-              filepath (.getPath gzipped-file)
-              result (sort-edn-logs-command filepath)]
-          (check-sh-result result :verbose verbose))))
+              filepath (.getPath gzipped-file)]
+          (sort-edn-log-file filepath)
+          (io/delete-file filepath)
+          (println "ok"))))
     (println "Log directory" log-dir "does not exist!")))
 
 (defn import-edn-logs
