@@ -3,10 +3,13 @@ blib/
 _build/
 cover_db/
 inc/
+target/
 Build
 !Build/
 Build.bat
+.lein-*
 .last_cover_stats
+.nrepl-port
 Makefile
 Makefile.old
 MANIFEST.bak

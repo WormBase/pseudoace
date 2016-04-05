@@ -1,63 +1,90 @@
-# AceDB to Datomic 
+# pseudoace
 
-- Reading and writing ACeDB model files.
-- Generating Datomic schemas based on ACeDB models.
-- Model-driven import of ACeDB data into multiple databases (currently Datomic and MongoDB).
-- Emulating an ACeDB server (currently incomplete).
+Provides a clojure library for use by the [Wormbase][1] project.
 
-Installation
+Features include:
 
-sudo yum -y install perl-autodie perl-IPC-System-Simple
+  * Model-driven import of ACeDB data into a [Datomic][2] database.
+    * (Dynamic generation of an isomorphic Datomic schema from an
+      annotated ACeDB models file)
+  * Conversion of ACeDB database dump files into a datomic database
+  * Routines for parsing and dumping ACeDB "dump files".
+  * Utility functions and macros for querying WormBase data.
+  * A command line interface for utilities described above (via `lein run`)
+  
+## Installation
 
+Install Java 1.8.
 
-##Ace to Datomic
+[Install leiningen][3].
 
-This tool is used to import databases from ACeDB to Datomic
+## Development
 
-##DEVELOPMENT PROCEDURE
+Follow the [GitFlow][6] mechanism for branching and committing changes.
 
-Follow the GitFlow mechanism for branching and commiting changes as detailed [here](https://datasift.github.io/gitflow/IntroducingGitFlow.html)
-   
-## DATA
->>>>>>> develop
+Please attempt to adhere to the [Clojure coding-style][7] conventions.
 
-   - To get help run the following command
+## Usage
 
-lein run ace-to-datomic --help
+A command line utility has been developed for ease of usage:
 
-###Help Output
+```bash
 
-Ace to dataomic is tool for importing data from ACeDB into to Datomic database
+URL_OF_TRANSACTOR="datomic:dev://localhost:4334/*"
 
-Usage: ace-to-datomic [options] action
+lein run --url $URL_OF_TRANSACTOR <command>
 
-Options:
-      --model PATH                             Specify the model file that you would like to use that is found in the models folder e.g. models.wrm.WS250.annot
-      --url URL                                Specify the url of the Dataomic transactor you would like to connect. Example: datomic:free://localhost:4334/WS250
-      --schema-filename PATH                   Specify the name of the file for the schema view to be written to when selecting Action: generate-schema-view exampls schema250.edn
-      --log-dir PATH                           Specifies the path to and empty directory to store the Datomic logs in. Example: /datastore/datomic/tmp/datomic/import-logs-WS250/
-      --acedump-dir PATH                       Specifies the path to the directory of the desired acedump. Example /datastore/datomic/tmp/acedata/WS250/
-      --backup-file PATH                       Secify the path to the file in which you would like to have the database dumped into
-      --datomic-database-report-filename PATH  Specify the relative or full path to the file that you would like the report to be written to
-  -v, --verbose
-  -f, --force
-  -h, --help
+```
 
-Actions: (required options for each action are provided in square brackets)
-  create-database                      Select this option if you would like to create a Datomic database from a schema. Required options [model, url]
-  generate-datomic-schema-view         Select if you would like the schema to the database to be exported to a file. Required options [schema-filename, url]
-  acedump-to-datomic-log               Select if you are importing data from ACeDB to Datomic and would like to create the Datomic log files [url, log-dir, acedump-dir]
-  sort-datomic-log                     Select if you would like to sort the log files generated from your ACeDB dump [log-dir]
-  import-logs-into-datomic             Select if you would like to import the sorted logs back into datomic [log-dir, url]
-  excise-tmp-data                      Select in order to remove all the tmp data that was created in the database to import the data [url]
-  test-datomic-data                    Select if you would like to perform tests on the generated database [url acedump-dir]
-  all-import-actions                   Select if you would like to perform all actions from acedb to datomic [model url schema-filename log-dir acedump-dir]
-  generate-datomic-database-report     Select if you want to generate a summary report of the contents of a particular Datomic database [url datomic-database-report-filename]
-  list-databases                       Select if you would like to get a list of the database names [url]
-  delete-database                      Select this option if you would like to delete a database in datomic [url]. If the force option you will not be asked if you are certain about your decision
-  backup-database                      Select if you would like to backup a datomic database into a file
+`--url` is a required option for most sub-commands, it should be of
+the form of:
 
+`datomic:<storage-backend-alias>://<hostname>:<port>/<db-name>`
 
-Example command
+Alternatively, for extra speed, one can use the clojure routines directly
+from a repl session:
 
-lein run ace-to-datomic generate-datomic-database-report --url datomic:free://localhost:4334/WS250 --datomic-database-report-filename /home/ec2-user/git/db/pseudoace/hello.t -v
+```bash
+# start the repl (Read Eval Print Loop)
+lein repl
+```
+
+Example of invoking a sub-command:
+
+```clojure
+(list-databases {:url (System/getenv "URL_OF_TRANSACTOR")})
+```
+
+## Example command
+
+The `import-all-actions` sub-command performs a "full import":
+
+  * Converts `ACeDB` dump files into [EDN][4] files.
+  * Sorts EDN files by timestamp.
+  * Dynamically creates the database schema based upon ACeDB annotated models.
+  *	Imports sorted timestamp datoms derived from the processed EDN files.
+  
+
+The following command uses the [DynamoDB storage back-end][5],
+configured to use a database located in the Amazon cloud:
+
+```bash
+lein run \
+     --url="datomic:ddb://us-east-1/wormbase/WS252" \
+	 --log-dir=/datastore/datomic/tmp/datomic/import-logs-WS252/ \
+	 --model=models.wrm.WS252.annot  \
+	 --acedump-dir=/datastore/datomic/dumps/WS252_dump/ \
+	 --schema-filename=schema252.edn -v
+```
+
+Using a full dump of a recent release of Wormbase, you can expect this
+command to take in the region of 8-12 hours depending on the platform
+you run it on.
+
+[1]: http://www.wormbase.org/
+[2]: http://www.datomic.com/
+[3]: http://leiningen.org/
+[4]: https://github.com/edn-format/edn/
+[5]: http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html
+[6]: https://datasift.github.io/gitflow/IntroducingGitFlow.html
+[7]: https://github.com/bbatsov/clojure-style-guide
