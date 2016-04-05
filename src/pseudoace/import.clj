@@ -3,10 +3,12 @@
             [clojure.string :as str]
             [clojure.instant :refer (read-instant-date)]
             [pseudoace.aceparser :as ace]
-            [pseudoace.utils :refer (except
+            [pseudoace.utils :refer (conj-in
+                                     except
                                      parse-double
                                      parse-int
-                                     vassoc)])
+                                     vassoc
+                                     vmap)])
   (:import java.io.FileInputStream
            java.util.zip.GZIPInputStream))
 
