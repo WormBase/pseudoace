@@ -272,4 +272,4 @@
                     (sort)
                     (take (or limit Integer/MAX_VALUE)))]
       (dump-object (ace-object db id)))
-    (except "Couldn't find '" class "'")))
+    (throw-exc "Couldn't find '" class "'")))

@@ -4,7 +4,7 @@
             [clojure.instant :refer (read-instant-date)]
             [pseudoace.aceparser :as ace]
             [pseudoace.utils :refer (conj-in
-                                     except
+                                     throw-exc
                                      parse-double
                                      parse-int
                                      vassoc
@@ -71,7 +71,7 @@
     (cond
       maybe-obj
       (if (zero? (d/part (:db/id maybe-obj)))
-        (except "Refers to a schema entity: " value)
+        (throw-exc "Refers to a schema entity: " value)
         (:db/ident maybe-obj))
 
       :default
@@ -111,7 +111,7 @@
       (datomize-objval ti imp value))
 
     ;;default
-    (except "Can't handle " (:db/valueType ti))))
+    (throw-exc "Can't handle " (:db/valueType ti))))
 
 (defn- pace-items-for-ns [imp ns]
   ((:tags imp) ns))
