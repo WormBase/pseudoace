@@ -1,13 +1,17 @@
-# ACeDB to Datomic 
+# pseudoace
 
-Converts ACeDB database dump files into a datomic database for the
-[Wormbase][1] project.
+Provides a clojure library for use by the [Wormbase][1] project.
 
- * Reading and writing ACeDB model files.
- * Generating Datomic schema based on ACeDB models.
- * Model-driven import of ACeDB data into a [Datomic][2] database.
- * Emulating an ACeDB server (currently incomplete).
+Features include:
 
+  * Model-driven import of ACeDB data into a [Datomic][2] database.
+    * (Dynamic generation of an isomorphic Datomic schema from an
+      annotated ACeDB models file)
+  * Conversion of ACeDB database dump files into a datomic database
+  * Routines for parsing and dumping ACeDB "dump files".
+  * Utility functions and macros for querying WormBase data.
+  * A command line interface for utilities described above (via `lein run`)
+  
 ## Installation
 
 Fedora/Redhat:
