@@ -301,7 +301,7 @@
      (:exit result)
      " and err: " (:err result) )
     (if verbose
-      (println "Sort completed Successfully"))))
+      (println "ok"))))
 
 (defn get-current-directory []
   (.getCanonicalPath (java.io.File. ".")))
@@ -320,15 +320,18 @@ directory."
   "Sort the log files generated from ACeDB dump files."
   [& {:keys [log-dir verbose]
       :or {verbose false}}]
-  (if verbose
-    (println "Sorting datomic log"))
-  (let [files (get-edn-log-files log-dir)]
-     (doseq [file files]
-       (if verbose
-         (println "Sorting file " file))
-       (let [filepath (str/join "" [log-dir file])
-             result (sort-edn-logs-command filepath)]
-         (check-sh-result result :verbose verbose)))))
+  (if (.exists (io/file log-dir))
+    (let [files (get-edn-log-files log-dir)]
+      (if (and verbose (count files))
+        (println "Sorting datomic logs"))
+      (doseq [file files]
+        (if verbose
+          (print "Sorting file:" file " ... "))
+        (let [gzipped-file (io/file log-dir file)
+              filepath (.getPath gzipped-file)
+              result (sort-edn-logs-command filepath)]
+          (check-sh-result result :verbose verbose))))
+    (println "Log directory" log-dir "does not exist!")))
 
 (defn import-edn-logs
   "Import the sorted EDN log files."
