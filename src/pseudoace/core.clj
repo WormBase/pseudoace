@@ -259,14 +259,14 @@
   ([log-dir]
    (move-helper-log-file log-dir false))
   ([log-dir verbose]
-   (if verbose
-     (println "\tMoving helper log file"))
    (let [dest-file (helper-dest-file log-dir)
          helper-dir (io/file (.getParent dest-file))]
      (if-not (.exists helper-dir)
        (.mkdir helper-dir))
      (let [source (io/file log-dir helper-filename)]
        (when (.exists source)
+         (if verbose
+           (println "\tMoving helper log file"))
          (io/copy source dest-file)
          (io/delete-file source))))))
 
