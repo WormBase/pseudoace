@@ -67,8 +67,8 @@
   ([coll x & xs]
      (reduce conj (conjv coll x) xs)))
 
-(defmacro except
-  "Concatenate args as if with `str` then throw an exception"
+(defmacro throw-exc
+  "Concatenate args as if with `str` then throw an exception."
   [& args]
   `(throw (Exception. (str ~@args))))
 

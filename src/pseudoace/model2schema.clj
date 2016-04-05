@@ -34,7 +34,7 @@
     (case (count children)
       0 path
       1 (recur (:children (first children)) (conj path (first children)))
-      (utils/except
+      (utils/throw-exc
        "Cannot flatten multiple chidren at "
        children))))
 
@@ -91,7 +91,7 @@
                     (case (count non-tag-children)
                       0    nil
                       1    (cons (first non-tag-children) (flatten-children non-tag-children))
-                      (utils/except
+                      (utils/throw-exc
                        "Multiple non-tag children at "
                        name)))]
                  (enum-keys enum-ns (str lname ":") path children)))))
@@ -200,7 +200,7 @@
                                           (first))]
                              (doseq [v (vals enum-keys*)]
                                (if-not (prefix? longest v)
-                                 (utils/except
+                                 (utils/throw-exc
                                   "Bad enum:"
                                   v
                                   " is not a prefix of "

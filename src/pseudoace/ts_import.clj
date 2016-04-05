@@ -7,7 +7,7 @@
    [pseudoace.aceparser :as ace]
    [pseudoace.binning :refer (bin)]
    [pseudoace.import :refer (datomize-objval get-tags)]
-   [pseudoace.utils :refer (except
+   [pseudoace.utils :refer (throw-exc
                             conj-if
                             conjv
                             indexed
@@ -125,7 +125,7 @@
         (if-let [[_ alloc? alloc-name] (re-matches assign-alloc-re v)]
           (if alloc-name
             [:importer/temp (str (d/basis-t db) ":" alloc-name)]
-            (except "Can't link to a non-named tempid: " v))
+            (throw-exc "Can't link to a non-named tempid: " v))
           [objref
            v
            (or
@@ -134,7 +134,7 @@
       (datomize-objval ti imp value))
 
     ;;default
-    (except "Can't handle " (:db/valueType ti))))
+    (throw-exc "Can't handle " (:db/valueType ti))))
 
 (defn- current-by-concs
   "Index a set of component entities by their concrete values."
@@ -341,7 +341,7 @@
                                    [:importer/temp
                                     (str
                                      (d/basis-t current-db) ":" alloc-name)]
-                                   (except
+                                   (throw-exc
                                     "Can't link to a non-named tempid: "
                                     xo)) ; bug fix
                                  [obj-ref xo (:pace/prefer-part remote-class)])
@@ -618,7 +618,7 @@
                                     (if alloc-name
                                       (if db
                                         (str (d/basis-t db) ":" alloc-name)
-                                        (except
+                                        (throw-exc
                                          (str "Can't use named allocation "
                                               "when a db is not provided: ")
                                          id))

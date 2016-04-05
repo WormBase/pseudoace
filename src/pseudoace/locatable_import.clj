@@ -136,7 +136,7 @@
                    (case type
                      "DNA_homol"
                      (if protein?
-                       (utils/except "Don't support protein->DNA homols")
+                       (utils/throw-exc "Don't support protein->DNA homols")
                        (conj base [:db/add tid :homology/dna [:sequence/id target]]))
     
                      "Pep_homol"
@@ -167,7 +167,7 @@
                      nil
     
                      ;; default
-                     (utils/except "Don't understand homology type " type))))))))
+                     (utils/throw-exc "Don't understand homology type " type))))))))
        {}
    (group-by (partial ts-imp/take-ts 8) homol-lines))))
               
