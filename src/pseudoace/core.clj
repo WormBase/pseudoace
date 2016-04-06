@@ -1,6 +1,5 @@
 (ns pseudoace.core
   (:require
-   [acetyl.parser :as ace]
    [clojure.data :refer (diff)]
    [clojure.java.io :as io]
    [clojure.java.shell :as shell]
@@ -12,6 +11,7 @@
    [clojure.test :as t]
    [clojure.tools.cli :refer (parse-opts)]
    [datomic.api :as datomic]
+   [pseudoace.aceparser :as ace]
    [pseudoace.import :as old-import]
    [pseudoace.locatable-import :as loc-import]
    [pseudoace.locatable-schema :refer (locatable-schema locatable-extras)]
