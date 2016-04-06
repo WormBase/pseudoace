@@ -1,12 +1,8 @@
 (defproject wormbase/pseudoace "0.2.0"
   :dependencies [[com.amazonaws/aws-java-sdk-dynamodb "1.9.39"
-                  :exclusions
-                  [commons-codec
-                   joda-time
-                   org.apache.httpcomponents/httpclient
-                   org.apache.httpcomponents/httpcore]]
+                  :exclusions [joda-time]]
                  [com.datomic/datomic-pro "0.9.5350"
-                  :exclusions [commons-codec joda-time]]
+                  :exclusions [joda-time]]
                  [datomic-schema "1.3.0"]
                  [org.clojure/clojure "1.8.0"]
                  [org.clojure/tools.cli "0.3.3"]]
