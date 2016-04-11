@@ -32,14 +32,14 @@
   (n-db-only [_])
   (n-both [_]))
 
-(defrecord ClassStatsReportEntry
-    [class-name db-attr db-only ref-only both] StatsReportEntry
-    (n-ref-only [report-entry]
-      (count (:ref-only report-entry)))
-    (n-db-only [report-entry]
-      (count (:db-only report-entry)))
-    (n-both [report-entry]
-      (count (:both report-entry))))
+(defrecord ClassStatsReportEntry [class-name db-attr db-only ref-only both]
+  StatsReportEntry
+  (n-ref-only [this]
+    (count (:ref-only this)))
+  (n-db-only [this]
+    (count (:db-only this)))
+  (n-both [this]
+    (count (:both this))))
 
 (defn class-by-class-report
   "Returns a mapping of differences between `db` and `ref-data-path`."
