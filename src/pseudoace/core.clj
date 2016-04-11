@@ -16,8 +16,9 @@
    [pseudoace.locatable-import :as loc-import]
    [pseudoace.locatable-schema :refer (locatable-schema locatable-extras)]
    [pseudoace.metadata-schema :refer (basetypes metaschema)]
-   [pseudoace.model :as model]  
+   [pseudoace.model :as model]
    [pseudoace.model2schema :as model2schema]
+   [pseudoace.qa :as qa]
    [pseudoace.schema-datomic :as schema-datomic]
    [pseudoace.ts-import :as ts-import]
    [pseudoace.utils :as utils]
@@ -41,10 +42,10 @@
     (str "Specify the model file that you would "
          "like to use that is found in the models folder "
          "e.g. \"models.wrm.WS250.annot\"")]
-    [nil
-     "--url URL"
-     (str "URL of the dataomic transactor; "
-          "Example: datomic:free://localhost:4334/WS250")]
+   [nil
+    "--url URL"
+    (str "URL of the dataomic transactor; "
+         "Example: datomic:free://localhost:4334/WS250")]
    [nil
     "--schema-filename PATH"
     (str "Name of the file for the schema view "
@@ -65,6 +66,13 @@
     "--report-filename PATH"
     (str "Path to the file that you "
          "would like the report to be written to")]
+   [nil
+    "--build-data PATH"
+    (str "Path to a file containing class-by-class "
+         "values form a previous build.")]
+   [nil
+    "--stats-storage-path"
+    "Path to store the result of generating the report "]
    ["-v" "--verbose"]
    ["-f" "--force"]
    ["-h" "--help"]])
@@ -491,18 +499,68 @@
                 line (str element "\t" attribute "\t" name-of-entity)]
             (println line)))))))
 
+
+(defn- store-as-build-data
+  "Write stats `report` to a file in same format as build data.
+
+  Done such that the output can be used as `build-data`
+  input for a subsequent report run."
+  [path report]
+  (if-let [outfile (io/file path)]
+    (with-open [writer (io/writer outfile)]
+      (doseq [entry (:entries report)]
+        (binding [*out* writer]
+          (doseq [value (:db-only entry)]
+            (println (:class-name entry) ":" (pr value))))))
+    (throw (java.io.FileNotFoundException.
+            (format "%s is not a valid path" (str path))))))
+
 (defn generate-report
   "Generate a summary report of database content."
-  [& {:keys [url report-filename verbose]
-      :or {verbose false}}]
+  [& {:keys [url report-filename build-data stats-storage-path verbose]
+      :or {stats-storage-path "classes-to-ids_latest.dat"
+           verbose false}}]
   (if verbose
-    (println "Generateing Datomic database report"))
+    (println "Generating Datomic database report"))
   (let [con (datomic/connect url)
-        db  (datomic/db con)]
-    (if verbose
-      (println "\tGenerating:" report-filename))
-    (write-report report-filename db)
-    (datomic/release con)))
+        db (datomic/db con)
+        report (qa/class-by-class-report db build-data)
+        width-left (apply max (map count (:class-names report)))
+        format-left (partial format (str "%" width-left "s"))
+        write-class-ids (future
+                          (store-as-build-data stats-storage-path report))]
+    (with-open [writer (io/writer report-filename)]
+      (let [write-line (fn [line]
+                         (.write writer line)
+                         (.newLine writer))
+            header-line
+            (str/join
+             \tab
+             (map format-left ["Class" "Missing" "Added" "Identical"]))]
+        (write-line header-line)
+        (if verbose
+          (println header-line))
+        (doseq [entry (:entries report)
+                :let [class-name (:class-name entry)
+                      format-num (partial format "%10d")
+                      out-line (str/join
+                                \tab
+                                (map
+                                 format-left
+                                 [class-name
+                                  (format-num (.n-ref-only entry))
+                                  (format-num (.n-db-only entry))
+                                  (format-num (.n-both entry))]))]]
+          (write-line out-line)
+          (if verbose
+            (println out-line)))))
+    (datomic/release con)
+    ;; Quietly ensure writing has finished before exiting.
+    (do
+      (println "Saving results to" stats-storage-path "for future use ...")
+      @write-class-ids
+      (println "done")
+      nil)))
 
 (defn backup-database
   "Backup the database at a given URL to a file."
@@ -576,7 +634,7 @@
         line-template (str "%-" action-width-right "s%-" doc-width-left "s")]
     (str/join
      \newline
-     (concat 
+     (concat
       [(str "Ace to dataomic is tool for importing data from ACeDB "
             "into to Datomic database")
        ""
@@ -609,4 +667,3 @@
         (do
           (println "Unknown action" action-name)
           (exit 1 (usage summary)))))))
-

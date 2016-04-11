@@ -16,3 +16,15 @@
   (is (nil? (utils/vmap-if 1 nil)))
   (is (= (utils/vmap-if 1 nil 2 "goal" 3 "score")
          {2 "goal" 3 "score"})))
+
+(deftest test-merge-pairs
+  (is (= (utils/merge-pairs []) nil))
+  (is (= (utils/merge-pairs [["A" "B"]]) {"A" #{"B"}}))
+  (is (= (utils/merge-pairs [["A" "B"]
+                             ["C" "D"]
+                             ["A" "C"]
+                             ["D" "A"]
+                             ["D" "C"]])
+         {"A" #{"B" "C"}
+          "C" #{"D"}
+          "D" #{"A" "C"}})))
