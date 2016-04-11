@@ -14,3 +14,8 @@
  - Fix error with old-namespace:
 	`acetyl` is no longer used, and has been in-lined into the
     pseudoace package.
+
+## 0.3.1
+ - Added ability to generate a report for comparing a dump of classes to values
+   against those stored in the database.
+   
