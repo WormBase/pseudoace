@@ -520,14 +520,15 @@
           (println header-line))
         (doseq [entry (:entries report)
                 :let [class-name (:class-name entry)
+                      format-num (partial format "%10d")
                       out-line (str/join
                                 \tab
                                 (map
                                  format-left
                                  [class-name
-                                  (format "%10d" (.n-ref-only entry))
-                                  (format "%10d" (.n-db-only entry))
-                                  (format "%10d" (.n-both entry))]))]]
+                                  (format-num (.n-ref-only entry))
+                                  (format-num (.n-db-only entry))
+                                  (format-num (.n-both entry))]))]]
           (write-line out-line)
           (if verbose
             (println out-line)))))
