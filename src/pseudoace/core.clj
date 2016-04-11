@@ -511,7 +511,7 @@
       (doseq [entry (:entries report)]
         (binding [*out* writer]
           (doseq [value (:db-only entry)]
-            (println (:class-name entry) ":" value)))))
+            (println (:class-name entry) ":" (pr value))))))
     (throw (java.io.FileNotFoundException.
             (format "%s is not a valid path" (str path))))))
 
