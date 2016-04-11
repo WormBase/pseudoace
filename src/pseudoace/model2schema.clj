@@ -7,7 +7,7 @@
 
 (def ^:dynamic *schema-notes* false)
 
-(defn- datomize-name
+(defn datomize-name
   "Make `n` into a Datomic-friendly name by converting to lower case and replacing
    underscores with hyphens."
   [^String n]

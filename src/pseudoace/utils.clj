@@ -1,5 +1,6 @@
 (ns pseudoace.utils
-  (:require [clojure.java.io :refer (writer)]))
+  (:require [clojure.java.io :refer (writer)]
+            [clojure.set :refer (union)]))
 
 (def not-nil? (complement nil?))
 
@@ -146,3 +147,17 @@
         `(if-let [~binding ~test]
            ~expr
            (cond-let ~bindings ~@more))))))
+
+(defn merge-pairs
+  "Merge a sequence of pairs in `pairs`.
+
+  Optionally, specify the `keyfunc` to merge each the pair
+  in the seqeunce. By default this is `first`.
+
+  Returns a map of sets."
+  [pairs & {:keys [keyfunc]
+            :or {keyfunc first}}]
+  (let [merge-with-set-vals (partial merge-with union)]
+    (apply
+     merge-with-set-vals
+     (map #(hash-map (keyfunc %) (set (rest %))) pairs))))

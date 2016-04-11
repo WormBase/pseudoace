@@ -18,6 +18,7 @@
    [pseudoace.metadata-schema :refer (basetypes metaschema)]
    [pseudoace.model :as model]  
    [pseudoace.model2schema :as model2schema]
+   [pseudoace.qa :as qa]
    [pseudoace.schema-datomic :as schema-datomic]
    [pseudoace.ts-import :as ts-import]
    [pseudoace.utils :as utils]
@@ -41,10 +42,10 @@
     (str "Specify the model file that you would "
          "like to use that is found in the models folder "
          "e.g. \"models.wrm.WS250.annot\"")]
-    [nil
-     "--url URL"
-     (str "URL of the dataomic transactor; "
-          "Example: datomic:free://localhost:4334/WS250")]
+   [nil
+    "--url URL"
+    (str "URL of the dataomic transactor; "
+         "Example: datomic:free://localhost:4334/WS250")]
    [nil
     "--schema-filename PATH"
     (str "Name of the file for the schema view "
@@ -65,6 +66,10 @@
     "--report-filename PATH"
     (str "Path to the file that you "
          "would like the report to be written to")]
+   [nil
+    "--build-data PATH"
+    (str "Path to a file containing class-by-class "
+         "values form a previous build.")]
    ["-v" "--verbose"]
    ["-f" "--force"]
    ["-h" "--help"]])
@@ -493,15 +498,39 @@
 
 (defn generate-report
   "Generate a summary report of database content."
-  [& {:keys [url report-filename verbose]
+  [& {:keys [url report-filename build-data verbose]
       :or {verbose false}}]
   (if verbose
     (println "Generateing Datomic database report"))
   (let [con (datomic/connect url)
-        db  (datomic/db con)]
-    (if verbose
-      (println "\tGenerating:" report-filename))
-    (write-report report-filename db)
+        db (datomic/db con)
+        report (qa/class-by-class-report db build-data)
+        width-left (apply max (map count (:class-names report)))
+        format-left (partial format (str "%" width-left "s"))]
+    (with-open [writer (io/writer report-filename)]
+      (let [write-line (fn [line]
+                         (.write writer line)
+                         (.newLine writer))
+            header-line
+            (str/join
+             \tab
+             (map format-left ["Class" "Added" "Missing" "Identical"]))]
+        (write-line header-line)
+        (if verbose
+          (println header-line))
+        (doseq [entry (:entries report)
+                :let [class-name (:class-name entry)
+                      out-line (str/join
+                                \tab
+                                (map
+                                 format-left
+                                 [class-name
+                                  (format "%10d" (.n-ref-only entry))
+                                  (format "%10d" (.n-db-only entry))
+                                  (format "%10d" (.n-both entry))]))]]
+          (write-line out-line)
+          (if verbose
+            (println out-line)))))
     (datomic/release con)))
 
 (defn backup-database
