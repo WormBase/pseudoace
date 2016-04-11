@@ -70,6 +70,9 @@
     "--build-data PATH"
     (str "Path to a file containing class-by-class "
          "values form a previous build.")]
+   [nil
+    "--stats-storage-path"
+    "Path to store the result of generating the report "]
    ["-v" "--verbose"]
    ["-f" "--force"]
    ["-h" "--help"]])
@@ -496,17 +499,36 @@
                 line (str element "\t" attribute "\t" name-of-entity)]
             (println line)))))))
 
+
+(defn- store-as-build-data
+  "Write stats `report` to a file in same format as build data.
+
+  Done such that the output can be used as `build-data`
+  input for a subsequent report run."
+  [path report]
+  (if-let [outfile (io/file path)]
+    (with-open [writer (io/writer outfile)]
+      (doseq [entry (:entries report)]
+        (binding [*out* writer]
+          (doseq [value (:db-only entry)]
+            (println (:class-name entry) ":" value)))))
+    (throw (java.io.FileNotFoundException.
+            (format "%s is not a valid path" (str path))))))
+
 (defn generate-report
   "Generate a summary report of database content."
-  [& {:keys [url report-filename build-data verbose]
-      :or {verbose false}}]
+  [& {:keys [url report-filename build-data stats-storage-path verbose]
+      :or {stats-storage-path "classes-to-ids_latest.dat"
+           verbose false}}]
   (if verbose
-    (println "Generateing Datomic database report"))
+    (println "Generating Datomic database report"))
   (let [con (datomic/connect url)
         db (datomic/db con)
         report (qa/class-by-class-report db build-data)
         width-left (apply max (map count (:class-names report)))
-        format-left (partial format (str "%" width-left "s"))]
+        format-left (partial format (str "%" width-left "s"))
+        write-class-ids (future
+                          (store-as-build-data stats-storage-path report))]
     (with-open [writer (io/writer report-filename)]
       (let [write-line (fn [line]
                          (.write writer line)
@@ -532,7 +554,13 @@
           (write-line out-line)
           (if verbose
             (println out-line)))))
-    (datomic/release con)))
+    (datomic/release con)
+    ;; Quietly ensure writing has finished before exiting.
+    (do
+      (println "Saving results to" stats-storage-path "for future use ...")
+      @write-class-ids
+      (println "done")
+      nil)))
 
 (defn backup-database
   "Backup the database at a given URL to a file."
