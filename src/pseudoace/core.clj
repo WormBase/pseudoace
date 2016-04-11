@@ -536,7 +536,7 @@
             header-line
             (str/join
              \tab
-             (map format-left ["Class" "Added" "Missing" "Identical"]))]
+             (map format-left ["Class" "Missing" "Added" "Identical"]))]
         (write-line header-line)
         (if verbose
           (println header-line))
