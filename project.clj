@@ -1,4 +1,4 @@
-(defproject wormbase/pseudoace "0.3.1-SNAPSHOT"
+(defproject wormbase/pseudoace "0.3.1"
   :dependencies [[com.amazonaws/aws-java-sdk-dynamodb "1.9.39"
                   :exclusions [joda-time]]
                  [com.datomic/datomic-pro "0.9.5350"
