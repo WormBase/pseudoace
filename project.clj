@@ -21,4 +21,6 @@
              ;; "-XX:-OmitStackTraceInFastThrow"
              ]
   :main ^:skip-aot pseudoace.core
-  :profiles {:uberjar {:aot :all}})
+  :profiles {:uberjar {:aot :all}
+             :test {:resource-paths ["test/resources"]}
+             :dev {:resource-paths ["test/resources"]}})
