@@ -56,7 +56,7 @@
         native->ref (zipmap attrs class-names)
         query-result (d/q '[:find ?attr ?name
                             :in $ [?attr ...]
-                            :where [_ ?attr ?name]] db attrs) 
+                            :where [_ ?attr ?name]] db attrs)
         mapped (merge-pairs query-result)]
     (->ClassStatsReport
      class-names

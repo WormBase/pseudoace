@@ -45,4 +45,3 @@
         (is (instance? (type #{}) ids))
         (is (= (count ids) expected-count)
             (str "Testing count of " cls " is " expected-count))))))
-

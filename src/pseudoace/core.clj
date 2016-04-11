@@ -16,7 +16,7 @@
    [pseudoace.locatable-import :as loc-import]
    [pseudoace.locatable-schema :refer (locatable-schema locatable-extras)]
    [pseudoace.metadata-schema :refer (basetypes metaschema)]
-   [pseudoace.model :as model]  
+   [pseudoace.model :as model]
    [pseudoace.model2schema :as model2schema]
    [pseudoace.qa :as qa]
    [pseudoace.schema-datomic :as schema-datomic]
@@ -605,7 +605,7 @@
         line-template (str "%-" action-width-right "s%-" doc-width-left "s")]
     (str/join
      \newline
-     (concat 
+     (concat
       [(str "Ace to dataomic is tool for importing data from ACeDB "
             "into to Datomic database")
        ""
@@ -638,4 +638,3 @@
         (do
           (println "Unknown action" action-name)
           (exit 1 (usage summary)))))))
-
