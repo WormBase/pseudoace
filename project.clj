@@ -1,4 +1,4 @@
-(defproject wormbase/pseudoace "0.3.0"
+(defproject wormbase/pseudoace "0.3.1"
   :dependencies [[com.amazonaws/aws-java-sdk-dynamodb "1.9.39"
                   :exclusions [joda-time]]
                  [com.datomic/datomic-pro "0.9.5350"
@@ -21,4 +21,6 @@
              ;; "-XX:-OmitStackTraceInFastThrow"
              ]
   :main ^:skip-aot pseudoace.core
-  :profiles {:uberjar {:aot :all}})
+  :profiles {:uberjar {:aot :all}
+             :test {:resource-paths ["test/resources"]}
+             :dev {:resource-paths ["test/resources"]}})
