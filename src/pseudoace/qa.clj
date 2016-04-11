@@ -62,9 +62,9 @@
      class-names
      (for [attr attrs
            :let [class-name (native->ref attr)
-                 [ref-only db-only in-both] (diff
-                                             (ref-data class-name)
-                                             (mapped attr))]]
+                 db-values (set (map pr-str (mapped attr)))
+                 ref-values (ref-data class-name)
+                 [ref-only db-only in-both] (diff ref-values db-values)]]
        (->ClassStatsReportEntry class-name
                                 attr
                                 db-only
