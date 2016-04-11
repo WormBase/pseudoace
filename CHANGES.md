@@ -18,4 +18,6 @@
 ## 0.3.1
  - Added ability to generate a report for comparing a dump of classes to values
    against those stored in the database.
-   
+
+## 0.3.2 - (unreleased)
+ - Nothing changed yet.
