@@ -42,7 +42,7 @@
     (count (:both this))))
 
 (defn class-by-class-report
-  "Returns a mapping of differences between `db` and `ref-data-path`."
+  "Returns a seqeunence of mappings of the diff between `db` and `ref-data-path`."
   [db ref-data-path]
   (let [all-class-names (map
                          (comp :pace/identifies-class #(second %))
