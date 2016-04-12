@@ -10,7 +10,7 @@
    [clojure.string :as str]
    [clojure.test :as t]
    [clojure.tools.cli :refer (parse-opts)]
-   [datomic.api :as datomic]
+   [datomic.api :as d]
    [pseudoace.aceparser :as ace]
    [pseudoace.import :as old-import]
    [pseudoace.locatable-import :as loc-import]
@@ -91,7 +91,7 @@
   ([url verbose]
    (if verbose
      (println "Deleting database: " url))
-   (datomic/delete-database url)))
+   (d/delete-database url)))
 
 (defn- confirm-delete-db! [url]
   (println
@@ -116,14 +116,14 @@
   (when verbose
     (println "Generating Datomic schema view")
     (println "\tCreating database connection"))
-  (let [con (datomic/connect url)]
+  (let [con (d/connect url)]
      (utils/with-outfile schema-filename)
-       (doseq [s (schema-datomic/schema-from-db (datomic/db con))]
+       (doseq [s (schema-datomic/schema-from-db (d/db con))]
          (pp/pprint s)
          (println))
        (if verbose
          (println "\tReleasing database connection"))
-       (datomic/release con)))
+       (d/release con)))
 
 (defn generate-schema
   "Generate the database schema from the annotated ACeDB models."
@@ -149,14 +149,14 @@
   (transact
    (conj
     schema
-    {:db/id        (datomic/tempid :db.part/tx)
+    {:db/id        (d/tempid :db.part/tx)
      :db/txInstant #inst "1970-01-01T00:00:01"})))
 
 (defn- transact-silenced
   "Tranact the entity `tx` using `con`.
   Suppresses the (potentially-large) report if it succeeds."
   [con tx]
-  @(datomic/transact con tx)
+  @(d/transact con tx)
   nil)
 
 ;; TODO: consolidate schemata (metaschema, basetypes, locatable{,-extras})
@@ -170,7 +170,7 @@
    (when verbose
      (println (str/join " " ["Loading Schema into:" url]))
      (println "\tCreating database connection"))
-   (let [con (datomic/connect url)
+   (let [con (d/connect url)
          tx-quiet (partial transact-silenced con)
          main-schema (generate-schema model verbose)]
      ;; Built-in schemas include explicit 1970-01-01 timestamps.
@@ -188,7 +188,7 @@
                 "auto-generated schema"))
      (tx-quiet (conj
                 main-schema
-                {:db/id        (datomic/tempid :db.part/tx)
+                {:db/id        (d/tempid :db.part/tx)
                  :db/txInstant #inst "1970-01-01T00:00:01"}))
      (if verbose
        (println "\tAdding locatables-extras"))
@@ -201,7 +201,7 @@
      (tx-quiet schema-fixups)
      (if verbose
        (println "\tReleasing database connection"))
-     (datomic/release con))))
+     (d/release con))))
 
 (defn create-database
   "Create a Datomic database from a schema generated
@@ -211,7 +211,7 @@
   (if verbose
     (println "Creating Database"))
   (generate-schema model verbose)
-  (datomic/create-database url)
+  (d/create-database url)
   (load-schema url model verbose))
 
 (defn uri-to-helper-uri [uri]
@@ -225,7 +225,7 @@
     (println "Creating Helper Database"))
   (generate-schema model verbose)
   (let [helper-uri (uri-to-helper-uri url)]
-    (datomic/create-database helper-uri)
+    (d/create-database helper-uri)
     (load-schema helper-uri model verbose)))
 
 (defn directory-walk [directory pattern]
@@ -286,7 +286,7 @@
   (when verbose
     (println "Converting ACeDump to Datomic Log")
     (println "\tCreating database connection"))
-  (let [con (datomic/connect url)
+  (let [con (d/connect url)
 
         ;; Helper object, holds a cache of schema data.
         imp (old-import/importer con)
@@ -299,7 +299,7 @@
     (doseq [file files]
       (acedump-file-to-datalog imp file directory verbose))
     (move-helper-log-file log-dir verbose)
-    (datomic/release con)))
+    (d/release con)))
 
 (defn check-sh-result
   [result & {:keys [verbose]
@@ -360,7 +360,7 @@
       :or {verbose false}}]
   (if verbose
     (println "Importing logs into datomic" url log-dir verbose))
-  (let [con (datomic/connect url)
+  (let [con (d/connect url)
         log-files (get-sorted-edn-log-files log-dir)]
     (if verbose
       (println "Importing" (count log-files) "log files"))
@@ -370,13 +370,13 @@
       (ts-import/play-logfile
        con
        (java.util.zip.GZIPInputStream. (io/input-stream file))))
-    (datomic/release con)))
+    (d/release con)))
 
 (defn excise-tmp-data
   "Remove all the temporary data created during processing."
   [& {:keys [url]}]
-  (let [con (datomic/connect url)]
-    (datomic/transact
+  (let [con (d/connect url)]
+    (d/transact
      con
      [{:db/id #db/id[:db.part/user] :db/excise :importer/temp}])))
 
@@ -384,13 +384,13 @@
   "Perform tests on the generated database."
   [& {:keys [url verbose]
       :or {verbose false}}]
-  (let [con (datomic/connect url)
+  (let [con (d/connect url)
         n-expected 1
         datalog-query '[:find ?c
                         :in $
                         :where
                         [?c :gene/id "WBGene00018635"]]
-        results (datomic/q datalog-query (datomic/db con))
+        results (d/q datalog-query (d/db con))
         n-results (count results)]
     (when verbose
       (println "Testing datomic data, expecting exactly" n-expected "result")
@@ -400,7 +400,7 @@
     (if-let [success (t/is (= n-results 1))]
       (println "OK")
       (println "Failed to find record matching " datalog-query))
-    (datomic/release con)))
+    (d/release con)))
 
 (defn import-helper-edn-logs
   "Import the helper log files."
@@ -409,7 +409,7 @@
   (if verbose
     (println "Importing helper log into helper database"))
   (let [helper-uri (uri-to-helper-uri url)
-        helper-connection (datomic/connect helper-uri)]
+        helper-connection (d/connect helper-uri)]
     (binding [ts-import/*suppress-timestamps* true]
       (ts-import/play-logfile
        helper-connection
@@ -417,7 +417,7 @@
         (io/input-stream (helper-dest-file log-dir)))))
     (if verbose
       (println "\tReleasing helper database connection"))
-    (datomic/release helper-connection)))
+    (d/release helper-connection)))
 
 (defn helper-file-to-datalog [helper-db file log-dir verbose]
   (if (utils/not-nil? verbose)
@@ -438,14 +438,14 @@
    (if verbose
      (println "Importing logs with loactables importer into helper database"))
    (let [helper-uri (uri-to-helper-uri url)
-         helper-connection (datomic/connect helper-uri)
-         helper-db (datomic/db helper-connection)
+         helper-connection (d/connect helper-uri)
+         helper-db (d/db helper-connection)
          files (get-ace-files acedump-dir)]
      (doseq [file files]
        (helper-file-to-datalog helper-db file log-dir verbose))
      (if verbose
        (println "\tReleasing helper database connection"))
-     (datomic/release helper-connection))))
+     (d/release helper-connection))))
 
 (defn delete-helper-database
   "Delete the \"helper\" database."
@@ -453,7 +453,7 @@
   (if verbose
     (println "Deleting helper database"))
   (let [helper_uri (uri-to-helper-uri url)]
-    (datomic/delete-database helper_uri)))
+    (d/delete-database helper_uri)))
 
 (defn all-import-actions
   "Perform all actions required to import data from ACeDB dump files."
@@ -480,12 +480,12 @@
 (defn list-databases
   "List all databases."
   [& {:keys [url]}]
-  (doseq [database-name (datomic/get-database-names url)]
+  (doseq [database-name (d/get-database-names url)]
     (println database-name)))
 
 (defn write-report [filename db]
   (let [elements-attributes
-        (sort (datomic/q
+        (sort (d/q
                '[:find [?ident ...] :where [_ :db/ident ?ident]] db))]
     (with-open [wrtr (io/writer filename)]
       (binding [*out* wrtr]
@@ -495,7 +495,7 @@
                 attribute (name element-attribute)
                 expression [:find '(count ?eid) '.
                             :where ['?eid element-attribute]]
-                name-of-entity (datomic/q expression db )
+                name-of-entity (d/q expression db )
                 line (str element "\t" attribute "\t" name-of-entity)]
             (println line)))))))
 
@@ -522,8 +522,8 @@
            verbose false}}]
   (if verbose
     (println "Generating Datomic database report"))
-  (let [con (datomic/connect url)
-        db (datomic/db con)
+  (let [con (d/connect url)
+        db (d/db con)
         report (qa/class-by-class-report db build-data)
         width-left (apply max (map count (:class-names report)))
         format-left (partial format (str "%" width-left "s"))
@@ -554,7 +554,7 @@
           (write-line out-line)
           (if verbose
             (println out-line)))))
-    (datomic/release con)
+    (d/release con)
     ;; Quietly ensure writing has finished before exiting.
     (do
       (println "Saving results to" stats-storage-path "for future use ...")
@@ -569,8 +569,8 @@
   (throw (UnsupportedOperationException. "Not implemented yet"))
   (when verbose
     (println "Backing up database"))
-  (let [con (datomic/connect url)]
-    (datomic/release con)))
+  (let [con (d/connect url)]
+    (d/release con)))
 
 (def cli-actions [#'create-database
                   #'create-helper-database
