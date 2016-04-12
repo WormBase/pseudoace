@@ -14,9 +14,17 @@ Features include:
 
 ## Installation
 
-Install Java 1.8.
+ * Java 1.8 (Prefer official oracle version)
 
-[Install leiningen][3].
+ * [leiningen][3].
+
+ * Datomic
+   * Visit https://my.datomic.com/downloads/pro
+   * Download the version of datomic-pro that matches the version
+	 specified in `project.clj`.
+   * When upgrading datomic, download the latest version and update
+     `project.clj` accordingly.
+   * Unzip the downloaded archive, and run: `bin/maven-install`
 
 ## Development
 
@@ -31,9 +39,16 @@ This project attempts to adhere to the [Clojure coding-style][7] conventions.
 Run all tests regularly, but in particular:
 
   * before issuing a new pull request
+
   * after checking out a feature-branch
 
 ## Releases
+
+## Initial setup
+
+[Configure leiningen credentials][9] for [clojars][8].
+
+## Procedure
 
   * Add an entry in the CHANGES.md file.
 
@@ -49,7 +64,10 @@ Run all tests regularly, but in particular:
     project.clj.
 
   * Deploy to [clojars][8] via leiningen:
-    line deploy clojars.
+      `line deploy clojars`
+	
+	Depending on your credentials setup,
+	you may be prompted for your clojars username and password.
 
   * Checkout the develop branch, update CHANGES.md with the next version
     number and a "back to development" stanza:
