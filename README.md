@@ -1,6 +1,6 @@
 # pseudoace
 
-Provides a clojure library for use by the [Wormbase][1] project.
+Provides a Clojure library for use by the [Wormbase][1] project.
 
 Features include:
 
@@ -31,7 +31,7 @@ Features include:
 Follow the [GitFlow][6] mechanism for branching and committing changes:
 
   * Feature branches should be derived from the `develop` branch:
-    ie. git checkout -b feature-x develop
+    i.e:. git checkout -b feature-x develop
 
 ### Coding style
 This project attempts to adhere to the [Clojure coding-style][7] conventions.
@@ -53,7 +53,7 @@ Run all tests regularly, but in particular:
   * Add an entry in the CHANGES.md file.
 
   * Change the version in the leiningen project.clj from:
-      <major.minor.patch>-SNAPHOT
+      <major.minor.patch>-SNAPSHOT
 	to:
 	  <major.minor.patch>
 
@@ -67,14 +67,14 @@ Run all tests regularly, but in particular:
       `line deploy clojars`
 	
 	Depending on your credentials setup,
-	you may be prompted for your clojars username and password.
+	you may be prompted for your clojars surname and password.
 
   * Checkout the develop branch, update CHANGES.md with the next version
     number and a "back to development" stanza:
 
 	e.g:
 	```markdown
-	# 0.3.2 - (unreleasd)
+	# 0.3.2 - (unreleased)
 	  - nothing changed yet
 	```
 	Update the version in project.clj to be:
@@ -100,7 +100,7 @@ the form of:
 
 `datomic:<storage-backend-alias>://<hostname>:<port>/<db-name>`
 
-Alternatively, for extra speed, one can use the clojure routines directly
+Alternatively, for extra speed, one can use the Clojure routines directly
 from a repl session:
 
 ```bash
