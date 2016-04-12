@@ -11,7 +11,7 @@ Features include:
   * Routines for parsing and dumping ACeDB "dump files".
   * Utility functions and macros for querying WormBase data.
   * A command line interface for utilities described above (via `lein run`)
-  
+
 ## Installation
 
 Install Java 1.8.
@@ -20,9 +20,50 @@ Install Java 1.8.
 
 ## Development
 
-Follow the [GitFlow][6] mechanism for branching and committing changes.
+Follow the [GitFlow][6] mechanism for branching and committing changes:
 
-Please attempt to adhere to the [Clojure coding-style][7] conventions.
+  * Feature branches should be derived from the `develop` branch:
+    ie. git checkout -b feature-x develop
+
+### Coding style
+This project attempts to adhere to the [Clojure coding-style][7] conventions.
+
+Run all tests regularly, but in particular:
+
+  * before issuing a new pull request
+  * after checking out a feature-branch
+
+## Releases
+
+  * Add an entry in the CHANGES.md file.
+
+  * Change the version in the leiningen project.clj from:
+      <major.minor.patch>-SNAPHOT
+	to:
+	  <major.minor.patch>
+
+  * Merge the `develop` branch into to `master` (via a github pull
+    request or directly using git)
+
+  * Tag the release in git, using the same version as defined in
+    project.clj.
+
+  * Deploy to [clojars][8] via leiningen:
+    line deploy clojars.
+
+  * Checkout the develop branch, update CHANGES.md with the next version
+    number and a "back to development" stanza:
+
+	e.g:
+	```markdown
+	# 0.3.2 - (unreleasd)
+	  - nothing changed yet
+	```
+	Update the version in project.clj to be:
+
+	  <next-major-version>.<next-minor>.<next-patch>-SNAPSHOT
+
+	commit and push these changes.
 
 ## Usage
 
@@ -63,7 +104,7 @@ The `import-all-actions` sub-command performs a "full import":
   * Sorts EDN files by timestamp.
   * Dynamically creates the database schema based upon ACeDB annotated models.
   *	Imports sorted timestamp datoms derived from the processed EDN files.
-  
+
 
 The following command uses the [DynamoDB storage back-end][5],
 configured to use a database located in the Amazon cloud:
@@ -88,3 +129,4 @@ you run it on.
 [5]: http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html
 [6]: https://datasift.github.io/gitflow/IntroducingGitFlow.html
 [7]: https://github.com/bbatsov/clojure-style-guide
+[8]: http://clojars.org
