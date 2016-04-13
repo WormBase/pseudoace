@@ -117,10 +117,10 @@
     (println "Generating Datomic schema view")
     (println \tab "Creating database connection"))
   (let [con (d/connect url)]
-     (utils/with-outfile schema-filename)
-       (doseq [s (schema-datomic/schema-from-db (d/db con))]
-         (pp/pprint s)
-         (println))
+    (utils/with-outfile schema-filename
+      (doseq [s (schema-datomic/schema-from-db (d/db con))]
+        (pp/pprint s)
+        (println)))
        (if verbose
          (println \tab "Releasing database connection"))
        (d/release con)))
