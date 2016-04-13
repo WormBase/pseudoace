@@ -324,10 +324,10 @@
 (defn- sort-edn-log-file
   [gz-path]
   (with-open [in (-> gz-path
-               io/input-stream
-               (java.util.zip.GZIPInputStream.))]
-    (let [data (slurp in)
-          lines (str/split-lines data)
+                     io/input-stream
+                     (java.util.zip.GZIPInputStream.)
+                     io/reader)]
+    (let [lines (line-seq in)
           coll (map #(str/split % #"\s{1,}" 2) lines)
           sorted-coll (sort-by first coll)
           out-lines (map #(str/join " " %) sorted-coll)
