@@ -377,7 +377,7 @@
 (def locatable-extras
   "Add locatable XREFs to the pace schema."
   (concat
-   [{:db/id          #db/id[:db.part/db]
+   [{:db/id          (tempid :db.part/db)
      :db/ident       :locatable/parent
 
      ;; this isn't always true, but needed for current Colonnade code.
@@ -385,40 +385,40 @@
 
      :pace/tags      "Parent"}
     
-    {:db/id          #db/id[:db.part/db]
+    {:db/id          (tempid :db.part/db)
      :db/ident       :locatable/min
      :pace/tags      "Position Min"}
 
-    {:db/id          #db/id[:db.part/db]
+    {:db/id          (tempid :db.part/db)
      :db/ident       :locatable/max
      :pace/tags      "Position Max"}
 
-    {:db/id          #db/id[:db.part/db]
+    {:db/id          (tempid :db.part/db)
      :db/ident       :locatable/method
      :pace/obj-ref   :method/id
      :pace/tags      "Method"}
 
-    {:db/id          #db/id[:db.part/db]
+    {:db/id          (tempid :db.part/db)
      :db/ident       :locatable/score
      :pace/tags      "Score"}
     
-    {:db/id          #db/id[:db.part/db]
+    {:db/id          (tempid :db.part/db)
      :db/ident       :locatable/strand
      :pace/tags      "Strand"}
     
-    {:db/id          #db/id[:db.part/user]
+    {:db/id          (tempid :db.part/user)
      :db/ident       :locatable.strand/positive
      :pace/tags      "Positive"}
 
-    {:db/id          #db/id[:db.part/user]
+    {:db/id          (tempid :db.part/user)
      :db/ident       :locatable.strand/negative
      :pace/tags      "Negative"}
 
-    {:db/id          #db/id[:db.part/user]
+    {:db/id          (tempid :db.part/user)
      :db/ident       :homology.strand/positive
      :pace/tags      "Positive"}
 
-    {:db/id          #db/id[:db.part/user]
+    {:db/id          (tempid :db.part/user)
      :db/ident       :homology.strand/negative
      :pace/tags      "Negative"}]))
 
@@ -461,39 +461,39 @@
 ;; https://github.com/WormBase/db/wiki/Ace-to-Datomic-mapping#xrefs-in-hash-models
 (def xref-fixups
   "XREFs inside hash models"
-  [{:db/id               #db/id[:db.part/user]
+  [{:db/id               (tempid :db.part/user)
     :pace.xref/attribute :multi-counts.gene/gene
     :pace.xref/obj-ref   :multi-pt-data/id}
 
-   {:db/id               #db/id[:db.part/user]
+   {:db/id               (tempid :db.part/user)
     :pace.xref/attribute :multi-counts.allele/variation
     :pace.xref/obj-ref   :multi-pt-data/id}
 
-   {:db/id               #db/id[:db.part/user]
+   {:db/id               (tempid :db.part/user)
     :pace.xref/attribute :multi-counts.locus/locus
     :pace.xref/obj-ref   :multi-pt-data/id}
 
-   {:db/id               #db/id[:db.part/user]
+   {:db/id               (tempid :db.part/user)
     :pace.xref/attribute :multi-counts.transgene/transgene
     :pace.xref/obj-ref   :multi-pt-data/id}
 
-   {:db/id               #db/id[:db.part/user]
+   {:db/id               (tempid :db.part/user)
     :pace.xref/attribute :multi-counts.rearrangement/rearrangement
     :pace.xref/obj-ref   :multi-pt-data/id}
 
-   {:db/id               #db/id[:db.part/user]
+   {:db/id               (tempid :db.part/user)
     :pace.xref/attribute :mass-spec-data/protein
     :pace.xref/obj-ref   :mass-spec-peptide/id}
 
-   {:db/id               #db/id[:db.part/user]
+   {:db/id               (tempid :db.part/user)
     :pace.xref/attribute :interactor-info/transgene
     :pace.xref/obj-ref   :interaction/id}
 
-   {:db/id               #db/id[:db.part/user]
+   {:db/id               (tempid :db.part/user)
     :pace.xref/attribute :interactor-info/construct
     :pace.xref/obj-ref   :interaction/id}
 
-   {:db/id               #db/id[:db.part/user]
+   {:db/id               (tempid :db.part/user)
     :pace.xref/attribute :interactor-info/antibody
     :pace.xref/obj-ref   :interaction/id}])
 

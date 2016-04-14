@@ -366,7 +366,7 @@
   (let [con (d/connect url)]
     (d/transact
      con
-     [{:db/id #db/id[:db.part/user] :db/excise :importer/temp}])))
+     [{:db/id (d/tempid :db.part/user) :db/excise :importer/temp}])))
 
 (defn run-test-query
   "Perform tests on the generated database."
@@ -415,13 +415,13 @@
                    (java.util.zip.GZIPInputStream.)
                    (ace/ace-reader)
                    (ace/ace-seq)
-                   (partition-all 20))] ;; Larger block size may be faster if
-    ;; you have plenty of memory.
+                   (partition-all 20))] ; Larger block size may be faster if
+                                        ; you have plenty of memory.
     (loc-import/split-locatables-to-dir helper-db blk log-dir)))
 
 (defn run-locatables-importer-for-helper
-  ([url]
-   (run-locatables-importer-for-helper url false))
+  ([url acedump-dir]
+   (run-locatables-importer-for-helper url acedump-dir :verbose false))
   ([url log-dir acedump-dir verbose]
    (if verbose
      (println "Importing logs with loactables importer into helper database"))
