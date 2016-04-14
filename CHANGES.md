@@ -20,4 +20,8 @@
    against those stored in the database.
 
 ## 0.3.2 - (unreleased)
- - Nothing changed yet.
+ - Moved sorting of logs files back out to the shell.
+ - Fixed lingering namespace issues in `pseudoace.acedump`.
+ - Use `datomic.api.tempid` in code, not reader-literals.
+ 
+ 
