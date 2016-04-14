@@ -56,6 +56,7 @@ Run all tests regularly, but in particular:
   
     From:
       `<major.minor.patch>-SNAPSHOT`
+
 	To:
 	  `<major.minor.patch>`
 
