@@ -114,31 +114,55 @@ Example of invoking a sub-command:
 (list-databases {:url (System/getenv "URL_OF_TRANSACTOR")})
 ```
 
-## Example command
+### Import process
 
-The `import-all-actions` sub-command performs a "full import":
+#### Prepare import
 
-  * Converts `ACeDB` dump files into [EDN][4] files.
-  * Sorts EDN files by timestamp.
-  * Dynamically creates the database schema based upon ACeDB annotated models.
-  *	Imports sorted timestamp datoms derived from the processed EDN files.
+Create the database and parse .ace dump-files into EDN.
 
-
-The following command uses the [DynamoDB storage back-end][5],
-configured to use a database located in the Amazon cloud:
-
+Example:
 ```bash
-lein run \
-     --url="datomic:ddb://us-east-1/wormbase/WS252" \
-	 --log-dir=/datastore/datomic/tmp/datomic/import-logs-WS252/ \
-	 --model=models.wrm.WS252.annot  \
-	 --acedump-dir=/datastore/datomic/dumps/WS252_dump/ \
-	 --schema-filename=schema252.edn -v
+lein run --url $URL \
+--log-dir $LOG_DIR \
+--acedump-dir $ACEDUMP_DIR \
+-v prepare-import
 ```
 
-Using a full dump of a recent release of Wormbase, you can expect this
-command to take in the region of 8-12 hours depending on the platform
-you run it on.
+The `prepare-import` sub-command:
+
+- Creates a new database at the specified `--url`
+- Converts `.ace` dump-files located in `--acedump-dir` into pseudo
+[EDN][4] files located in `--log-dir`.
+- Creates the database schema from the annotated ACeDB models file
+specified by `--model`.
+- Optionally dumps the newly created database schema to the file
+specified by `--schema-filename`.
+
+#### Sort the generated log files
+
+The format of the generated files is:
+
+<ace-db-style_timestamp> <Parsed ACE data to be transacted in EDN format>
+
+The EDN data is *required* to sorted by timestamp in order to
+preserve the time invariant of Datomic:
+
+```bash
+find $LOG_DIR -name '*.gz' -exec ./scripts/sort-edn-log.sh {} +
+```
+
+#### Import the sorted logs into the database
+
+Transacts the EDN sorted by timestamp in `--log-dir` to the database
+specified with `--url`:
+
+```bash
+lein run --url $URL --log-dir $LOG_DIR -v import-logs
+```
+
+Using a full dump of a recent release of Wormbase, you can expect the
+import process to take in the region of 8-12 hours depending on the
+platform you run it on.
 
 [1]: http://www.wormbase.org/
 [2]: http://www.datomic.com/
