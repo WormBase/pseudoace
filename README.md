@@ -53,9 +53,9 @@ Run all tests regularly, but in particular:
   * Add an entry in the CHANGES.md file.
 
   * Change the version in the leiningen project.clj from:
-      <major.minor.patch>-SNAPSHOT
+      `<major.minor.patch>-SNAPSHOT`
 	to:
-	  <major.minor.patch>
+	  `<major.minor.patch>`
 
   * Merge the `develop` branch into to `master` (via a github pull
     request or directly using git)
@@ -79,7 +79,7 @@ Run all tests regularly, but in particular:
 	```
 	Update the version in project.clj to be:
 
-	  <next-major-version>.<next-minor>.<next-patch>-SNAPSHOT
+	  `<next-major-version>.<next-minor>.<next-patch>-SNAPSHOT`
 
 	commit and push these changes.
 
