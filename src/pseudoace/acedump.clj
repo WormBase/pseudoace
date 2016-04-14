@@ -1,9 +1,9 @@
-(ns wb.acedump
-  (:use pseudoace.utils)
-  (:require [datomic.api :as d :refer (q datoms entity)]
+(ns pseudoace.acedump
+  (:require [datomic.api :as d]
             [clojure.string :as str]
             [clj-time.coerce :as tc]
-            [clj-time.format :as tf]))
+            [clj-time.format :as tf]
+            [pseudoace.utils :refer (throw-exc)]))
 
 (defrecord Node [type ts value children])
 
