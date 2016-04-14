@@ -320,27 +320,6 @@
 (defn get-current-directory []
   (.getCanonicalPath (java.io.File. ".")))
 
-
-(defn- sort-edn-log-file
-  [gz-path]
-  (with-open [in (-> gz-path
-                     io/input-stream
-                     (java.util.zip.GZIPInputStream.)
-                     io/reader)]
-    (let [lines (line-seq in)
-          coll (map #(str/split % #"\s{1,}" 2) lines)
-          sorted-coll (sort-by first coll)
-          out-lines (map #(str/join " " %) sorted-coll)
-          out-path (str/replace gz-path ".gz" ".sort.gz")]
-      (with-open [w (-> out-path
-                        io/output-stream
-                        (java.util.zip.GZIPOutputStream.)
-                        io/writer)]
-        (binding [*out* w]
-          (doseq [line out-lines]
-            (.write w line)
-            (.newLine w)))))))
-
 (defn sort-edn-logs
   "Sort the log files generated from ACeDB dump files."
   [& {:keys [log-dir verbose]
@@ -348,18 +327,22 @@
   (if (.exists (io/file log-dir))
     (let [files (get-edn-log-files log-dir)]
       (if (and verbose (count files))
-        (println "Sorting datomic logs"))
+        (println "Sorting timestamped EDN log files"))
       (doseq [file files]
         (if verbose
           (print "Sorting file:" file " ... "))
         (let [gzipped-file (io/file log-dir file)
-              filepath (.getPath gzipped-file)]
-          (sort-edn-log-file filepath)
-          (io/delete-file filepath)
+              file-path (.getPath gzipped-file)
+              cwd (get-current-directory)]
+          (check-sh-result
+           (shell/sh
+            "scripts/sort-edn-log.sh"
+            file-path
+            :dir cwd))
           (println "ok"))))
     (println "Log directory" log-dir "does not exist!")))
 
-(defn import-edn-logs
+(defn import-logs
   "Import the sorted EDN log files."
   [& {:keys [url log-dir verbose]
       :or {verbose false}}]
@@ -460,6 +443,22 @@
   (let [helper_uri (uri-to-helper-uri url)]
     (d/delete-database helper_uri)))
 
+(defn prepare-import
+  "Setup the database schema and parse the acedb files for later sorting."
+  [& {:keys [url model log-dir acedump-dir schema-filename verbose]
+      :or {schema-filename nil
+           verbose false}}]
+  (create-database :url url :model model :verbose verbose)
+  (acedump-to-edn-logs :url url
+                       :log-dir log-dir
+                       :acedump-dir acedump-dir
+                       :verbose verbose)
+  (if-not (nil? schema-filename)
+    (generate-schema-view
+     :url url
+     :schema-filename schema-filename
+     :verbose verbose)))
+
 (defn all-import-actions
   "Perform all actions required to import data from ACeDB dump files."
   [& {:keys [url model log-dir acedump-dir schema-filename verbose]
@@ -477,10 +476,9 @@
   ;; DISABLED: (run-locatables-importer-for-helper url log-dir aceedump-dir verbose)
   ;; DISABLED: (delete-helper-database options)
   (sort-edn-logs :log-dir log-dir :verbose verbose)
-  (import-edn-logs :url url :log-dir log-dir :verbose verbose))
+  (import-logs :url url :log-dir log-dir :verbose verbose))
   ;; DISABLED: (excise-tmp-data options)
   ;; DISABLED: (run-test-query options))
-
 
 (defn list-databases
   "List all databases."
@@ -582,7 +580,7 @@
                   #'generate-schema-view
                   #'acedump-to-edn-logs
                   #'sort-edn-logs
-                  #'import-edn-logs
+                  #'import-logs
                   #'import-helper-edn-logs
                   #'excise-tmp-data
                   #'run-test-query
