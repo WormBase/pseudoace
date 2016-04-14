@@ -52,9 +52,11 @@ Run all tests regularly, but in particular:
 
   * Add an entry in the CHANGES.md file.
 
-  * Change the version in the leiningen project.clj from:
+  * Change the version in the leiningen project.clj
+  
+    From:
       `<major.minor.patch>-SNAPSHOT`
-	to:
+	To:
 	  `<major.minor.patch>`
 
   * Merge the `develop` branch into to `master` (via a github pull
