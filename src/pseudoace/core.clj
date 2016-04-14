@@ -459,27 +459,6 @@
      :schema-filename schema-filename
      :verbose verbose)))
 
-(defn all-import-actions
-  "Perform all actions required to import data from ACeDB dump files."
-  [& {:keys [url model log-dir acedump-dir schema-filename verbose]
-      :or {verbose false}}]
-  (create-database :url url :model model :verbose verbose)
-  (acedump-to-edn-logs :url url
-                       :log-dir log-dir
-                       :acedump-dir acedump-dir
-                       :verbose verbose)
-  ;; DISABLED: (create-helper-database options)
-  (generate-schema-view
-   :url url
-   :schema-filename schema-filename
-   :verbose verbose)
-  ;; DISABLED: (run-locatables-importer-for-helper url log-dir aceedump-dir verbose)
-  ;; DISABLED: (delete-helper-database options)
-  (sort-edn-logs :log-dir log-dir :verbose verbose)
-  (import-logs :url url :log-dir log-dir :verbose verbose))
-  ;; DISABLED: (excise-tmp-data options)
-  ;; DISABLED: (run-test-query options))
-
 (defn list-databases
   "List all databases."
   [& {:keys [url]}]
@@ -584,7 +563,6 @@
                   #'import-helper-edn-logs
                   #'excise-tmp-data
                   #'run-test-query
-                  #'all-import-actions
                   #'generate-report
                   #'list-databases
                   #'delete-database])
