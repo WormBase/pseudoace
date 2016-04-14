@@ -1,5 +1,4 @@
 (ns pseudoace.metadata-schema
-  (:use datomic-schema.schema)
   (:require [datomic.api :refer (tempid)]))
 
 (def metaschema
@@ -136,7 +135,7 @@
     :db.install/_attribute :db.part/db
     :pace/identifies-class "LongText"}
 
-   {:db/id           #db/id[:db.part/db]
+   {:db/id           (tempid :db.part/db)
     :db/ident        :longtext/text
     :db/cardinality  :db.cardinality/one
     :db/valueType    :db.type/string
@@ -153,7 +152,7 @@
     :db.install/_attribute :db.part/db
     :pace/identifies-class "DNA"}
 
-   {:db/id           #db/id[:db.part/db]
+   {:db/id           (tempid :db.part/db)
     :db/ident        :dna/sequence
     :db/cardinality  :db.cardinality/one
     :db/valueType    :db.type/string
@@ -169,7 +168,7 @@
     :db.install/_attribute :db.part/db
     :pace/identifies-class "Peptide"}
 
-   {:db/id           #db/id[:db.part/db]
+   {:db/id           (tempid :db.part/db)
     :db/ident        :peptide/sequence
     :db/cardinality  :db.cardinality/one
     :db/valueType    :db.type/string
@@ -270,6 +269,4 @@
     :db.install/_attribute :db.part/db}
 
    {:db/id            (tempid :db.part/tx)
-    :db/txInstant     #inst "1970-01-01T00:00:01"}
-
-   ])
+    :db/txInstant     #inst "1970-01-01T00:00:01"}])
