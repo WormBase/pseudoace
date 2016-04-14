@@ -595,6 +595,11 @@
                      (map (comp str :name) cli-action-metas)
                      cli-actions))
 
+(def cli-doc-map (into
+                  {}
+                  (for [m cli-action-metas]
+                    {((comp str :name) m) (:doc m)})))
+
 (def ^:private space-join (partial str/join "  "))
 
 
@@ -630,8 +635,8 @@
 (defn usage
   "Display command usage to the user."
   [options-summary]
-  (let [action-names (keys cli-action-map)
-        action-docs (map :doc cli-action-metas)
+  (let [action-names (keys cli-doc-map)
+        action-docs (vals cli-doc-map)
         doc-width-left (+ 10 (apply max (map count action-docs)))
         action-width-right (+ 10 (apply max (map count action-names)))
         line-template (str "%-" action-width-right "s%-" doc-width-left "s")]
@@ -648,12 +653,13 @@
        ""
        (str "Actions: (required options for each action "
             "are provided in square brackets)")]
-      (for [[name doc-string] (zipmap action-names action-docs)]
+      (for [action-name (sort action-names)
+            :let [doc-string (cli-doc-map action-name)]]
         (let [usage-doc (-> doc-string
                             str/split-lines
                             space-join
                             single-space)]
-          (format line-template name usage-doc)))))))
+          (format line-template action-name usage-doc)))))))
 
 (defn -main [& args]
   (let [{:keys [options
