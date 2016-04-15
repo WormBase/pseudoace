@@ -25,4 +25,10 @@
   :main ^:skip-aot pseudoace.core
   :profiles {:uberjar {:aot :all}
              :test {:resource-paths ["test/resources"]}
-             :dev {:resource-paths ["test/resources"]}})
+             :dev {:dependencies [[datomic-schema-grapher "0.0.1"]]
+                   :plugins [[lein-ancient "0.6.8"]
+                             [lein-bikeshed "0.3.0"]
+                             [jonase/eastwood "0.2.3"]
+                             [lein-kibit "0.1.2"]
+                             [lein-ns-dep-graph "0.1.0-SNAPSHOT"]]
+                   :resource-paths ["test/resources"]}})
