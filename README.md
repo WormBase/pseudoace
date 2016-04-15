@@ -175,3 +175,4 @@ platform you run it on.
 [6]: https://datasift.github.io/gitflow/IntroducingGitFlow.html
 [7]: https://github.com/bbatsov/clojure-style-guide
 [8]: http://clojars.org
+[9]: https://github.com/technomancy/leiningen/blob/master/doc/DEPLOY.md#authentication
