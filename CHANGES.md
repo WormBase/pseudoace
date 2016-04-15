@@ -23,5 +23,9 @@
  - Moved sorting of logs files back out to the shell.
  - Fixed lingering namespace issues in `pseudoace.acedump`.
  - Use `datomic.api.tempid` in code, not reader-literals.
+ - Use the script `scripts/bundle-release.sh` to create a bundle for
+   deploying to servers and running the importer.
+ - Updated README (development and release instructions).
+ - Added development tools to "dev" profile in leiningen project configuration.
  
  

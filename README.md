@@ -42,12 +42,41 @@ Run all tests regularly, but in particular:
   * before issuing a new pull request
 
   * after checking out a feature-branch
+  
+#### eastwood
+Eastwood is a popular linting tool for Clojure.
 
-Run all development checks with:
+Run by itself with:
+```bash
+lein with-profile dev eastwood
+```
+
+Other useful leiningen plugins for development include:
+
+#### kibit 
+Recommend source idiomatic code changes.
+
+There is editor support in Emacs. e.g: `M-x kibit-current-file`
+
+Command line examples:
+
+  ```bash
+  # whole project
+  lein with-profile dev kibit
+  # single file
+  lein with-profile dev kibit src/pseudoace/core.clj
+  ```
+#### bikeshed
+Report changes which ideally need fixing
+
+
+### Required checks
+Run all *required* development QA steps with:
 
  ```bash
  
- lein do eastwood, tests
+ lein with-profile dev eastwood
+ lein with-profile dev test
  
  ```
 
@@ -76,7 +105,7 @@ Run all development checks with:
     project.clj:
 	
 	  ```bash
-	  git tag -a $VERSION -m "Relasing $VERSION"`
+	  git tag -a $VERSION -m "Releasing $VERSION"`
 	  git push --tags
 	  ```
   * Deploy to [clojars][8] via leiningen:
