@@ -88,16 +88,20 @@ Run all *required* development QA steps with:
 
 ### Procedure
 
-  * Add an entry in the CHANGES.md file.
+  * On the `develop` branch:
+	
+	* Add an entry in the CHANGES.md file.
 
-  * Change the version in the leiningen project.clj
+	* Change the version in the leiningen project.clj
 
-    From:
-      `<major.minor.patch>-SNAPSHOT`
+	  From:
+		`<major.minor.patch>-SNAPSHOT`
 
-	To:
-	  `<major.minor.patch>`
-
+	  To:
+		`<major.minor.patch>`
+		
+	  and push these changes.
+  
   * Merge the `develop` branch into to `master` (via a github pull
     request or directly using git)
 
