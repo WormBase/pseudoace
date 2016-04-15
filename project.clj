@@ -9,6 +9,7 @@
                  [org.clojure/tools.cli "0.3.3"]]
   :description "ACeDB migration tools"
   :source-paths ["src"]
+  :resource-paths ["models"]
   :plugins [[lein-environ "1.0.0"]]
   :javac-options ["-target" "1.8" "-source" "1.8"]
   :license "MIT"
