@@ -36,24 +36,33 @@ Follow the [GitFlow][6] mechanism for branching and committing changes:
 ### Coding style
 This project attempts to adhere to the [Clojure coding-style][7] conventions.
 
+### Testing & code QA
 Run all tests regularly, but in particular:
 
   * before issuing a new pull request
 
   * after checking out a feature-branch
 
+Run all development checks with:
+
+ ```bash
+ 
+ lein do eastwood, tests
+ 
+ ```
+
 ## Releases
 
-## Initial setup
+### Initial setup
 
 [Configure leiningen credentials][9] for [clojars][8].
 
-## Procedure
+### Procedure
 
   * Add an entry in the CHANGES.md file.
 
   * Change the version in the leiningen project.clj
-  
+
     From:
       `<major.minor.patch>-SNAPSHOT`
 
@@ -63,12 +72,16 @@ Run all tests regularly, but in particular:
   * Merge the `develop` branch into to `master` (via a github pull
     request or directly using git)
 
-  * Tag the release in git, using the same version as defined in
-    project.clj.
-
+  * Create an *annotated* tag in git, using the same version as defined in
+    project.clj:
+	
+	  ```bash
+	  git tag -a $VERSION -m "Relasing $VERSION"`
+	  git push --tags
+	  ```
   * Deploy to [clojars][8] via leiningen:
       `line deploy clojars`
-	
+
 	Depending on your credentials setup,
 	you may be prompted for your clojars surname and password.
 
@@ -86,7 +99,36 @@ Run all tests regularly, but in particular:
 
 	commit and push these changes.
 
+
+### Deployment
+
+Deploy as a library to [clojars][8]:
+
+```bash
+git checkout $RELEASE_TAG
+lein deploy clojars
+```
+
+Create a bundle of the release for running the import on a server:
+
+```bash
+./scripts/bundle-release.sh $GIT_RELEASE_TAG
+```
+
+An archive named `pseudoace-$GIT_RELEASE_TAG.tar.gz` will be created in the
+`release-archives` directory.
+
+The archive contains two artefacts:
+
+   ```bash
+   tar tvf pseudoace-$GIT_RELEASE_TAG.tar.gz
+   ./pseudoace-$GIT_RELEASE_TAG.jar
+   ./sort-edn-log.sh
+   ```
+  
 ## Usage
+
+### Development
 
 A command line utility has been developed for ease of usage:
 
@@ -117,6 +159,14 @@ Example of invoking a sub-command:
 (list-databases {:url (System/getenv "URL_OF_TRANSACTOR")})
 ```
 
+### Staging/Production
+
+Run `pseudoace` with the same arguments as you would when using `lein run`:
+
+  ```bash
+  java -jar pseudoace-$GIT_RELEASE_TAG.jar -v
+  ```
+
 ### Import process
 
 #### Prepare import
@@ -124,11 +174,13 @@ Example of invoking a sub-command:
 Create the database and parse .ace dump-files into EDN.
 
 Example:
+
 ```bash
-lein run --url $URL \
---log-dir $LOG_DIR \
---acedump-dir $ACEDUMP_DIR \
--v prepare-import
+java -jar pseudoace-$GIT_RELEASE_TAG.jar \
+     --url $DATOMIC_URL \
+	 --acedump-dir ACEDUMP_DIR \
+	 --log-dir LOG_DIR \
+	 -v prepare-import
 ```
 
 The `prepare-import` sub-command:
@@ -151,7 +203,10 @@ The EDN data is *required* to sorted by timestamp in order to
 preserve the time invariant of Datomic:
 
 ```bash
-find $LOG_DIR -name '*.gz' -exec ./scripts/sort-edn-log.sh {} +
+find $LOG_DIR \
+    -type f \
+	-name "*.edn.gz" \
+	-exec ./sort-edn-log.sh {} +
 ```
 
 #### Import the sorted logs into the database
@@ -160,7 +215,9 @@ Transacts the EDN sorted by timestamp in `--log-dir` to the database
 specified with `--url`:
 
 ```bash
-lein run --url $URL --log-dir $LOG_DIR -v import-logs
+java -jar pseudoace-$GIT_RELEASE_TAG.jar \
+	 --log-dir LOG_DIR \
+	 -v import-logs
 ```
 
 Using a full dump of a recent release of Wormbase, you can expect the
