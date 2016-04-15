@@ -3,6 +3,7 @@ blib/
 _build/
 cover_db/
 inc/
+release-archives/
 target/
 Build
 !Build/
