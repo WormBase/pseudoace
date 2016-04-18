@@ -347,6 +347,8 @@
   (if verbose
     (println "Importing logs into datomic" url log-dir verbose))
   (let [con (d/connect url)
+        db (d/db con)
+        latest-tx-dt (ts-import/latest-transaction-date db)
         log-files (get-sorted-edn-log-files log-dir)]
     (if verbose
       (println "Importing" (count log-files) "log files"))
