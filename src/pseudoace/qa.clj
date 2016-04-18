@@ -41,6 +41,21 @@
   (n-both [this]
     (count (:both this))))
 
+(defn- attr-report [db ref-data native->ref attr]
+  (let [class-name (native->ref attr)
+        query-result (d/q '[:find ?attr ?name
+                            :in $ ?attr
+                            :where [_ ?attr ?name]] db attr)
+        mapped (or (merge-pairs query-result) {})
+        db-values (set (map pr-str (mapped attr)))
+        ref-values (ref-data class-name)
+        [ref-only db-only in-both] (diff ref-values db-values)]
+    (->ClassStatsReportEntry class-name
+                             attr
+                             db-only
+                             ref-only
+                             in-both)))
+
 (defn class-by-class-report
   "Returns a seqeunence of mappings of the diff between `db` and `ref-data-path`."
   [db ref-data-path]
@@ -54,19 +69,5 @@
         native-names (map datomize-name class-names)
         attrs (map #(keyword % "id") native-names)
         native->ref (zipmap attrs class-names)
-        query-result (d/q '[:find ?attr ?name
-                            :in $ [?attr ...]
-                            :where [_ ?attr ?name]] db attrs)
-        mapped (merge-pairs query-result)]
-    (->ClassStatsReport
-     class-names
-     (for [attr attrs
-           :let [class-name (native->ref attr)
-                 db-values (set (map pr-str (mapped attr)))
-                 ref-values (ref-data class-name)
-                 [ref-only db-only in-both] (diff ref-values db-values)]]
-       (->ClassStatsReportEntry class-name
-                                attr
-                                db-only
-                                ref-only
-                                in-both)))))
+        per-attr-report (partial attr-report db ref-data native->ref)]
+    (->ClassStatsReport class-names (pmap per-attr-report attrs))))

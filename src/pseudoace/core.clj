@@ -489,7 +489,7 @@
     (with-open [writer (io/writer outfile)]
       (doseq [entry (:entries report)]
         (binding [*out* writer]
-          (doseq [value (:db-only entry)]
+          (doseq [value (:db-only entry [])]
             (println (:class-name entry) ":" (pr value))))))
     (throw (java.io.FileNotFoundException.
             (format "%s is not a valid path" (str path))))))
@@ -521,25 +521,26 @@
           (println header-line))
         (doseq [entry (:entries report)
                 :let [class-name (:class-name entry)
-                      format-num (partial format "%10d")
-                      out-line (str/join
-                                \tab
-                                (map
-                                 format-left
-                                 [class-name
-                                  (format-num (.n-ref-only entry))
-                                  (format-num (.n-db-only entry))
-                                  (format-num (.n-both entry))]))]]
-          (write-line out-line)
-          (if verbose
-            (println out-line)))))
+                      format-num (partial format "%10d")]]
+          (if (utils/not-nil? entry)
+            (let [out-line (str/join
+                            \tab
+                            (map
+                             format-left
+                             [class-name
+                              (format-num (.n-ref-only entry))
+                              (format-num (.n-db-only entry))
+                              (format-num (.n-both entry))]))]
+              (write-line out-line)
+              (if verbose
+                (println out-line)))))
     (d/release con)
     ;; Quietly ensure writing has finished before exiting.
     (do
       (println "Saving results to" stats-storage-path "for future use ...")
       @write-class-ids
       (println "done")
-      nil)))
+      nil)))))
 
 (defn backup-database
   "Backup the database at a given URL to a file."
