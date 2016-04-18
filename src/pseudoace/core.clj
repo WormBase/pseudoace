@@ -619,10 +619,10 @@
     (str/join
      \newline
      (concat
-      [(str "Ace to dataomic is tool for importing data from ACeDB "
-            "into to Datomic database")
+      [(str "This is tool for importing data from ACeDB "
+            "into a Datomic database")
        ""
-       "Usage: ace-to-datomic [options] action"
+       "Usage: pseudoace [options] action"
        ""
        "Options:"
        options-summary
