@@ -357,7 +357,7 @@
         (println \tab "importing: " (.getName file)))
       (ts-import/play-logfile
        con
-       (java.util.zip.GZIPInputStream. (io/input-stream file)))
+       (java.util.zip.GZIPInputStream. (io/input-stream file))))
     (d/release con)))
 
 (defn excise-tmp-data
