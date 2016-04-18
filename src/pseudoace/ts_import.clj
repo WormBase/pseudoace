@@ -850,6 +850,17 @@
                   (+ text (count v))
                   text)))))))
 
+(defn latest-transaction-date
+  "Returns the `date-time` of the latest transaction."
+  [db]
+  (let [bt (-> db d/basis-t d/t->tx)]
+    (-> (d/q '[:find ?t
+               :in $ ?tx
+               :where [?tx :db/txInstant ?t]]
+             db bt)
+        ffirst
+        from-date)))
+
 (defn play-logfile [con logfile]
   (with-open [r (reader logfile)]
     (doseq [rblk (partition-log 100 5000 (logfile-seq r))] ;; was 1000 50000
@@ -868,13 +879,3 @@
                 (.printStackTrace t)))
             (println "Skipping transaction with past-date:" stamp)))))))
 
-(defn latest-transaction-date
-  "Returns the `date-time` of the latest transaction."
-  [db]
-  (let [bt (-> db d/basis-t d/t->tx)]
-    (-> (d/q '[:find ?t
-               :in $ ?tx
-               :where [?tx :db/txInstant ?t]]
-             db bt)
-        ffirst
-        from-date)))
