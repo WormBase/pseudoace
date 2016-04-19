@@ -8,9 +8,10 @@
   :description "ACeDB migration tools"
   :source-paths ["src"]
   :resource-paths ["models"]
-  :plugins [[lein-environ "1.0.0"]]
+  :plugins [[lein-environ "1.0.0"]
+            [lein-pprint "1.1.1"]]
   :javac-options ["-target" "1.8" "-source" "1.8"]
-  :license "MIT"
+  :license "GPLv2"
   :jvm-opts ["-Xmx6G"
              ;; same GC options as the transactor,
              "-XX:+UseG1GC" "-XX:MaxGCPauseMillis=50"
