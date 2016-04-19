@@ -317,4 +317,3 @@
           (when-let [o (:pace.xref/obj-ref xo)]
             [(juxt (reverse-ref (:pace.xref/attribute xo)) (constantly o))]))))
     (q '[:find ?x :where [_ :pace/xref ?x]] db))))
-           

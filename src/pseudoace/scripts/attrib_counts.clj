@@ -27,4 +27,3 @@
              :occurrences (count counts)
              :multiples   (count multis)
              :examples    (take 5 (sort multis))})))))
-            

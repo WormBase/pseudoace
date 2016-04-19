@@ -170,4 +170,3 @@
                   (if-let [fm (feature-map (:id f))]
                     (import-features f fm)
                     (println "Coudln't find" (:id f))))))))
-  

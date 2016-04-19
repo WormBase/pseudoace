@@ -57,4 +57,3 @@
   [^String s coord-min coord-max]
   (let [bits (bit-shift-left (Murmur3/hashUnencodedChars s) 20)]
     (mapv (partial bit-or bits) (reg2bins coord-min coord-max))))
-
