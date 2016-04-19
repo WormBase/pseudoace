@@ -126,7 +126,7 @@
      ;; "simple enum" case -- the only ones we auto-detect.
      ;; Could this be merged with the other enum case?
      (every? simple-tag? (:children node))
-     (let      [vns       (str (namespace attribute) "." (name attribute))]
+     (let [vns (str (namespace attribute) "." (name attribute))]
        (conj
         (keys (enum-keys vns (:children node)))
 
