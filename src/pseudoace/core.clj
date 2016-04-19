@@ -606,7 +606,6 @@
 
 (def ^:private space-join (partial str/join "  "))
 
-
 (defn- single-space
   "Remove occruances of multiple spaces in `s` with a single space."
   [s]
