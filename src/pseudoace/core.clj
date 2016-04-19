@@ -216,7 +216,8 @@
     (println "Creating Database"))
   (generate-schema :verbose verbose)
   (d/create-database url)
-  (load-schema url verbose))
+  (load-schema url verbose)
+  true)
 
 (defn uri-to-helper-uri [uri]
   (str/join "-" [uri "helper"]))
