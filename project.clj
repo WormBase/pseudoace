@@ -1,7 +1,5 @@
 (defproject wormbase/pseudoace "0.3.2-SNAPSHOT"
   :dependencies [[clj-time "0.11.0"]
-                 [com.amazonaws/aws-java-sdk-dynamodb "1.9.39"
-                  :exclusions [joda-time]]
                  [com.datomic/datomic-pro "0.9.5350"
                   :exclusions [joda-time]]
                  [datomic-schema "1.3.0"]
@@ -26,9 +24,12 @@
   :profiles {:uberjar {:aot :all}
              :test {:resource-paths ["test/resources"]}
              :dev {:dependencies [[datomic-schema-grapher "0.0.1"]]
-                   :plugins [[lein-ancient "0.6.8"]
+                   :plugins [[jonase/eastwood "0.2.3"]
+                             [lein-ancient "0.6.8"]
                              [lein-bikeshed "0.3.0"]
-                             [jonase/eastwood "0.2.3"]
                              [lein-kibit "0.1.2"]
                              [lein-ns-dep-graph "0.1.0-SNAPSHOT"]]
-                   :resource-paths ["test/resources"]}})
+                   :resource-paths ["test/resources"]}
+             :sql {:dependencies [[mysql/mysql-connector-java "5.1.6"]]}
+             :ddb {:dependencies [[com.amazonaws/aws-java-sdk-dynamodb "1.9.39"
+                                   :exclusions [joda-time]]]}})
