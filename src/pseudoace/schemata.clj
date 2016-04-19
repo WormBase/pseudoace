@@ -503,7 +503,7 @@
 
 
 (defn- conj-install-part
-  "Marks a mapping `item` to be an installable dataomic structure."
+  "Marks a mapping `item` to be an installable datomic structure."
   [item]
   (conj item {:db/id (tempid :db.part/db)
               :db.install/_attribute :db.part/db}))
