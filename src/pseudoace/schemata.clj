@@ -1,232 +1,245 @@
 (ns pseudoace.schemata
   (:require [datomic-schema.schema :refer (generate-schema fields schema)]
-            [datomic.api :refer (tempid)]))
+            [datomic.api :as d]))
+
+(defn mark-tx-early
+  "Marks mapping `item` with an early timestamp."
+  [schema]
+  (conj schema
+        {:db/id (d/tempid :db.part/tx)
+         :db/txInstant #inst "1970-01-01T00:00:01"}))
+
+(defn conj-install-part
+  "Marks a mapping `item` to be an installable datomic structure."
+  [items]
+  (for [item items]
+    (conj item {:db/id (d/tempid :db.part/db)
+                :db.install/_attribute :db.part/db})))
 
 (def meta-schema
-  [{:db/ident        :pace/identifies-class
-    :db/valueType    :db.type/string
-    :db/cardinality  :db.cardinality/one
-    :db/unique       :db.unique/identity
-    :db/doc          (str "Attribute of object-identifers "
-                          "(e.g. :gene/id), indicating the name of the "
-                          "corresponding ACeDB class.")}
+  (map
+   conj-install-part
+   [{:db/ident        :pace/identifies-class
+     :db/valueType    :db.type/string
+     :db/cardinality  :db.cardinality/one
+     :db/unique       :db.unique/identity
+     :db/doc          (str "Attribute of object-identifers "
+                           "(e.g. :gene/id), indicating the name of the "
+                           "corresponding ACeDB class.")}
 
-   {:db/ident        :pace/is-hash
-    :db/valueType    :db.type/boolean
-    :db/cardinality  :db.cardinality/one
-    :db/doc          (str "Marks an object-identifier as identifying "
-                          "a hash-model.")}
+    {:db/ident        :pace/is-hash
+     :db/valueType    :db.type/boolean
+     :db/cardinality  :db.cardinality/one
+     :db/doc          (str "Marks an object-identifier as identifying "
+                           "a hash-model.")}
 
-   {:db/ident        :pace/prefer-part
-    :db/valueType    :db.type/ref
-    :db/cardinality  :db.cardinality/one
-    :db/doc          (str "Attribute of object-identifiers indicating "
-                          "a preferred Datomic partition for "
-                          "storing entities of this type.")}
-   
-   {:db/ident        :pace/tags
-    :db/valueType    :db.type/string
-    :db/cardinality  :db.cardinality/one
-    :db/doc          (str "Space-separated sequence of tag names "
-                          "from the ACeDB model.")}
-   
-   {:db/ident         :pace/obj-ref
-    :db/valueType     :db.type/ref
-    :db/cardinality   :db.cardinality/one
-    :db/doc           (str "The object-identifier for the type "
-                           "of object referenced by this attribute.")}
+    {:db/ident        :pace/prefer-part
+     :db/valueType    :db.type/ref
+     :db/cardinality  :db.cardinality/one
+     :db/doc          (str "Attribute of object-identifiers indicating "
+                           "a preferred Datomic partition for "
+                           "storing entities of this type.")}
 
-   ;; Used to impose an ordering on Datomic components which
-   ;; map to complex ACeDB internal tags
-   {:db/ident         :pace/order
-    :db/valueType     :db.type/long
-    :db/cardinality   :db.cardinality/one
-    :db/doc           (str "The order of positional parameters "
-                           "within a component.")}
+    {:db/ident        :pace/tags
+     :db/valueType    :db.type/string
+     :db/cardinality  :db.cardinality/one
+     :db/doc          (str "Space-separated sequence of tag names "
+                           "from the ACeDB model.")}
 
-   {:db/ident         :pace/use-ns
-    :db/valueType     :db.type/string
-    :db/cardinality   :db.cardinality/many
-    :db/doc           (str "For a component attribute, "
-                           "specifies that the component entity may "
-                           "contain attributes from the specied "
-                           "namespace (e.g. \"evidence\").")}
+    {:db/ident         :pace/obj-ref
+     :db/valueType     :db.type/ref
+     :db/cardinality   :db.cardinality/one
+     :db/doc           (str "The object-identifier for the type "
+                            "of object referenced by this attribute.")}
 
-   {:db/ident         :pace/fill-default
-    :db/valueType     :db.type/boolean
-    :db/cardinality   :db.cardinality/one
-    :db/doc           (str "Hint that the importer should supply a "
-                           "default value if none is specified in ACeDB.")}
-   
-   {:db/ident         :pace/xref
-    :db/valueType     :db.type/ref
-    :db/cardinality   :db.cardinality/many
-    :db/isComponent   true
-    :db/doc           (str "Information about XREFs to this attribute "
-                           "from other classes.")}
+    ;; Used to impose an ordering on Datomic components which
+    ;; map to complex ACeDB internal tags
+    {:db/ident         :pace/order
+     :db/valueType     :db.type/long
+     :db/cardinality   :db.cardinality/one
+     :db/doc           (str "The order of positional parameters "
+                            "within a component.")}
 
-   {:db/ident         :pace.xref/tags
-    :db/valueType     :db.type/string
-    :db/cardinality   :db.cardinality/one
-    :db/doc           "The XREF's tag-path within this class."}
+    {:db/ident         :pace/use-ns
+     :db/valueType     :db.type/string
+     :db/cardinality   :db.cardinality/many
+     :db/doc           (str "For a component attribute, "
+                            "specifies that the component entity may "
+                            "contain attributes from the specied "
+                            "namespace (e.g. \"evidence\").")}
 
-   {:db/ident         :pace.xref/attribute
-    ;; Mainly to ensure we don't get duplicates
-    :db/unique        :db.unique/identity 
-    ;; if we transact this multiple times.
-    :db/valueType     :db.type/ref
-    :db/cardinality   :db.cardinality/one
-    :db/doc           (str "The attribute from the foreign class "
-                           "corresponding to this XREF.")}
+    {:db/ident         :pace/fill-default
+     :db/valueType     :db.type/boolean
+     :db/cardinality   :db.cardinality/one
+     :db/doc           (str "Hint that the importer should supply a "
+                            "default value if none is specified in ACeDB.")}
 
-   {:db/ident         :pace.xref/obj-ref
-    :db/valueType     :db.type/ref
-    :db/cardinality   :db.cardinality/one
-    :db/doc           (str "Identity attribute for the object "
-                           "at the outbound end of the XREF.")}
+    {:db/ident         :pace/xref
+     :db/valueType     :db.type/ref
+     :db/cardinality   :db.cardinality/many
+     :db/isComponent   true
+     :db/doc           (str "Information about XREFs to this attribute "
+                            "from other classes.")}
 
-   {:db/ident         :pace.xref/import
-    :db/valueType     :db.type/boolean
-    :db/cardinality   :db.cardinality/one
-    :db/doc           (str "Whether inbound occurrences of this XREF "
-                           "be considered by the ACeDB importer.")}
+    {:db/ident         :pace.xref/tags
+     :db/valueType     :db.type/string
+     :db/cardinality   :db.cardinality/one
+     :db/doc           "The XREF's tag-path within this class."}
 
-   {:db/ident         :pace.xref/export
-    :db/valueType     :db.type/boolean
-    :db/cardinality   :db.cardinality/one
-    :db/doc           (str "Whether inbound occurrences of this XREF "
-                           "be dumped by the .ace file exporter.")}
+    {:db/ident         :pace.xref/attribute
+     ;; Mainly to ensure we don't get duplicates
+     :db/unique        :db.unique/identity
+     ;; if we transact this multiple times.
+     :db/valueType     :db.type/ref
+     :db/cardinality   :db.cardinality/one
+     :db/doc           (str "The attribute from the foreign class "
+                            "corresponding to this XREF.")}
 
-   {:db/ident         :pace.xref/view
-    :db/valueType     :db.type/boolean
-    :db/cardinality   :db.cardinality/one
-    :db/doc           (str "Should inbound occurrences of this XREF"
-                           "be shown in user-oriented viewers.")}
+    {:db/ident         :pace.xref/obj-ref
+     :db/valueType     :db.type/ref
+     :db/cardinality   :db.cardinality/one
+     :db/doc           (str "Identity attribute for the object "
+                            "at the outbound end of the XREF.")}
 
-   {:db/ident         :pace.xref/use-ns
-    :db/valueType     :db.type/string
-    :db/cardinality   :db.cardinality/many
-    :db/doc           (str "For 'complex' XREFs, a set of namespaces "
-                           "for additional data which should be visible "
-                           "on the inbound end.")}])
+    {:db/ident         :pace.xref/import
+     :db/valueType     :db.type/boolean
+     :db/cardinality   :db.cardinality/one
+     :db/doc           (str "Whether inbound occurrences of this XREF "
+                            "be considered by the ACeDB importer.")}
+
+    {:db/ident         :pace.xref/export
+     :db/valueType     :db.type/boolean
+     :db/cardinality   :db.cardinality/one
+     :db/doc           (str "Whether inbound occurrences of this XREF "
+                            "be dumped by the .ace file exporter.")}
+
+    {:db/ident         :pace.xref/view
+     :db/valueType     :db.type/boolean
+     :db/cardinality   :db.cardinality/one
+     :db/doc           (str "Should inbound occurrences of this XREF"
+                            "be shown in user-oriented viewers.")}
+
+    {:db/ident         :pace.xref/use-ns
+     :db/valueType     :db.type/string
+     :db/cardinality   :db.cardinality/many
+     :db/doc           (str "For 'complex' XREFs, a set of namespaces "
+                            "for additional data which should be visible "
+                            "on the inbound end.")}]))
 
 (def basetypes-schema
-    [{:db/ident        :longtext/id
-      :db/valueType    :db.type/string
-      :db/unique       :db.unique/identity
-      :db/cardinality  :db.cardinality/one
-      :db/doc          "Built-in ?LongText class."
-      :db.install/_attribute :db.part/db
-      :pace/identifies-class "LongText"}
+  (map
+   conj-install-part
+   [{:db/ident        :longtext/id
+     :db/valueType    :db.type/string
+     :db/unique       :db.unique/identity
+     :db/cardinality  :db.cardinality/one
+     :db/doc          "Built-in ?LongText class."
+     :pace/identifies-class "LongText"}
 
-     {:db/ident        :longtext/text
-      :db/cardinality  :db.cardinality/one
-      :db/valueType    :db.type/string
-      :db/fulltext     true
-      :db/doc          (str "The text associated with this object."
-                            "A full-text index will be built.")}
+    {:db/ident        :longtext/text
+     :db/cardinality  :db.cardinality/one
+     :db/valueType    :db.type/string
+     :db/fulltext     true
+     :db/doc          (str "The text associated with this object."
+                           "A full-text index will be built.")}
 
-     {:db/ident        :dna/id
-      :db/valueType    :db.type/string
-      :db/unique       :db.unique/identity
-      :db/cardinality  :db.cardinality/one
-      :db/doc          "Built-in ?DNA class."
-      :db.install/_attribute :db.part/db
-      :pace/identifies-class "DNA"}
+    {:db/ident        :dna/id
+     :db/valueType    :db.type/string
+     :db/unique       :db.unique/identity
+     :db/cardinality  :db.cardinality/one
+     :db/doc          "Built-in ?DNA class."
+     :pace/identifies-class "DNA"}
 
-     {:db/ident        :dna/sequence
-      :db/cardinality  :db.cardinality/one
-      :db/valueType    :db.type/string
-      :db/doc          "The sequence of this DNA."}
+    {:db/ident        :dna/sequence
+     :db/cardinality  :db.cardinality/one
+     :db/valueType    :db.type/string
+     :db/doc          "The sequence of this DNA."}
 
-     {:db/ident        :peptide/id
-      :db/valueType    :db.type/string
-      :db/unique       :db.unique/identity
-      :db/cardinality  :db.cardinality/one
-      :db/doc          "Built-in ?Peptide type."
-      :db.install/_attribute :db.part/db
-      :pace/identifies-class "Peptide"}
+    {:db/ident        :peptide/id
+     :db/valueType    :db.type/string
+     :db/unique       :db.unique/identity
+     :db/cardinality  :db.cardinality/one
+     :db/doc          "Built-in ?Peptide type."
+     :pace/identifies-class "Peptide"}
 
-     {:db/ident        :peptide/sequence
-      :db/cardinality  :db.cardinality/one
-      :db/valueType    :db.type/string
-      :db/doc          "The sequence of this protein/peptide."}
-     
-     {:db/ident        :keyword/id
-      :db/valueType    :db.type/string
-      :db/unique       :db.unique/identity
-      :db/cardinality  :db.cardinality/one
-      :db.install/_attribute :db.part/db
-      :db/doc          "Built-in ?Keyword type."
-      :pace/identifies-class "Keyword"}
+    {:db/ident        :peptide/sequence
+     :db/cardinality  :db.cardinality/one
+     :db/valueType    :db.type/string
+     :db/doc          "The sequence of this protein/peptide."}
 
-     ;;
-     ;; Importer support
-     ;;
+    {:db/ident        :keyword/id
+     :db/valueType    :db.type/string
+     :db/unique       :db.unique/identity
+     :db/cardinality  :db.cardinality/one
+     :db/doc          "Built-in ?Keyword type."
+     :pace/identifies-class "Keyword"}
 
-     {:db/valueType    :db.type/string
-      :db/cardinality  :db.cardinality/one
-      :db/unique       :db.unique/identity
-      :db/ident        :importer/temp
-      :db/doc          (str "Identifier used as scaffolding by the "
-                            "timestamp-aware importer. "
-                            "Should generally be excised after import "
-                            "is complete.")}
+    ;;
+    ;; Importer support
+    ;;
 
-     {:db/valueType    :db.type/string
-      :db/cardinality  :db.cardinality/one
-      :db/ident        :importer/ts-name
-      :db/doc          "Username from a legacy timestamp."}
-     
-     ;;
-     ;; Special #Ordered virtual hash-model
-     ;;
-     
-     {:db/ident        :ordered/id
-      :db/valueType    :db.type/string
-      :db/unique       :db.unique/identity
-      :db/cardinality  :db.cardinality/one
-      :db.install/_attribute :db.part/db
-      :pace/identifies-class "Ordered"
-      :pace/is-hash    true}
+    {:db/valueType    :db.type/string
+     :db/cardinality  :db.cardinality/one
+     :db/unique       :db.unique/identity
+     :db/ident        :importer/temp
+     :db/doc          (str "Identifier used as scaffolding by the "
+                           "timestamp-aware importer. "
+                           "Should generally be excised after import "
+                           "is complete.")}
 
-     {:db/ident        :ordered/index
-      :db/valueType    :db.type/long
-      :db/cardinality  :db.cardinality/one
-      :db/doc          "Index in an ordered collection."}
+    {:db/valueType    :db.type/string
+     :db/cardinality  :db.cardinality/one
+     :db/ident        :importer/ts-name
+     :db/doc          "Username from a legacy timestamp."}
 
-     ;; no :pace/tags since we'd never want these to appear in ACeDB-
-     ;; style output.
+    ;;
+    ;; Special #Ordered virtual hash-model
+    ;;
 
-     ;;
-     ;; Position_Matrix data
-     ;;
-     {:db/ident        :position-matrix/background
-      :db/valueType    :db.type/ref
-      :db/isComponent  true
-      :db/cardinality  :db.cardinality/one}
+    {:db/ident        :ordered/id
+     :db/valueType    :db.type/string
+     :db/unique       :db.unique/identity
+     :db/cardinality  :db.cardinality/one
+     :pace/identifies-class "Ordered"
+     :pace/is-hash    true}
 
-     {:db/ident        :position-matrix/values
-      :db/valueType    :db.type/ref
-      :db/isComponent  true
-      :db/cardinality  :db.cardinality/many
-      :pace/use-ns     #{"ordered"}}
+    {:db/ident        :ordered/index
+     :db/valueType    :db.type/long
+     :db/cardinality  :db.cardinality/one
+     :db/doc          "Index in an ordered collection."}
 
-     {:db/ident        :position-matrix.value/a
-      :db/valueType    :db.type/float
-      :db/cardinality  :db.cardinality/one}
+    ;; no :pace/tags since we'd never want these to appear in ACeDB-
+    ;; style output.
 
-     {:db/ident        :position-matrix.value/c
-      :db/valueType    :db.type/float
-      :db/cardinality  :db.cardinality/one}
+    ;;
+    ;; Position_Matrix data
+    ;;
+    {:db/ident        :position-matrix/background
+     :db/valueType    :db.type/ref
+     :db/isComponent  true
+     :db/cardinality  :db.cardinality/one}
 
-     {:db/ident        :position-matrix.value/g
-      :db/valueType    :db.type/float
-      :db/cardinality  :db.cardinality/one}
+    {:db/ident        :position-matrix/values
+     :db/valueType    :db.type/ref
+     :db/isComponent  true
+     :db/cardinality  :db.cardinality/many
+     :pace/use-ns     #{"ordered"}}
 
-     {:db/ident        :position-matrix.value/t
-      :db/valueType    :db.type/float
-      :db/cardinality  :db.cardinality/one}])
+    {:db/ident        :position-matrix.value/a
+     :db/valueType    :db.type/float
+     :db/cardinality  :db.cardinality/one}
+
+    {:db/ident        :position-matrix.value/c
+     :db/valueType    :db.type/float
+     :db/cardinality  :db.cardinality/one}
+
+    {:db/ident        :position-matrix.value/g
+     :db/valueType    :db.type/float
+     :db/cardinality  :db.cardinality/one}
+
+    {:db/ident        :position-matrix.value/t
+     :db/valueType    :db.type/float
+     :db/cardinality  :db.cardinality/one}]))
 
 (def locatable-schema
   (schema
@@ -354,10 +367,10 @@
           "(e.g. tblastx)")]
     [gap :string
      (str "Gapped alignment. "
-          "The locations of matches and gaps are encoded " 
+          "The locations of matches and gaps are encoded "
           "in a CIGAR-like format as defined in "
           "http://www.sequenceontology.org/gff3.shtml")]
-    ;; 
+    ;;
     ;; Parity with legacy #Homol_info
     ;; -- are these needed in the long run?
     ;;
@@ -366,59 +379,61 @@
 
     [align-id :string
      "Alignment ID to emit in GFF dumps."])))
-  
+
 (def locatable-schemas
   (concat
    (generate-schema
-    (vec (concat [locatable-schema]
-                 splice-confirm-schemas
-                 [homology-schema])))))
+    (vec (mapcat
+          conj-install-part
+          [[locatable-schema]
+           splice-confirm-schemas
+           [homology-schema]])))))
 
 (def locatable-extras
   "Add locatable XREFs to the pace schema."
   (concat
-   [{:db/id          (tempid :db.part/db)
+   [{:db/id          (d/tempid :db.part/db)
      :db/ident       :locatable/parent
 
      ;; this isn't always true, but needed for current Colonnade code.
      :pace/obj-ref   :sequence/id
 
      :pace/tags      "Parent"}
-    
-    {:db/id          (tempid :db.part/db)
+
+    {:db/id          (d/tempid :db.part/db)
      :db/ident       :locatable/min
      :pace/tags      "Position Min"}
 
-    {:db/id          (tempid :db.part/db)
+    {:db/id          (d/tempid :db.part/db)
      :db/ident       :locatable/max
      :pace/tags      "Position Max"}
 
-    {:db/id          (tempid :db.part/db)
+    {:db/id          (d/tempid :db.part/db)
      :db/ident       :locatable/method
      :pace/obj-ref   :method/id
      :pace/tags      "Method"}
 
-    {:db/id          (tempid :db.part/db)
+    {:db/id          (d/tempid :db.part/db)
      :db/ident       :locatable/score
      :pace/tags      "Score"}
-    
-    {:db/id          (tempid :db.part/db)
+
+    {:db/id          (d/tempid :db.part/db)
      :db/ident       :locatable/strand
      :pace/tags      "Strand"}
-    
-    {:db/id          (tempid :db.part/user)
+
+    {:db/id          (d/tempid :db.part/user)
      :db/ident       :locatable.strand/positive
      :pace/tags      "Positive"}
 
-    {:db/id          (tempid :db.part/user)
+    {:db/id          (d/tempid :db.part/user)
      :db/ident       :locatable.strand/negative
      :pace/tags      "Negative"}
 
-    {:db/id          (tempid :db.part/user)
+    {:db/id          (d/tempid :db.part/user)
      :db/ident       :homology.strand/positive
      :pace/tags      "Positive"}
 
-    {:db/id          (tempid :db.part/user)
+    {:db/id          (d/tempid :db.part/user)
      :db/ident       :homology.strand/negative
      :pace/tags      "Negative"}]))
 
@@ -432,7 +447,7 @@
 
    {:db/id          :feature/id
     :pace/use-ns    ["locatable"]}
-   
+
    {:db/id          :cds/id
     :pace/use-ns    ["locatable"]}
 
@@ -441,7 +456,7 @@
 
    {:db/id          :pseudogene/id
     :pace/use-ns    ["locatable"]}
-   
+
    {:db/id          :transposon/id
     :pace/use-ns    ["locatable"]}
 
@@ -461,39 +476,39 @@
 ;; https://github.com/WormBase/db/wiki/Ace-to-Datomic-mapping#xrefs-in-hash-models
 (def xref-fixups
   "XREFs inside hash models"
-  [{:db/id               (tempid :db.part/user)
+  [{:db/id               (d/tempid :db.part/user)
     :pace.xref/attribute :multi-counts.gene/gene
     :pace.xref/obj-ref   :multi-pt-data/id}
 
-   {:db/id               (tempid :db.part/user)
+   {:db/id               (d/tempid :db.part/user)
     :pace.xref/attribute :multi-counts.allele/variation
     :pace.xref/obj-ref   :multi-pt-data/id}
 
-   {:db/id               (tempid :db.part/user)
+   {:db/id               (d/tempid :db.part/user)
     :pace.xref/attribute :multi-counts.locus/locus
     :pace.xref/obj-ref   :multi-pt-data/id}
 
-   {:db/id               (tempid :db.part/user)
+   {:db/id               (d/tempid :db.part/user)
     :pace.xref/attribute :multi-counts.transgene/transgene
     :pace.xref/obj-ref   :multi-pt-data/id}
 
-   {:db/id               (tempid :db.part/user)
+   {:db/id               (d/tempid :db.part/user)
     :pace.xref/attribute :multi-counts.rearrangement/rearrangement
     :pace.xref/obj-ref   :multi-pt-data/id}
 
-   {:db/id               (tempid :db.part/user)
+   {:db/id               (d/tempid :db.part/user)
     :pace.xref/attribute :mass-spec-data/protein
     :pace.xref/obj-ref   :mass-spec-peptide/id}
 
-   {:db/id               (tempid :db.part/user)
+   {:db/id               (d/tempid :db.part/user)
     :pace.xref/attribute :interactor-info/transgene
     :pace.xref/obj-ref   :interaction/id}
 
-   {:db/id               (tempid :db.part/user)
+   {:db/id               (d/tempid :db.part/user)
     :pace.xref/attribute :interactor-info/construct
     :pace.xref/obj-ref   :interaction/id}
 
-   {:db/id               (tempid :db.part/user)
+   {:db/id               (d/tempid :db.part/user)
     :pace.xref/attribute :interactor-info/antibody
     :pace.xref/obj-ref   :interaction/id}])
 
@@ -501,34 +516,27 @@
   "All the schema fixups together for convenience."
   (concat top-level-locatable-fixups xref-fixups))
 
-
-(defn- conj-install-part
-  "Marks a mapping `item` to be an installable datomic structure."
-  [item]
-  (conj item {:db/id (tempid :db.part/db)
-              :db.install/_attribute :db.part/db}))
-
-(defn make-ts-part
-  "Marks mapping `item` with an early timestamp."
-  []
-  {:db/id (tempid :db.part/tx)
-   :db/txInstant #inst "1970-01-01T00:00:01"})
+(defn- transact-silenced
+  "Tranact the entity `tx` using `con`.
+  Suppresses the (potentially-large) report if it succeeds."
+  [con tx]
+  (println "Transacting" tx)
+  @(d/transact con tx)
+  nil)
 
 ;; Built-in schemas
-;; * Use the tempid function to give temporary ids for 
+;; * Use the d/tempid function to give temporary ids for
 ;; * Include explicit 1970-01-01 timestamps.
 (defn install
-  "Installs the various schemata with `transact`."
-  [transact main-schema]
-  ;; The `locatable-schema` needs to be transacted *after* the main
-  ;; meta schema.
-  (for [schema-items [meta-schema
-                      basetypes-schema
-                      locatable-schema]]
-    (let [ident-schema-items (map conj-install-part schema-items)
-          tx-item (make-ts-part)]
-      (transact
-       ;; Add 1970-01-01 timestamp tp all items.
-       (for [schema-item ident-schema-items]
-         (let [tx (conj schema-item tx-item)]
-           tx))))))
+  "Installs the various schemata with datomic connection `con`.
+
+  The order the various schemata are transacted in is important."
+  [con main-schema]
+  (let [transact (partial transact-silenced con)]
+    (for [schema-items [meta-schema
+                        basetypes-schema
+                        locatable-schemas]]
+      (transact (map mark-tx-early schema-items)))
+    (transact (mark-tx-early main-schema))
+    (transact locatable-extras)
+    (transact fixups)))
