@@ -15,15 +15,13 @@
    [pseudoace.aceparser :as ace]
    [pseudoace.import :as old-import]
    [pseudoace.locatable-import :as loc-import]
-   [pseudoace.locatable-schema :refer (locatable-schema locatable-extras)]
-   [pseudoace.metadata-schema :refer (basetypes metaschema)]
    [pseudoace.model :as model]
    [pseudoace.model2schema :as model2schema]
    [pseudoace.qa :as qa]
    [pseudoace.schema-datomic :as schema-datomic]
+   [pseudoace.schemata :as schemata]
    [pseudoace.ts-import :as ts-import]
-   [pseudoace.utils :as utils]
-   [pseudoace.wormbase-schema-fixups :refer (schema-fixups)])
+   [pseudoace.utils :as utils])
   (:import
    (java.lang.Runtime)
    (java.lang.Runtimea)
@@ -154,16 +152,6 @@
     {:db/id        (d/tempid :db.part/tx)
      :db/txInstant #inst "1970-01-01T00:00:01"})))
 
-(defn- transact-silenced
-  "Tranact the entity `tx` using `con`.
-  Suppresses the (potentially-large) report if it succeeds."
-  [con tx]
-  @(d/transact con tx)
-  nil)
-
-;; TODO: consolidate schemata (metaschema, basetypes, locatable{,-extras})
-;;       consider moving to e.g: pseudoace.schemata/load-schema
-;;
 (defn load-schema
   "Load the schema for the database."
   ([url]
@@ -173,38 +161,8 @@
      (println (str/join " " ["Loading Schema into:" url]))
      (println \tab "Creating database connection"))
    (let [con (d/connect url)
-         tx-quiet (partial transact-silenced con)
          main-schema (generate-schema :verbose verbose)]
-     ;; Built-in schemas include explicit 1970-01-01 timestamps.
-     ;; the 'metaschema' and 'locatable-schema' lines simply execute
-     ;; what was read in on the previous two lines for metadata and locatables
-     (tx-quiet metaschema) ; pace namespace, used by importer
-     (tx-quiet basetypes)
-     (tx-quiet locatable-schema)
-     ;; Add an extra attribute to the 'main-schema',
-     ;; saying this transaction occurs on 1st Jan 1970 to fake a first
-     ;; transaction to preserve the acedb timestamps
-     (if verbose
-       (println
-        \tab
-        "Adding extra attribute 'schema' to list of attributes"
-        "and add timestamp to preserve ACeDB timeseamps with"
-        "auto-generated schema"))
-     (tx-quiet (conj
-                main-schema
-                {:db/id        (d/tempid :db.part/tx)
-                 :db/txInstant #inst "1970-01-01T00:00:01"}))
-     (if verbose
-       (println \tab "Adding locatables-extras"))
-     (tx-quiet locatable-extras)
-     ;; needs to be transacted after the main schema.
-     (if verbose
-       (println \tab "Adding wormbase-schema-fixups"))
-     ;; TODO: consolidate schemata
-     ;; (tx-quiet (conj schemata/fixups (schemata/make-ts-part)))
-     (tx-quiet schema-fixups)
-     (if verbose
-       (println \tab "Releasing database connection"))
+     (schemata/install con main-schema)
      (d/release con))))
 
 (defn create-database
@@ -216,7 +174,8 @@
     (println "Creating Database"))
   (generate-schema :verbose verbose)
   (d/create-database url)
-  (load-schema url verbose))
+  (load-schema url verbose)
+  true)
 
 (defn uri-to-helper-uri [uri]
   (str/join "-" [uri "helper"]))
@@ -570,6 +529,7 @@
       (println "done")
       nil)))))
 
+;; TODO: remove in favour of using datomic backup-db command
 (defn backup-database
   "Backup the database at a given URL to a file."
   [& {:keys [url verbose]
@@ -605,7 +565,6 @@
                     {((comp str :name) m) (:doc m)})))
 
 (def ^:private space-join (partial str/join "  "))
-
 
 (defn- single-space
   "Remove occruances of multiple spaces in `s` with a single space."

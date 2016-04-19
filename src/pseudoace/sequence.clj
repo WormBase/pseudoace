@@ -58,4 +58,3 @@
   (apply
    region-sequence*
    (root-segment (entity db [:sequence/id seq-name]) min max)))
-
