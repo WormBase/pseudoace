@@ -272,7 +272,6 @@
   (for [filename filenames]
     (edn-file-map filename))))
 
-
 (defn acedump-file-to-datalog
   ([imp file log-dir]
    (acedump-file-to-datalog imp file log-dir false))
