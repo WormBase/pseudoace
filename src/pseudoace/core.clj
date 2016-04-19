@@ -1,5 +1,6 @@
 (ns pseudoace.core
   (:require
+   [clj-time.core :as ct]
    [clojure.data :refer (diff)]
    [clojure.java.io :as io]
    [clojure.java.shell :as shell]
@@ -241,10 +242,35 @@
 (defn get-edn-log-files [directory]
   (map #(.getName %) (directory-walk directory #".*\.edn.gz")))
 
-(defn get-sorted-edn-log-files [log-dir]
-  (->> (.listFiles (io/file log-dir))
-       (filter #(.endsWith (.getName %) ".edn.sort.gz"))
-       (sort-by #(.getName %))))
+(defn get-sorted-edn-log-files
+  "Sort EDN log files for import.
+
+  Sorting:
+
+    * lexographically by name
+    * filter files having names which match a timestamp greater or equal
+      to latest transaction date.
+
+  Returns a sequence of sorted files (earliest date first)."
+  [log-dir db latest-tx-dt]
+  (let [tx-date (apply
+                 ct/date-time
+                 (map #(% latest-tx-dt) [ct/year ct/month ct/day]))
+        day-before-tx-dt (ct/minus tx-date (ct/days 1))
+        edn-files (filter
+                   #(.endsWith (.getName %) ".edn.sort.gz")
+                   (.listFiles (io/file log-dir)))
+        edn-file-map (reduce
+                      (fn [m f]
+                        (assoc m (.getName f) f))
+                      {}
+                      edn-files)
+        filenames (utils/filter-by-date
+                   (keys edn-file-map)
+                   day-before-tx-dt
+                   ct/after?)]
+  (for [filename filenames]
+    (edn-file-map filename))))
 
 (defn acedump-file-to-datalog
   ([imp file log-dir]
@@ -349,7 +375,7 @@
   (let [con (d/connect url)
         db (d/db con)
         latest-tx-dt (ts-import/latest-transaction-date db)
-        log-files (get-sorted-edn-log-files log-dir)]
+        log-files (get-sorted-edn-log-files log-dir db latest-tx-dt)]
     (if verbose
       (println "Importing" (count log-files) "log files"))
     (doseq [file log-files]
