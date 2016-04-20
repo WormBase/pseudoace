@@ -145,7 +145,19 @@ lein deploy clojars
 Create a bundle of the release for running the import on a server:
 
 ```bash
-./scripts/bundle-release.sh $GIT_RELEASE_TAG
+# GIT_RELEASE_TAG should be the annotated git release tag, e.g:
+#   GIT_RELEASE_TAG="0.3.2"
+#
+# If you want to use a local git tag, ensure it matches the version in
+# projet.clj, e.g:
+#  GIT_RELEASE_TAG="0.3.2-SNAPSHOT"
+#
+# TARGET_DATOMIC_TYPE can be any named lein profile,
+# examples:
+#   TARGET_DATOMIC_TYPE="aws"
+#   TARGET_DATOMIC_TYPE="sql"
+#   TARGET_DATOMIC_TYPE="dev
+./scripts/bundle-release.sh $GIT_RELEASE_TAG $TARGET_DATOMIC_TYPE
 ```
 
 An archive named `pseudoace-$GIT_RELEASE_TAG.tar.gz` will be created in the
