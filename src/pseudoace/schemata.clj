@@ -11,10 +11,9 @@
 
 (defn conj-install-part
   "Marks a mapping `item` to be an installable datomic structure."
-  [items]
-  (for [item items]
-    (conj item {:db/id (d/tempid :db.part/db)
-                :db.install/_attribute :db.part/db})))
+  [item]
+  (conj item {:db/id (d/tempid :db.part/db)
+              :db.install/_attribute :db.part/db}))
 
 (def meta-schema
   (map
@@ -284,42 +283,42 @@
 
 
 (def splice-confirm-schemas
-  [(schema
-     splice-confirm
-     (fields
-      [cdna :ref
-       "cdna entity which supports this intron."]
-      [est :ref
-       "sequence entity of an EST which supports this intron."]
-      [ost :ref
-       "sequence entity of an OST which supports this intron."]
-      [rst :ref
-       "sequence entity of an RST which supports this intron."]
-      [mrna :ref
-       "sequence entity of an mRNA which supports this intron."]
-      [utr :ref
-       "sequence entity of a UTR which supports this intron."]
-      [rnaseq :ref :component
-       (str "Details of RNA-seq data supporting this intron "
-            "(uses splice-confirm.rna namespace).")]
-      [mass-spec :ref
-       "mass-spec-peptide entity which supports this intron."]
-      [homology :string
-       (str "accession number of an external database record "
-            "which supports this intron (is this used?).")]
-      [false-splice :ref
-       (str "sequence entity providing evidence for a "
-            "false splice site call.")]
-      [inconsistent :ref
-       (str "sequence entity providing evidence for an "
-            "inconsistent splice site call.")]))
-   (schema
-    splice-confirm.rnaseq
-    (fields
-     [analysis :ref
-      "Analysis entity describing the RNA-seq dataset."]
-     [count :long
-      "Number of reads supporting the intron."]))])
+  {:splice-confirm (schema
+                    splice-confirm
+                    (fields
+                     [cdna :ref
+                      "cdna entity which supports this intron."]
+                     [est :ref
+                      "sequence entity of an EST which supports this intron."]
+                     [ost :ref
+                      "sequence entity of an OST which supports this intron."]
+                     [rst :ref
+                      "sequence entity of an RST which supports this intron."]
+                     [mrna :ref
+                      "sequence entity of an mRNA which supports this intron."]
+                     [utr :ref
+                      "sequence entity of a UTR which supports this intron."]
+                     [rnaseq :ref :component
+                      (str "Details of RNA-seq data supporting this intron "
+                           "(uses splice-confirm.rna namespace).")]
+                     [mass-spec :ref
+                      "mass-spec-peptide entity which supports this intron."]
+                     [homology :string
+                      (str "accession number of an external database record "
+                           "which supports this intron (is this used?).")]
+                     [false-splice :ref
+                      (str "sequence entity providing evidence for a "
+                           "false splice site call.")]
+                     [inconsistent :ref
+                      (str "sequence entity providing evidence for an "
+                           "inconsistent splice site call.")]))
+   :rna-seq (schema
+             splice-confirm.rnaseq
+             (fields
+              [analysis :ref
+               "Analysis entity describing the RNA-seq dataset."]
+              [count :long
+               "Number of reads supporting the intron."]))})
 
 (def homology-schema
   (schema
@@ -381,61 +380,57 @@
      "Alignment ID to emit in GFF dumps."])))
 
 (def locatable-schemas
-  (concat
-   (generate-schema
-    (vec (mapcat
-          conj-install-part
-          [[locatable-schema]
-           splice-confirm-schemas
-           [homology-schema]])))))
+  (generate-schema [locatable-schema
+                    (:splice-confirm splice-confirm-schemas)
+                    (:rna-seq splice-confirm-schemas)
+                    homology-schema]))
 
 (def locatable-extras
   "Add locatable XREFs to the pace schema."
-  (concat
-   [{:db/id          (d/tempid :db.part/db)
-     :db/ident       :locatable/parent
+  [{:db/id          (d/tempid :db.part/db)
+    :db/ident       :locatable/parent
 
-     ;; this isn't always true, but needed for current Colonnade code.
-     :pace/obj-ref   :sequence/id
+    ;; this isn't always true, but needed for current Colonnade code.
+    :pace/obj-ref   :sequence/id
 
-     :pace/tags      "Parent"}
+    :pace/tags      "Parent"}
 
-    {:db/id          (d/tempid :db.part/db)
-     :db/ident       :locatable/min
-     :pace/tags      "Position Min"}
+   {:db/id          (d/tempid :db.part/db)
+    :db/ident       :locatable/min
+    :pace/tags      "Position Min"}
 
-    {:db/id          (d/tempid :db.part/db)
-     :db/ident       :locatable/max
-     :pace/tags      "Position Max"}
+   {:db/id          (d/tempid :db.part/db)
+    :db/ident       :locatable/max
+    :pace/tags      "Position Max"}
 
-    {:db/id          (d/tempid :db.part/db)
-     :db/ident       :locatable/method
-     :pace/obj-ref   :method/id
-     :pace/tags      "Method"}
+   {:db/id          (d/tempid :db.part/db)
+    :db/ident       :locatable/method
+    :pace/obj-ref   :method/id
+    :pace/tags      "Method"}
 
-    {:db/id          (d/tempid :db.part/db)
-     :db/ident       :locatable/score
-     :pace/tags      "Score"}
+   {:db/id          (d/tempid :db.part/db)
+    :db/ident       :locatable/score
+    :pace/tags      "Score"}
 
-    {:db/id          (d/tempid :db.part/db)
-     :db/ident       :locatable/strand
-     :pace/tags      "Strand"}
+   {:db/id          (d/tempid :db.part/db)
+    :db/ident       :locatable/strand
+    :pace/tags      "Strand"}
 
-    {:db/id          (d/tempid :db.part/user)
-     :db/ident       :locatable.strand/positive
-     :pace/tags      "Positive"}
+   {:db/id          (d/tempid :db.part/user)
+    :db/ident       :locatable.strand/positive
+    :pace/tags      "Positive"}
 
-    {:db/id          (d/tempid :db.part/user)
-     :db/ident       :locatable.strand/negative
-     :pace/tags      "Negative"}
+   {:db/id          (d/tempid :db.part/user)
+    :db/ident       :locatable.strand/negative
+    :pace/tags      "Negative"}
 
-    {:db/id          (d/tempid :db.part/user)
-     :db/ident       :homology.strand/positive
-     :pace/tags      "Positive"}
+   {:db/id          (d/tempid :db.part/user)
+    :db/ident       :homology.strand/positive
+    :pace/tags      "Positive"}
 
-    {:db/id          (d/tempid :db.part/user)
-     :db/ident       :homology.strand/negative
-     :pace/tags      "Negative"}]))
+   {:db/id          (d/tempid :db.part/user)
+    :db/ident       :homology.strand/negative
+    :pace/tags      "Negative"}])
 
 (def top-level-locatable-fixups
   "Classes which have \"locatable\" attributes at top-level."
@@ -520,7 +515,6 @@
   "Tranact the entity `tx` using `con`.
   Suppresses the (potentially-large) report if it succeeds."
   [con tx]
-  (println "Transacting" tx)
   @(d/transact con tx)
   nil)
 
@@ -532,11 +526,12 @@
 
   The order the various schemata are transacted in is important."
   [con main-schema]
-  (let [transact (partial transact-silenced con)]
-    (for [schema-items [meta-schema
-                        basetypes-schema
-                        locatable-schemas]]
-      (transact (map mark-tx-early schema-items)))
-    (transact (mark-tx-early main-schema))
+  (let [tx-early-schemas [meta-schema
+                          basetypes-schema
+                          locatable-schemas
+                          main-schema]
+        transact (partial transact-silenced con)]
+    (doseq [tx tx-early-schemas]
+      (transact tx))
     (transact locatable-extras)
     (transact fixups)))
