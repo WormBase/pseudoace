@@ -1,7 +1,7 @@
 (ns pseudoace.ts-import
   (:require
    [clj-time.core :as t]
-   [clj-time.coerce :refer (from-date)]
+   [clj-time.coerce :refer (from-date to-date)]
    [clojure.instant :refer (read-instant-date)]
    [clojure.java.io :refer (file reader writer)]
    [clojure.string :as str]
@@ -870,9 +870,16 @@
               db      (d/db con)
               fdatoms (filter (fn [[_ _ _ v]] (not (map? v))) blk)
               tx-meta (txmeta stamp)
-              datoms  (fixup-datoms db fdatoms)]
-          (if (t/after? (-> tx-meta :db/txInstant from-date)
-                        (latest-transaction-date db))
+              datoms  (fixup-datoms db fdatoms)
+              ms->s #(/ 1000 %)
+              imp-tx-secs (ms->s (-> tx-meta
+                                     :db/txInstant
+                                     (.getTime)))
+              last-db-tx-secs (ms->s (-> db
+                                         latest-transaction-date
+                                         to-date
+                                         (.getTime)))]
+          (if (<= imp-tx-secs last-db-tx-secs)
             (try
               @(d/transact-async con (conj datoms tx-meta))
               (catch Throwable t
