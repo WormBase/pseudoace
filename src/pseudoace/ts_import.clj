@@ -872,7 +872,7 @@
               tx-meta (txmeta stamp)
               datoms  (fixup-datoms db fdatoms)]
           (if (< (-> tx-meta :db/txInstant (.getTime))
-                 (.getTime (latest-transaction-date db)))
+                 (-> db latest-transaction-date to-date (.getTime)))
             (try
               @(d/transact-async con (conj datoms tx-meta))
               (catch Throwable t
