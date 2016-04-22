@@ -871,11 +871,14 @@
               fdatoms (filter (fn [[_ _ _ v]] (not (map? v))) blk)
               tx-meta (txmeta stamp)
               datoms  (fixup-datoms db fdatoms)
-              imp-tx-secs (-> tx-meta :db/txInstant (.getTime))
-              last-db-tx-secs (-> db
-                                  latest-transaction-date
-                                  to-date
-                                  (.getTime))]
+              ms->s #(/ 1000 %)
+              imp-tx-secs (ms->s (-> tx-meta
+                                     :db/txInstant
+                                     (.getTime)))
+              last-db-tx-secs (ms->s (-> db
+                                         latest-transaction-date
+                                         to-date
+                                         (.getTime)))]
           (if (<= imp-tx-secs last-db-tx-secs)
             (try
               @(d/transact-async con (conj datoms tx-meta))
