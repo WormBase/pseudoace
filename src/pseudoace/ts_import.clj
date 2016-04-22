@@ -874,7 +874,7 @@
           (if (t/after? (-> tx-meta :db/txInstant from-date)
                         (latest-transaction-date db))
             (try
-              @(d/transact-async con (conj datoms (txmeta stamp)))
+              @(d/transact-async con (conj datoms tx-meta))
               (catch Throwable t
                 (.printStackTrace t)))
             (println "Skipping transaction with past-date:" stamp)))))))
