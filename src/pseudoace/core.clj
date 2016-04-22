@@ -137,21 +137,6 @@
       model/parse-models
       model2schema/models->schema))
 
-(defn timestamp-schema
-  [transact schema & {:keys [verbose]
-                      :or {verbose false}}]
-  (if verbose
-    (println
-     \tab
-     "Adding extra attribute 'schema' to list of attributes"
-     "and add timestamp to preserve ACeDB timeseamps with"
-     "auto-generated schema"))
-  (transact
-   (conj
-    schema
-    {:db/id        (d/tempid :db.part/tx)
-     :db/txInstant #inst "1970-01-01T00:00:01"})))
-
 (defn load-schema
   "Load the schema for the database."
   ([url]
