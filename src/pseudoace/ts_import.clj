@@ -871,8 +871,8 @@
               fdatoms (filter (fn [[_ _ _ v]] (not (map? v))) blk)
               tx-meta (txmeta stamp)
               datoms  (fixup-datoms db fdatoms)]
-          (if (t/before? (-> tx-meta :db/txInstant from-date)
-                         (latest-transaction-date db))
+          (if (< (-> tx-meta :db/txInstant (.getTime))
+                 (.getTime (latest-transaction-date db)))
             (try
               @(d/transact-async con (conj datoms tx-meta))
               (catch Throwable t
