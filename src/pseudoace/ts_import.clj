@@ -881,4 +881,4 @@
               @(d/transact-async con (conj datoms tx-meta))
               (catch Throwable t
                 (.printStackTrace t)))
-            (println "Skipping transaction with past-date:" stamp))))))
+            (println "Skipping transaction with past-date:" stamp)))))))
