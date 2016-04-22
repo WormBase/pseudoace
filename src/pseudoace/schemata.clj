@@ -531,7 +531,8 @@
              locatable-schemas
              main-schema
              locatable-extras
-             fixups]
+             top-level-locatable-fixups
+             xref-fixups]
         transact (partial transact-silenced con)]
     (doseq [tx txs]
-      (transact tx))))
+      (-> tx mark-tx-early transact))))
