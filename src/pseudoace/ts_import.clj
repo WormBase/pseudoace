@@ -1,7 +1,7 @@
 (ns pseudoace.ts-import
   (:require
    [clj-time.core :as t]
-   [clj-time.coerce :refer (from-date)]
+   [clj-time.coerce :refer (from-date to-date)]
    [clojure.instant :refer (read-instant-date)]
    [clojure.java.io :refer (file reader writer)]
    [clojure.string :as str]
