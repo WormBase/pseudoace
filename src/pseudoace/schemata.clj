@@ -526,12 +526,12 @@
 
   The order the various schemata are transacted in is important."
   [con main-schema]
-  (let [tx-early-schemas [meta-schema
-                          basetypes-schema
-                          locatable-schemas
-                          main-schema]
+  (let [txs [meta-schema
+             basetypes-schema
+             locatable-schemas
+             main-schema
+             locatable-extras
+             fixups]
         transact (partial transact-silenced con)]
-    (doseq [tx tx-early-schemas]
-      (transact tx))
-    (transact locatable-extras)
-    (transact fixups)))
+    (doseq [tx txs]
+      (transact tx))))
