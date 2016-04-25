@@ -36,3 +36,6 @@
    latest transaction date.
  - Report now generates two files per class when non-zero missing and
    added counts are encountered for easy diffing of object names.
+
+## 0.5 - (un-released)
+  - Nothing changed yet.
