@@ -43,18 +43,16 @@ Run all tests regularly, but in particular:
 
   * after checking out a feature-branch
   
-#### eastwood
-Eastwood is a popular linting tool for Clojure.
-
-Run by itself with:
+  
 ```bash
-lein with-profile dev eastwood
+alias run-tests="lein with-profile dev,test do eastwood, test"
+run-tests
 ```
 
 Other useful leiningen plugins for development include:
 
 #### kibit 
-Recommend source idiomatic code changes.
+Recommend [idiomatic source code changes][10].
 
 There is editor support in Emacs. e.g: `M-x kibit-current-file`
 
@@ -67,18 +65,17 @@ Command line examples:
   lein with-profile dev kibit src/pseudoace/core.clj
   ```
 #### bikeshed
-Report changes which ideally need fixing
-
-
-### Required checks
-Run all *required* development QA steps with:
-
- ```bash
- 
- lein with-profile dev eastwood
- lein with-profile dev test
- 
- ```
+Reports on [subjectively bad][11] code.
+This tool checks for:
+  1. "files ending in blank lines"
+  2. redefined var roots in source directories"
+  3. "whether you keep up with your docstrings"
+  4. arguments colliding with clojure.core functions
+  
+Of the above, only 1. 2. and 3. are generally useful to fix,
+since 4. requires creative (short) naming that may not be intuitive
+for the reader. Use your discretion when choosing to "fix" any "violations"
+reported in category 4.
 
 ## Releases
 
@@ -135,14 +132,14 @@ Run all *required* development QA steps with:
 
 ### Deployment
 
-Deploy as a library to [clojars][8]:
+#### As a *clojars* library for use as a dependency in other Clojure projects
 
 ```bash
 git checkout $RELEASE_TAG
 lein deploy clojars
 ```
 
-Create a bundle of the release for running the import on a server:
+#### As a standalone jar file for running the import peer on a server
 
 ```bash
 # GIT_RELEASE_TAG should be the annotated git release tag, e.g:
@@ -170,7 +167,14 @@ The archive contains two artefacts:
    ./pseudoace-$GIT_RELEASE_TAG.jar
    ./sort-edn-log.sh
    ```
-  
+
+> **To ensure we comply with the datomic license
+>   ensure this tar file, and specifically  the jar file
+>   contained therein is *never* distributed to a public server
+>   for download, as this would violate the terms of any preparatory
+>   Congnitech Datomic license.**
+ 
+
 ## Usage
 
 ### Development
@@ -278,3 +282,6 @@ platform you run it on.
 [7]: https://github.com/bbatsov/clojure-style-guide
 [8]: http://clojars.org
 [9]: https://github.com/technomancy/leiningen/blob/master/doc/DEPLOY.md#authentication
+[10]: https://github.com/jonase/kibit
+[11]: https://github.com/dakrone/lein-bikeshed
+
