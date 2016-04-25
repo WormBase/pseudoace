@@ -1,8 +1,12 @@
 (ns pseudoace.test-schemata
   (:use [clojure.test])
-  (:require [datomic.api :as d]
-            [pseudoace.core :as core]
-            [pseudoace.schemata :as schemata]))
+  (:require
+   [clj-time.coerce :refer (to-date)]
+   [clojure.instant :refer (read-instant-date)]
+   [datomic.api :as d]
+   [pseudoace.core :as core]
+   [pseudoace.ts-import :refer (latest-transaction-date)]
+   [pseudoace.schemata :as schemata]))
 
 (def db-uri "datomic:mem://wb-test")
 
@@ -25,10 +29,18 @@
   (is (= 1 (d/q '[:find (count ?e) .
                   :where [?e :pace/identifies-class "Gene"]] db))))
 
+(defn- check-schema-tx-time-is-early
+  "Check datoms in the database are suitably old."
+  [db]
+  (let [ltd (-> db latest-transaction-date to-date (.getTime))
+        exp (.getTime schemata/earliest-tx-timestamp)]
+    (is (<= ltd exp))))
+
 (deftest test-install
   (let [main-schema (core/generate-schema)
         con (d/connect db-uri)]
     (schemata/install con main-schema)
     (let [db (d/db con)]
       (check-installed-attr-count db)
-      (check-pace-metaschema db))))
+      (check-pace-metaschema db)
+      (check-schema-tx-time-is-early db))))

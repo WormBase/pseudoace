@@ -2,12 +2,14 @@
   (:require [datomic-schema.schema :refer (generate-schema fields schema)]
             [datomic.api :as d]))
 
+(def earliest-tx-timestamp #inst "1970-01-01T00:00:01")
+
 (defn mark-tx-early
   "Marks mapping `item` with an early timestamp."
   [schema]
   (conj schema
         {:db/id (d/tempid :db.part/tx)
-         :db/txInstant #inst "1970-01-01T00:00:01"}))
+         :db/txInstant earliest-tx-timestamp}))
 
 (defn conj-install-part
   "Marks a mapping `item` to be an installable datomic structure."
