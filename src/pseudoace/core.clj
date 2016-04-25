@@ -64,9 +64,6 @@
     "--build-data PATH"
     (str "Path to a file containing class-by-class "
          "values form a previous build.")]
-   [nil
-    "--stats-storage-path"
-    "Path to store the result of generating the report "]
    ["-v" "--verbose"]
    ["-f" "--force"]
    ["-h" "--help"]])
@@ -450,35 +447,21 @@
                 line (str element "\t" attribute "\t" name-of-entity)]
             (println line)))))))
 
-(defn- store-as-build-data
-  "Write stats `report` to a file in same format as build data.
-
-  Done such that the output can be used as `build-data`
-  input for a subsequent report run."
-  [path report]
-  (if-let [outfile (io/file path)]
-    (with-open [writer (io/writer outfile)]
-      (doseq [entry (:entries report)]
-        (binding [*out* writer]
-          (doseq [value (:db-only entry [])]
-            (println (:class-name entry) ":" (pr value))))))
-    (throw (java.io.FileNotFoundException.
-            (format "%s is not a valid path" (str path))))))
-
 (defn generate-report
   "Generate a summary report of database content."
-  [& {:keys [url report-filename build-data stats-storage-path verbose]
-      :or {stats-storage-path "classes-to-ids_latest.dat"
+  [& {:keys [url report-filename build-data class-ids-dir verbose]
+      :or {class-ids-dir "classes-by-id"
            verbose false}}]
+  (let [dir (io/file class-ids-dir)]
+    (if-not (.exists dir)
+      (.mkdir dir)))
   (if verbose
     (println "Generating Datomic database report"))
   (let [con (d/connect url)
         db (d/db con)
         report (qa/class-by-class-report db build-data)
         width-left (apply max (map count (:class-names report)))
-        format-left (partial format (str "%" width-left "s"))
-        write-class-ids (future
-                          (store-as-build-data stats-storage-path report))]
+        format-left (partial format (str "%" width-left "s"))]
     (with-open [writer (io/writer report-filename)]
       (let [write-line (fn [line]
                          (.write writer line)
@@ -494,24 +477,28 @@
                 :let [class-name (:class-name entry)
                       format-num (partial format "%10d")]]
           (if (utils/not-nil? entry)
-            (let [out-line (str/join
+            (let [n-ref-only (.n-ref-only entry)
+                  n-db-only (.n-db-only entry)
+                  out-line (str/join
                             \tab
                             (map
                              format-left
                              [class-name
-                              (format-num (.n-ref-only entry))
-                              (format-num (.n-db-only entry))
+                              (format-num n-ref-only)
+                              (format-num n-db-only)
                               (format-num (.n-both entry))]))]
               (write-line out-line)
+              (when (not= n-ref-only n-db-only 0)
+                (let [write-class-ids (partial
+                                       qa/write-class-ids
+                                       class-ids-dir
+                                       class-name)]
+                  (future (write-class-ids (:ref-only entry) "ref-only"))
+                  (future (write-class-ids (:db-only entry) "db-only"))))
               (if verbose
                 (println out-line)))))
     (d/release con)
-    ;; Quietly ensure writing has finished before exiting.
-    (do
-      (println "Saving results to" stats-storage-path "for future use ...")
-      @write-class-ids
-      (println "done")
-      nil)))))
+    nil))))
 
 ;; TODO: remove in favour of using datomic backup-db command
 (defn backup-database

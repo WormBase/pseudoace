@@ -10,6 +10,17 @@
    [pseudoace.model2schema :refer (datomize-name)]
    [pseudoace.utils :refer (merge-pairs)]))
 
+(defn write-class-ids
+  "Write a file named using `id-set-label` of unique `class-name`
+  object `ids` in `directory`."
+  [directory class-name ids id-set-label]
+  (let [filename (str class-name "-" id-set-label ".dat")
+        outfile (io/file directory filename)]
+    (with-open [writer (io/writer outfile)]
+      (binding [*out* writer]
+        (doseq [id (sort ids)]
+          (println class-name ":" id))))))
+
 (defn read-ref-data
   "Read class data generated from a WormBase ACeDB database via `reader`.
 
@@ -23,7 +34,6 @@
     (let [lines (str/split-lines (slurp fh))
           cls-value-pairs (map #(str/split % #"\s+:\s+") lines)]
       (merge-pairs cls-value-pairs))))
-
 
 (defrecord ClassStatsReport [class-names entries])
 
