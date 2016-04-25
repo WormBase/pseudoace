@@ -1,6 +1,9 @@
 (ns pseudoace.utils
-  (:require [clojure.java.io :refer (writer)]
-            [clojure.set :refer (union)]))
+  (:require
+   [clj-time.coerce :refer (from-date)]
+   [clojure.instant :refer (read-instant-date)]
+   [clojure.java.io :refer (writer)]
+   [clojure.set :refer (union)]))
 
 (def not-nil? (complement nil?))
 
@@ -161,3 +164,18 @@
     (apply
      merge-with-set-vals
      (map #(hash-map (keyfunc %) (set (rest %))) pairs))))
+
+(defn filter-by-date
+  "Filter `coll` by date object `dt` using predicate `pred`."
+  ([coll dt pred]
+   (filter-by-date coll dt pred #"(\d{4}-\d{2}-\d{2}).*"))
+  ([coll dt pred ts-pattern]
+   (sort
+    (filter
+     not-nil?
+     (for [item coll]
+       (if-let [matches (re-matches ts-pattern item)]
+         (let [ts-str (second matches)
+               item-dt (-> ts-str read-instant-date from-date)]
+           (if (pred item-dt dt)
+             item))))))))

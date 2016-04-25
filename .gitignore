@@ -3,10 +3,12 @@ blib/
 _build/
 cover_db/
 inc/
+release-archives/
 target/
 Build
 !Build/
 Build.bat
+*.bak
 .lein-*
 .last_cover_stats
 .nrepl-port
@@ -17,3 +19,5 @@ META.yml
 MYMETA.yml
 nytprof.out
 pm_to_blib
+/*.out
+/*-init.clj

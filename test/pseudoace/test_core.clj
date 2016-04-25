@@ -5,7 +5,6 @@
    [pseudoace.core :as core]
    [pseudoace.utils :as utils]))
 
-
 (deftest test-get-current-directory
   (is (.exists (io/file (core/get-current-directory)))))
 

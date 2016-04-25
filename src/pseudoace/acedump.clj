@@ -1,9 +1,9 @@
-(ns wb.acedump
-  (:use pseudoace.utils)
-  (:require [datomic.api :as d :refer (q datoms entity)]
+(ns pseudoace.acedump
+  (:require [datomic.api :as d]
             [clojure.string :as str]
             [clj-time.coerce :as tc]
-            [clj-time.format :as tf]))
+            [clj-time.format :as tf]
+            [pseudoace.utils :refer (throw-exc)]))
 
 (defrecord Node [type ts value children])
 
@@ -73,10 +73,10 @@
     :db.type/string
       (Node. :text     ts (:v datom) nil)
     :db.type/ref
-      (let [e (entity db (:v datom))]
+      (let [e (d/entity db (:v datom))]
         (or
          (if-let [obj-ref (:pace/obj-ref attr)]
-           (Node. (:pace/identifies-class (entity db obj-ref))
+           (Node. (:pace/identifies-class (d/entity db obj-ref))
                   ts
                   (obj-ref e)
                   nil))
@@ -84,9 +84,14 @@
          (if-let [tags (:pace/tags e)]
            (Node. :tag ts tags nil))
 
-         (ace-object db (:v datom) (into #{(str (namespace (:db/ident attr)) "." (name (:db/ident attr)))}
-                                         (:pace/use-ns attr)))))
-
+         (ace-object
+          db
+          (:v datom)
+          (into #{(str
+                   (namespace (:db/ident attr))
+                   "."
+                   (name (:db/ident attr)))}
+                (:pace/use-ns attr)))))
     ;; default
     (Node. :text ts "Unknown!" nil)))
 
@@ -99,9 +104,9 @@
   ([db ent a v obj-ref]
    (or
     (if-let [r (obj-ref ent)]
-      [r (entity db a) v])
+      [r (d/entity db a) v])
     (if-let [[e a v t] (first (d/datoms db :vaet (:db/id ent)))]
-      (xref-obj db (entity db e) a v obj-ref)))))
+      (xref-obj db (d/entity db e) a v obj-ref)))))
      
 (defn ace-object
  ([db eid]
@@ -111,7 +116,7 @@
         data          (->>
                        (partition-by :a datoms)
                        (map (fn [d]
-                              [(entity db (:a (first d))) d])))
+                              [(d/entity db (:a (first d))) d])))
         data          (if restrict-ns
                         (filter (fn [[a v]]
                                   (restrict-ns (namespace (:db/ident a))))
@@ -120,7 +125,7 @@
         tsmap         (->> (map :tx datoms)
                            (set)
                            (map (fn [tx]
-                                  [tx (tx->ts (entity db tx))]))
+                                  [tx (tx->ts (d/entity db tx))]))
                            (into {}))
 
         ;; Split positional from tagged attributes
@@ -165,11 +170,11 @@
                         (fn [root xref]
                           (if-let [datoms (seq (d/datoms db :vaet eid (:pace.xref/attribute xref)))]
                             (let [obj-ref (:pace.xref/obj-ref xref)
-                                  xclass  (:pace/identifies-class (entity db obj-ref))
+                                  xclass  (:pace/identifies-class (d/entity db obj-ref))
                                   tsmap   (->> (map :tx datoms)
                                                (set)
                                                (map (fn [tx]
-                                                      [tx (tx->ts (entity db tx))]))
+                                                      [tx (tx->ts (d/entity db tx))]))
                                                (into {}))
                                   min-ts  (->> (map (comp tsmap :tx) datoms)
                                                (reduce smin))]
@@ -179,7 +184,7 @@
                                min-ts
                                (mapcat
                                 (fn [datom]
-                                  (let [e          (entity db (:e datom))
+                                  (let [e          (d/entity db (:e datom))
                                         [o a comp] (xref-obj db e obj-ref)
                                         children   (if (and a comp)
                                                      (if-let [hash-ns (:pace.xref/use-ns xref)]
@@ -260,15 +265,16 @@
 (defn dump-class
   "Dump object of class `class` from `db`."
   [db class & {:keys [query delete tag follow format limit]}]
-  (if-let [ident (q '[:find ?class-ident .
-                     :in $ ?class
-                     :where [?attr :pace/identifies-class ?class]
-                            [?attr :db/ident ?class-ident]]
+  (if-let [ident (d/q '[:find ?class-ident .
+                        :in $ ?class
+                        :where
+                        [?attr :pace/identifies-class ?class]
+                        [?attr :db/ident ?class-ident]]
                    db class)]
-    (doseq [id (->> (q '[:find [?id ...]
-                         :in $ ?ident
-                         :where [?id ?ident _]]
-                       db ident)
+    (doseq [id (->> (d/q '[:find [?id ...]
+                           :in $ ?ident
+                           :where [?id ?ident _]]
+                         db ident)
                     (sort)
                     (take (or limit Integer/MAX_VALUE)))]
       (dump-object (ace-object db id)))

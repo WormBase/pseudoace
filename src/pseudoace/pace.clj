@@ -66,7 +66,7 @@
   [db ent]
   (let [schemas        (map #(touch (entity db %)) (keys ent))
         right-schemas  (filter is-hash? schemas)
-        left-schemas   (filter (complement is-hash?) schemas)]
+        left-schemas   (remove is-hash? schemas)]
     (objectify-level db ent left-schemas (when right-schemas
                                       (objectify-level db ent right-schemas nil)))))
 
@@ -237,12 +237,13 @@
                        (str (:value n))
                        "")
                   [fs & rs] (wrap-lines ns target-width)]
-              (conj! tab-stops actual-ts)
-              (print (apply str (repeat (- actual-ts column) \space)))
+              (let [_ (conj! tab-stops actual-ts)]
+                nil)
+              (print (str/join (repeat (- actual-ts column))))
               (print fs)
               (doseq [rl rs]
                 (println)
-                (print (apply str (repeat (+ actual-ts 2) \space)))
+                (print (str/join (repeat (+ actual-ts 2))))
                 (print rl))
               (recur (+ actual-ts (max (count fs)
                                        (reduce 
@@ -316,4 +317,3 @@
           (when-let [o (:pace.xref/obj-ref xo)]
             [(juxt (reverse-ref (:pace.xref/attribute xo)) (constantly o))]))))
     (q '[:find ?x :where [_ :pace/xref ?x]] db))))
-           

@@ -1,6 +1,6 @@
 # pseudoace
 
-Provides a clojure library for use by the [Wormbase][1] project.
+Provides a Clojure library for use by the [Wormbase][1] project.
 
 Features include:
 
@@ -11,20 +11,173 @@ Features include:
   * Routines for parsing and dumping ACeDB "dump files".
   * Utility functions and macros for querying WormBase data.
   * A command line interface for utilities described above (via `lein run`)
-  
+
 ## Installation
 
-Install Java 1.8.
+ * Java 1.8 (Prefer official oracle version)
 
-[Install leiningen][3].
+ * [leiningen][3].
+
+ * Datomic
+   * Visit https://my.datomic.com/downloads/pro
+   * Download the version of datomic-pro that matches the version
+	 specified in `project.clj`.
+   * When upgrading datomic, download the latest version and update
+     `project.clj` accordingly.
+   * Unzip the downloaded archive, and run: `bin/maven-install`
 
 ## Development
 
-Follow the [GitFlow][6] mechanism for branching and committing changes.
+Follow the [GitFlow][6] mechanism for branching and committing changes:
 
-Please attempt to adhere to the [Clojure coding-style][7] conventions.
+  * Feature branches should be derived from the `develop` branch:
+    i.e:. git checkout -b feature-x develop
+
+### Coding style
+This project attempts to adhere to the [Clojure coding-style][7] conventions.
+
+### Testing & code QA
+Run all tests regularly, but in particular:
+
+  * before issuing a new pull request
+
+  * after checking out a feature-branch
+  
+  
+```bash
+alias run-tests="lein with-profile dev,test do eastwood, test"
+run-tests
+```
+
+Other useful leiningen plugins for development include:
+
+#### kibit 
+Recommend [idiomatic source code changes][10].
+
+There is editor support in Emacs. e.g: `M-x kibit-current-file`
+
+Command line examples:
+
+  ```bash
+  # whole project
+  lein with-profile dev kibit
+  # single file
+  lein with-profile dev kibit src/pseudoace/core.clj
+  ```
+#### bikeshed
+Reports on [subjectively bad][11] code.
+This tool checks for:
+  1. "files ending in blank lines"
+  2. redefined var roots in source directories"
+  3. "whether you keep up with your docstrings"
+  4. arguments colliding with clojure.core functions
+  
+Of the above, only 1. 2. and 3. are generally useful to fix,
+since 4. requires creative (short) naming that may not be intuitive
+for the reader. Use your discretion when choosing to "fix" any "violations"
+reported in category 4.
+
+## Releases
+
+### Initial setup
+
+[Configure leiningen credentials][9] for [clojars][8].
+
+### Procedure
+
+  * On the `develop` branch:
+	
+	* Add an entry in the CHANGES.md file.
+
+	* Change the version in the leiningen project.clj
+
+	  From:
+		`<major.minor.patch>-SNAPSHOT`
+
+	  To:
+		`<major.minor.patch>`
+		
+	  and push these changes.
+  
+  * Merge the `develop` branch into to `master` (via a github pull
+    request or directly using git)
+
+  * Create an *annotated* tag in git, using the same version as defined in
+    project.clj:
+	
+	  ```bash
+	  git tag -a $VERSION -m "Releasing $VERSION"`
+	  git push --tags
+	  ```
+  * Deploy to [clojars][8] via leiningen:
+      `line deploy clojars`
+
+	Depending on your credentials setup,
+	you may be prompted for your clojars surname and password.
+
+  * Checkout the develop branch, update CHANGES.md with the next version
+    number and a "back to development" stanza:
+
+	e.g:
+	```markdown
+	# 0.3.2 - (unreleased)
+	  - nothing changed yet
+	```
+	Update the version in project.clj to be:
+
+	  `<next-major-version>.<next-minor>.<next-patch>-SNAPSHOT`
+
+	commit and push these changes.
+
+
+### Deployment
+
+#### As a *clojars* library for use as a dependency in other Clojure projects
+
+```bash
+git checkout $RELEASE_TAG
+lein deploy clojars
+```
+
+#### As a standalone jar file for running the import peer on a server
+
+```bash
+# GIT_RELEASE_TAG should be the annotated git release tag, e.g:
+#   GIT_RELEASE_TAG="0.3.2"
+#
+# If you want to use a local git tag, ensure it matches the version in
+# projet.clj, e.g:
+#  GIT_RELEASE_TAG="0.3.2-SNAPSHOT"
+#
+# TARGET_DATOMIC_TYPE can be any named lein profile,
+# examples:
+#   TARGET_DATOMIC_TYPE="ddb"
+#   TARGET_DATOMIC_TYPE="sql"
+#   TARGET_DATOMIC_TYPE="dev
+./scripts/bundle-release.sh $GIT_RELEASE_TAG $TARGET_DATOMIC_TYPE
+```
+
+An archive named `pseudoace-$GIT_RELEASE_TAG.tar.gz` will be created in the
+`release-archives` directory.
+
+The archive contains two artefacts:
+
+   ```bash
+   tar tvf pseudoace-$GIT_RELEASE_TAG.tar.gz
+   ./pseudoace-$GIT_RELEASE_TAG.jar
+   ./sort-edn-log.sh
+   ```
+
+> **To ensure we comply with the datomic license
+>   ensure this tar file, and specifically  the jar file
+>   contained therein is *never* distributed to a public server
+>   for download, as this would violate the terms of any preparatory
+>   Congnitech Datomic license.**
+ 
 
 ## Usage
+
+### Development
 
 A command line utility has been developed for ease of usage:
 
@@ -41,7 +194,7 @@ the form of:
 
 `datomic:<storage-backend-alias>://<hostname>:<port>/<db-name>`
 
-Alternatively, for extra speed, one can use the clojure routines directly
+Alternatively, for extra speed, one can use the Clojure routines directly
 from a repl session:
 
 ```bash
@@ -55,31 +208,70 @@ Example of invoking a sub-command:
 (list-databases {:url (System/getenv "URL_OF_TRANSACTOR")})
 ```
 
-## Example command
+### Staging/Production
 
-The `import-all-actions` sub-command performs a "full import":
+Run `pseudoace` with the same arguments as you would when using `lein run`:
 
-  * Converts `ACeDB` dump files into [EDN][4] files.
-  * Sorts EDN files by timestamp.
-  * Dynamically creates the database schema based upon ACeDB annotated models.
-  *	Imports sorted timestamp datoms derived from the processed EDN files.
-  
+  ```bash
+  java -jar pseudoace-$GIT_RELEASE_TAG.jar -v
+  ```
 
-The following command uses the [DynamoDB storage back-end][5],
-configured to use a database located in the Amazon cloud:
+### Import process
+
+#### Prepare import
+
+Create the database and parse .ace dump-files into EDN.
+
+Example:
 
 ```bash
-lein run \
-     --url="datomic:ddb://us-east-1/wormbase/WS252" \
-	 --log-dir=/datastore/datomic/tmp/datomic/import-logs-WS252/ \
-	 --model=models.wrm.WS252.annot  \
-	 --acedump-dir=/datastore/datomic/dumps/WS252_dump/ \
-	 --schema-filename=schema252.edn -v
+java -jar pseudoace-$GIT_RELEASE_TAG.jar \
+     --url $DATOMIC_URL \
+	 --acedump-dir ACEDUMP_DIR \
+	 --log-dir LOG_DIR \
+	 -v prepare-import
 ```
 
-Using a full dump of a recent release of Wormbase, you can expect this
-command to take in the region of 8-12 hours depending on the platform
-you run it on.
+The `prepare-import` sub-command:
+
+- Creates a new database at the specified `--url`
+- Converts `.ace` dump-files located in `--acedump-dir` into pseudo
+[EDN][4] files located in `--log-dir`.
+- Creates the database schema from the annotated ACeDB models file
+specified by `--model`.
+- Optionally dumps the newly created database schema to the file
+specified by `--schema-filename`.
+
+#### Sort the generated log files
+
+The format of the generated files is:
+
+<ace-db-style_timestamp> <Parsed ACE data to be transacted in EDN format>
+
+The EDN data is *required* to sorted by timestamp in order to
+preserve the time invariant of Datomic:
+
+```bash
+find $LOG_DIR \
+    -type f \
+	-name "*.edn.gz" \
+	-exec ./sort-edn-log.sh {} +
+```
+
+#### Import the sorted logs into the database
+
+Transacts the EDN sorted by timestamp in `--log-dir` to the database
+specified with `--url`:
+
+```bash
+java -jar pseudoace-$GIT_RELEASE_TAG.jar \
+	 --log-dir LOG_DIR \
+	 -v import-logs
+```
+
+Using a full dump of a recent release of Wormbase, you can expect the
+import process to take in the region of 8-12 hours depending on the
+platform you run it on.
 
 [1]: http://www.wormbase.org/
 [2]: http://www.datomic.com/
@@ -88,3 +280,8 @@ you run it on.
 [5]: http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html
 [6]: https://datasift.github.io/gitflow/IntroducingGitFlow.html
 [7]: https://github.com/bbatsov/clojure-style-guide
+[8]: http://clojars.org
+[9]: https://github.com/technomancy/leiningen/blob/master/doc/DEPLOY.md#authentication
+[10]: https://github.com/jonase/kibit
+[11]: https://github.com/dakrone/lein-bikeshed
+

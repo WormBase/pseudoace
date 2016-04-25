@@ -1,9 +1,11 @@
- (ns pseudoace.ts-import
+(ns pseudoace.ts-import
   (:require
+   [clj-time.core :as t]
+   [clj-time.coerce :refer (from-date to-date)]
    [clojure.instant :refer (read-instant-date)]
    [clojure.java.io :refer (file reader writer)]
    [clojure.string :as str]
-   [datomic.api :as d :refer (db q entity touch tempid)]
+   [datomic.api :as d]
    [pseudoace.aceparser :as ace]
    [pseudoace.binning :refer (bin)]
    [pseudoace.import :refer (datomize-objval get-tags)]
@@ -165,7 +167,7 @@
         nss      (:pace/use-ns ti)
         ordered? (get nss "ordered")
         hashes   (for [ns nss]
-                   (entity (:db imp) (keyword ns "id")))] ; performance?
+                   (d/entity (:db imp) (keyword ns "id")))] ; performance?
     (reduce
      (fn [log [index lines]]
        (if (and (pos? index) single?)
@@ -310,7 +312,7 @@
                 :as xref}
                lines]]
        (let [lines (remove empty? lines) ; Ignore empty inbound XREF lines.
-             remote-class (entity (d/entity-db clent) obj-ref)]
+             remote-class (d/entity (d/entity-db clent) obj-ref)]
          (if (= (namespace obj-ref) (namespace attr))
            ;; Simple case
            (reduce
@@ -328,7 +330,7 @@
            ;; Complex case
            (let [[ns an]    (str/split (namespace attr) #"\.")
                  link-attr  (if an (keyword ns an))
-                 link-ent   (entity (d/entity-db clent) link-attr)]
+                 link-ent   (d/entity (d/entity-db clent) link-attr)]
              (if (and link-ent (= ns (namespace obj-ref)))
                (reduce-kv
                 (fn [log xo lines]
@@ -383,7 +385,7 @@
 
   Currently a somewhat-conservative impl."
   [this db imp ti nodes]
-  (if-let [current-obj (and db (entity db this))]
+  (if-let [current-obj (and db (d/entity db this))]
     (let [single? (not= (:db/cardinality ti) :db.cardinality/many)
           current ((:db/ident ti) current-obj)
           current (or (and current single? [current])
@@ -674,7 +676,7 @@
                  ;; No partition hint, so we can use this as a plain
                  ;; Lookup ref.
                  [(:db/ident ci) (:id obj)])]
-    (if-let [orig (entity db this)]
+    (if-let [orig (d/entity db this)]
       (cond
        (:delete obj)
        {nil
@@ -734,7 +736,7 @@
       (let [[k v part] ref
             lref       [k v]]
         (if v
-          (if (entity db lref)
+          (if (d/entity db lref)
             ;; turn 3-element refs into normal lookup-refs
             [(assoc datom index lref) temps]
             (if-let [tid (temps ref)]
@@ -790,7 +792,7 @@
 
 (defn play-log [con log]
   (doseq [[stamp datoms] (sort-by first log)]
-    (let [db (db con)
+    (let [db (d/db con)
           datoms (fixup-datoms db datoms)]
       @(d/transact con (conj datoms (txmeta stamp))))))
 
@@ -848,16 +850,38 @@
                   (+ text (count v))
                   text)))))))
 
+(defn latest-transaction-date
+  "Returns the `date-time` of the latest transaction."
+  [db]
+  (let [bt (-> db d/basis-t d/t->tx)]
+    (-> (d/q '[:find ?t
+               :in $ ?tx
+               :where [?tx :db/txInstant ?t]]
+             db bt)
+        ffirst
+        from-date)))
+
 (defn play-logfile [con logfile]
   (with-open [r (reader logfile)]
     (doseq [rblk (partition-log 100 5000 (logfile-seq r))] ;; was 1000 50000
       (doseq [sblk (partition-by first rblk)
               :let [stamp (ffirst sblk)]]
         (let [blk (map second sblk)
-              db      (db con)
+              db      (d/db con)
               fdatoms (filter (fn [[_ _ _ v]] (not (map? v))) blk)
-              datoms  (fixup-datoms db fdatoms)]
-          (try
-              @(d/transact-async con (conj datoms (txmeta stamp)))
-          (catch Throwable t
-            (.printStackTrace t))))))))
+              tx-meta (txmeta stamp)
+              datoms  (fixup-datoms db fdatoms)
+              ms->s #(/ 1000 %)
+              imp-tx-secs (ms->s (-> tx-meta
+                                     :db/txInstant
+                                     (.getTime)))
+              last-db-tx-secs (ms->s (-> db
+                                         latest-transaction-date
+                                         to-date
+                                         (.getTime)))]
+          (if (<= imp-tx-secs last-db-tx-secs)
+            (try
+              @(d/transact-async con (conj datoms tx-meta))
+              (catch Throwable t
+                (.printStackTrace t)))
+            (println "Skipping transaction with past-date:" stamp)))))))

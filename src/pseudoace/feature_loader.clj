@@ -1,14 +1,15 @@
 (ns pseudoace.feature-loader
-  (use pseudoace.utils
-       clojure.instant
-       clojure.java.io)
-  (require [datomic.api :as d :refer (db q entity touch tempid)]
-           [clojure.string :as str]
-           [clojure.edn :as edn]
-           [pseudoace.aceparser :as ace])
-  (import java.io.FileInputStream
-          java.io.PushbackReader
-          java.util.zip.GZIPInputStream))
+  (:require
+   [clojure.edn :as edn]
+   [clojure.instant :refer (read-instant-date)]
+   [clojure.java.io :as io]
+   [clojure.string :as str]
+   [datomic.api :as d :refer (db q entity touch tempid)]
+   [pseudoace.aceparser :as ace]
+   [pseudoace.utils :refer (parse-double parse-int vmap)])
+  (:import java.io.FileInputStream
+           java.io.PushbackReader
+           java.util.zip.GZIPInputStream))
 
 (defrecord FeatureLink [sequence start end])
 
@@ -154,7 +155,7 @@
   []) 
 
 (defn load-feature-map [f]
-  (with-open [r (PushbackReader. (reader f))]
+  (with-open [r (PushbackReader. (io/reader f))]
     (->> (edn/read r)
          (map (fn [[seq fid start end]]
                 [fid (FeatureLink. seq start end)]))
@@ -169,4 +170,3 @@
                   (if-let [fm (feature-map (:id f))]
                     (import-features f fm)
                     (println "Coudln't find" (:id f))))))))
-  

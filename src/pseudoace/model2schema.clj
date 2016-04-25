@@ -17,7 +17,7 @@
   (let [dn (-> (.toLowerCase n)
                (str/replace #"[?#]" "")
                (str/replace #"_" "-"))]
-    (if (= dn "id")   ; id is reserved for the object name.
+    (if (= dn "id")  ; id is reserved for the object name.
       "xid"
       dn)))
 
@@ -37,7 +37,6 @@
       (utils/throw-exc
        "Cannot flatten multiple chidren at "
        children))))
-
 
 (def modeltype-to-datomic
   {:text     :db.type/string
@@ -66,13 +65,15 @@
          bn))
      basenames)))
 
-;;
-;; This should probably also be doing UNIQUE-ness testing (and returning it as metadata?)
-;;
+;; TODO (dasmoth):
+;; This should probably also be doing UNIQUE-ness testing (and
+;; returning it as metadata?)
 
 (defn- enum-keys
-  "Walk a seq of tags, including any tag children, and synthesize entities which can be
-   used as enum keys."
+  "Create a set of enum keys in namespace `enum-ns` from `nodes`.
+
+  Walks a seq of tags (`nodes`); including any tag children,
+  and synthesize entities which can be used as enum keys."
   ([enum-ns nodes]
    (enum-keys enum-ns "" [] nodes))
   ([enum-ns datomic-prefix ace-prefix nodes]
@@ -90,7 +91,9 @@
                   (let [non-tag-children (remove #(= (:type %) :tag) children)]
                     (case (count non-tag-children)
                       0    nil
-                      1    (cons (first non-tag-children) (flatten-children non-tag-children))
+                      1    (cons
+                            (first non-tag-children)
+                            (flatten-children non-tag-children))
                       (utils/throw-exc
                        "Multiple non-tag children at "
                        name)))]
@@ -105,12 +108,14 @@
 
 (defn tag->schema
   "Build schema entities for `node`.
-     `sid` is a tempid for the class identifier attribute.
-     `mns` is a string representing the namespace in which this tag is located.
-     `tagpath` is a sequence of strings representing the tag-path through the AceDB model."
+
+  `sid`: a tempid for the class identifier attribute.
+  `mns`: a string representing the namespace in which this tag is located.
+  `tagpath`: a sequence of strings representing
+             the tag-path through the AceDB model."
   [sid mns tagpath tpm node]
-  (let [attribute  (keyword mns (or (:alt-name node)
-                                     (datomize-name (last tagpath))))
+  (let [attribute (keyword mns (or (:alt-name node)
+                                   (datomize-name (last tagpath))))
         fchild (first (:children node))]
     (cond
      ;; "plain tag" case
@@ -122,11 +127,10 @@
        :db/cardinality      :db.cardinality/one
        :db.install/_attribute :db.part/db
        :pace/tags           (str/join " " tagpath))]
-
      ;; "simple enum" case -- the only ones we auto-detect.
      ;; Could this be merged with the other enum case?
      (every? simple-tag? (:children node))
-     (let      [vns       (str (namespace attribute) "." (name attribute))]
+     (let [vns (str (namespace attribute) "." (name attribute))]
        (conj
         (keys (enum-keys vns (:children node)))
 
@@ -139,15 +143,14 @@
                                :db.cardinality/many)
          :db.install/_attribute :db.part/db
          :pace/tags       (str/join " " tagpath))))
-
-
      (or (and (= (count (:children node)) 1)
               (#{:int :float :text :ref :date :hash} (:type fchild)))
          (:enum node))      ;; "Simple" enums have already been caught at this point.
      (if (and (empty? (:children fchild))
               (not= (:type fchild) :hash)
               (not (:enum node))
-              (not (if-let [x (:xref fchild)]    ;; Becomes complex if there's a hash at the other end of the XREF.
+              ;; Becomes complex if there's a hash at the other end of the XREF.
+              (not (if-let [x (:xref fchild)] 
                      (:use-ns (tpm [(datomize-name (:name fchild)) x])))))
        ;; "simple datum" case
        (when-not (:suppress-xref fchild)
@@ -164,7 +167,9 @@
                         :pace/tags       (str/join " " tagpath)
                         :pace/obj-ref    (if (= type :db.type/ref)
                                            {:db/id (tempid :db.part/db)
-                                            :pace/identifies-class (.substring cname 1)})
+                                            :pace/identifies-class (.substring
+                                                                    cname
+                                                                    1)})
                         :db/index        (if (= type :db.type/string)
                                            (.startsWith cname "?"))
                         :pace/fill-default (or (:fill-default fchild) nil))]]
@@ -219,7 +224,9 @@
                     :db/cardinality  (if (or (and (not enum)
                                                   (empty? concretes))
                                              (and (:unique? node)
-                                                  (every? :unique? (butlast concretes))))
+                                                  (every?
+                                                   :unique? (butlast
+                                                             concretes))))
                                        :db.cardinality/one
                                        :db.cardinality/many)
                     :db/isComponent  true
@@ -258,7 +265,8 @@
                               :pace/fill-default (or (:fill-default c) nil)
                               :pace/obj-ref    (if (= type :db.type/ref)
                                                  {:db/id (tempid :db.part/db)
-                                                  :pace/identifies-class (.substring cname 1)}))]]
+                                                  :pace/identifies-class
+                                                  (.substring cname 1)}))]]
                  (if-let [x (:xref c)]
                    (let [{:keys [tags use-ns mode]} (tpm [(datomize-name cname) x])]
                      (conj
@@ -276,7 +284,8 @@
                                    :pace.xref/export     (= mode "INXREF")
                                    :pace.xref/use-ns     use-ns)}))
                    schema)))
-             (iterate inc (if enum 1 0)) ; In enum case, order 0 is reserved for the enum.
+             ;; In enum case, order 0 is reserved for the enum.
+             (iterate inc (if enum 1 0)) 
              concretes
              (tuple-member-names concretes attribute)))
 
@@ -361,13 +370,20 @@
                        (when-let [[h :as children] (:children node)]
                          (cond
                            (> (count children) 1)
-                           (println "WARNING: INXREF has multiple children at " (pr-str node))
+                           (println "WARNING: INXREF has multiple children at "
+                                    (pr-str node))
 
                            (seq (:children h))
-                           (println "WARNING: INXREF can only be followed by a single node at " (pr-str node))
+                           (println
+                            "WARNING: INXREF can only"
+                            "be followed by a single node at "
+                            (pr-str node))
 
                            (not= (:type h) :hash)
-                           (println "WARNING: INXREF can only be followed by a hash at " (pr-str node))
+                           (println
+                            "WARNING: INXREF can only be followed"
+                            "by a hash at "
+                            (pr-str node))
 
                            :default
                            #{(datomize-name (:name h))})))})
@@ -378,8 +394,9 @@
 (defn models->schema
   "Convert a set of models to a schema, resolving tag-paths of XREFs."
   [models]
-  (mapcat (partial model->schema
-                   (reduce merge (map xref-info-map models)))
+  (mapcat (partial
+           model->schema
+           (reduce merge (map xref-info-map models)))
           models))
 
 ;;
@@ -395,7 +412,7 @@
        :children (if-let [c (:children root)]
                    (into c nodes)
                    (vec nodes)))
-      root)   ; Special case to allow easy insertion of tags.
+      root) ; Special case to allow easy insertion of tags.
     (let [children (vec (:children root))
           index    (utils/find-index
                     #(= (:name %) (first tagpath))
@@ -492,9 +509,9 @@
 
      :default
      (if-let [enums (seq
-                       (pace-items-for-ns
-                          (entity-db ti)
-                          (str (namespace (:db/ident ti)) "." (name (:db/ident ti)))))]
+                     (pace-items-for-ns
+                      (entity-db ti)
+                      (str (namespace (:db/ident ti)) "." (name (:db/ident ti)))))]
        (for [e enums]
          (ModelNode. :tag
                      (:pace/tags e)
@@ -502,8 +519,6 @@
                      false
                      nil
                      nil))
-
-
        (ModelNode. :ref
                    "?Funny"
                    false
@@ -518,7 +533,6 @@
       {:unique? (= (:db/cardinality ti)
                    :db.cardinality/one)})))
 
-
 (defn schema->model [db ident]
   (let [root  (entity db ident)
         props (pace-items-for-ns db (namespace (:db/ident root)))]
@@ -528,7 +542,7 @@
                         (str/split (:pace/tags ti) #" ")
                         (attr->model ti)))
      (ModelNode. :ref
-                 (str "?" (:pace/identifies-class root))   ; what about hashes?
+                 (str "?" (:pace/identifies-class root)) ; what about hashes?
                  false
                  false
                  nil
