@@ -151,7 +151,7 @@ lein deploy clojars
 #
 # TARGET_DATOMIC_TYPE can be any named lein profile,
 # examples:
-#   TARGET_DATOMIC_TYPE="aws"
+#   TARGET_DATOMIC_TYPE="ddb"
 #   TARGET_DATOMIC_TYPE="sql"
 #   TARGET_DATOMIC_TYPE="dev
 ./scripts/bundle-release.sh $GIT_RELEASE_TAG $TARGET_DATOMIC_TYPE

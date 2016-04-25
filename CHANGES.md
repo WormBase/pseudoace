@@ -19,7 +19,7 @@
  - Added ability to generate a report for comparing a dump of classes to values
    against those stored in the database.
 
-## 0.4 - (unreleased)
+## 0.4 - (2016-04-25)
  - Moved sorting of logs files back out to the shell.
  - Fixed lingering namespace issues in `pseudoace.acedump`.
  - Use `datomic.api.tempid` in code, not reader-literals.
