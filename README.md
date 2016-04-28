@@ -83,40 +83,34 @@ reported in category 4.
 
 [Configure leiningen credentials][9] for [clojars][8].
 
+Test your setup by running:
+```bash
+# Ensure you are Using `gpg2`, and the `gpg-agent` is running.
+# Here, gpg is a symbolic link to gpg2
+gpg --quiet --batch --decrypt ~/.lein/credentials.clj.gpg
+```
+
+The output should look like (credentials elided):
+
+```
+;; my.datomic.com and clojars credentials
+{#"my\.datomic\.com" {:username ...
+                      :password ...}
+ #"clojars" {:username ...
+             :password ...}}
+```
+
 ### Procedure
 
-  * On the `develop` branch:
-	
-	* Add an entry in the CHANGES.md file.
-
-	* Change the version in the leiningen project.clj
-
-	  From:
-		`<major.minor.patch>-SNAPSHOT`
-
-	  To:
-		`<major.minor.patch>`
-		
-	  and push these changes.
-  
-  * Merge the `develop` branch into to `master` (via a github pull
-    request or directly using git)
-
-  * Create an *annotated* tag in git, using the same version as defined in
-    project.clj:
-	
-	  ```bash
-	  git tag -a $VERSION -m "Releasing $VERSION"`
-	  git push --tags
-	  ```
-  * Deploy to [clojars][8] via leiningen:
-      `line deploy clojars`
-
-	Depending on your credentials setup,
-	you may be prompted for your clojars surname and password.
-
-  * Checkout the develop branch, update CHANGES.md with the next version
-    number and a "back to development" stanza:
+  1. Checkout the `develop` branch if not already checked-out.
+    1.1 Update changes entries in the CHANGES.md file
+    1.2 Replace "un-released" in the latest version entry with the current date.
+    1.3 Commit and push all changes.
+  2. Merge the `develop` branch into to `master` (via a github pull
+     request or directly using git)
+  3. Checkout master.Run `lein release`
+  4. Checkout the develop branch, update CHANGES.md with the next version
+     number and a "back to development" stanza:
 
 	e.g:
 	```markdown
@@ -127,8 +121,9 @@ reported in category 4.
 
 	  `<next-major-version>.<next-minor>.<next-patch>-SNAPSHOT`
 
-	commit and push these changes.
-
+	commit and push these changes, typically with the message:
+	
+	  "Back to development"
 
 ### Deployment
 
