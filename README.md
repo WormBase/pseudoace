@@ -52,7 +52,7 @@ run-tests
 Other useful leiningen plugins for development include:
 
 #### kibit 
-Recommend [idiomatic source code changes][10].
+Recommends [idiomatic source code changes][10].
 
 There is editor support in Emacs. e.g: `M-x kibit-current-file`
 
@@ -104,19 +104,19 @@ The output should look like (credentials elided):
 
 This process re-uses the [leiningen deployment tools][12]:
 
-  1. Checkout the `develop` branch if not already checked-out.
-    1.1 Update changes entries in the CHANGES.md file
-    1.2 Replace "un-released" in the latest version entry with the current date.
-    1.3 Commit and push all changes.
-  2. Merge the `develop` branch into to `master` (via a github pull
-     request or directly using git)
-  3. Checkout master.
-  4. Run:
+  * Checkout the `develop` branch if not already checked-out.
+  * Update changes entries in the CHANGES.md file
+  * Replace "un-released" in the latest version entry with the current date.
+  * Commit and push all changes.
+  * Merge the `develop` branch into to `master` (via a github pull
+    request or directly using git)
+  * Checkout the `master` branch.
+  * Run:
 	 
 	 `lein release`
 	 
-  5. Checkout the develop branch, update CHANGES.md with the next version
-     number and a "back to development" stanza,	e.g:
+  * Checkout the `develop` branch, update `CHANGES.md` with the next
+    version number and a "back to development" stanza, e.g:
 
 	```markdown
 	# 0.3.2 - (unreleased)
