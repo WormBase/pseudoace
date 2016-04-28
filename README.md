@@ -115,12 +115,14 @@ This process re-uses the [leiningen deployment tools][12]:
 	 
 	 `lein release`
 	 
-  * Checkout the `develop` branch, update `CHANGES.md` with the next
+  * Checkout the `develop` branch.
+  * Merge the `master` branch back into `develop`.
+  * Update `CHANGES.md` with the next
     version number and a "back to development" stanza, e.g:
 
 	```markdown
-	# 0.3.2 - (unreleased)
-	  - nothing changed yet.
+	## 0.3.2 - (unreleased)
+	  - Nothing changed yet.
 	```
 
     Commit and push these changes, typically with the message:
@@ -142,6 +144,7 @@ This process re-uses the [leiningen deployment tools][12]:
 #   TARGET_DATOMIC_TYPE="ddb"
 #   TARGET_DATOMIC_TYPE="sql"
 #   TARGET_DATOMIC_TYPE="dev
+git checkout "${GIT_RELEASE_TAG}"
 ./scripts/bundle-release.sh $GIT_RELEASE_TAG $TARGET_DATOMIC_TYPE
 ```
 

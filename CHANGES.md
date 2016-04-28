@@ -43,4 +43,6 @@
 
 ## 0.4.2 - (2016-04-28)
   - Updated documentation.
-  
+
+## 0.4.3 - (2016-04-28)
+  - Rollback version of aws library.
