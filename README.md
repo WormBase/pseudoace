@@ -108,22 +108,22 @@ The output should look like (credentials elided):
     1.3 Commit and push all changes.
   2. Merge the `develop` branch into to `master` (via a github pull
      request or directly using git)
-  3. Checkout master.Run `lein release`
-  4. Checkout the develop branch, update CHANGES.md with the next version
-     number and a "back to development" stanza:
+  3. Checkout master.
+  4. Run:
+	 
+	 `lein release`
+	 
+  5. Checkout the develop branch, update CHANGES.md with the next version
+     number and a "back to development" stanza,	e.g:
 
-	e.g:
 	```markdown
 	# 0.3.2 - (unreleased)
-	  - nothing changed yet
+	  - nothing changed yet.
 	```
-	Update the version in project.clj to be:
 
-	  `<next-major-version>.<next-minor>.<next-patch>-SNAPSHOT`
+    Commit and push these changes, typically with the message:
 
-	commit and push these changes, typically with the message:
-	
-	  "Back to development"
+		"Back to development"
 
 ### Deployment
 
