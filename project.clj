@@ -31,6 +31,6 @@
                              [lein-kibit "0.1.2"]
                              [lein-ns-dep-graph "0.1.0-SNAPSHOT"]]
                    :resource-paths ["test/resources"]}
-             :sql {:dependencies [[mysql/mysql-connector-java "5.1.6"]]}
-             :ddb {:dependencies [[com.amazonaws/aws-java-sdk-dynamodb "1.9.39"
+             :sql {:dependencies [[mysql/mysql-connector-java "6.0.2"]]}
+             :ddb {:dependencies [[com.amazonaws/aws-java-sdk-dynamodb "1.10.73"
                                    :exclusions [joda-time]]]}})
