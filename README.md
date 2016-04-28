@@ -18,7 +18,7 @@ Features include:
 
  * [leiningen][3].
 
- * Datomic
+ * Datomic Transactor (Local)
    * Visit https://my.datomic.com/downloads/pro
    * Download the version of datomic-pro that matches the version
 	 specified in `project.clj`.
@@ -100,7 +100,9 @@ The output should look like (credentials elided):
              :password ...}}
 ```
 
-### Procedure
+### Releases
+
+This process re-uses the [leiningen deployment tools][12]:
 
   1. Checkout the `develop` branch if not already checked-out.
     1.1 Update changes entries in the CHANGES.md file
@@ -124,15 +126,6 @@ The output should look like (credentials elided):
     Commit and push these changes, typically with the message:
 
 		"Back to development"
-
-### Deployment
-
-#### As a *clojars* library for use as a dependency in other Clojure projects
-
-```bash
-git checkout $RELEASE_TAG
-lein deploy clojars
-```
 
 #### As a standalone jar file for running the import peer on a server
 
@@ -279,4 +272,5 @@ platform you run it on.
 [9]: https://github.com/technomancy/leiningen/blob/master/doc/DEPLOY.md#authentication
 [10]: https://github.com/jonase/kibit
 [11]: https://github.com/dakrone/lein-bikeshed
+[12]: https://github.com/technomancy/leiningen/blob/master/doc/DEPLOY.md#deployment
 
