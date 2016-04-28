@@ -1,4 +1,4 @@
-(defproject wormbase/pseudoace "0.4.1"
+(defproject wormbase/pseudoace "0.4.1-SNAPSHOT"
   :dependencies [[clj-time "0.11.0"]
                  [com.datomic/datomic-pro "0.9.5359" :exclusions [joda-time]]
                  [datomic-schema "1.3.0"]
@@ -32,4 +32,7 @@
                    :resource-paths ["test/resources"]}
              :sql {:dependencies [[mysql/mysql-connector-java "6.0.2"]]}
              :ddb {:dependencies [[com.amazonaws/aws-java-sdk-dynamodb "1.10.73"
-                                   :exclusions [joda-time]]]}})
+                                   :exclusions [joda-time]]]}}
+  :deploy-repositories [["releases" :clojars]]
+  :repositories {"my.datomic.com" {:url "https://my.datomic.com/repo"
+                                   :creds :gpg}})

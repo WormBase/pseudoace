@@ -37,5 +37,6 @@
  - Report now generates two files per class when non-zero missing and
    added counts are encountered for easy diffing of object names.
 
-## 0.5 - (un-released)
-  - Nothing changed yet.
+## 0.4.1 - (un-released)
+  - Use `lein release` for releases.
+  - Bump versions of datomic and storage dependencies.
