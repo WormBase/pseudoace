@@ -5,9 +5,6 @@
    [pseudoace.core :as core]
    [pseudoace.utils :as utils]))
 
-(deftest test-get-current-directory
-  (is (.exists (io/file (core/get-current-directory)))))
-
 (deftest test-move-helper-log-file
   (when-let [dummy-log-dir (io/file
                             (System/getProperty "java.io.tmpdir")
