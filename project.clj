@@ -31,7 +31,7 @@
                              [lein-ns-dep-graph "0.1.0-SNAPSHOT"]]
                    :resource-paths ["test/resources"]}
              :sql {:dependencies [[mysql/mysql-connector-java "6.0.2"]]}
-             :ddb {:dependencies [[com.amazonaws/aws-java-sdk-dynamodb "1.10.73"
+             :ddb {:dependencies [[com.amazonaws/aws-java-sdk-dynamodb "1.9.39"
                                    :exclusions [joda-time]]]}}
   :deploy-repositories [["releases" :clojars]]
   :repositories {"my.datomic.com" {:url "https://my.datomic.com/repo"
