@@ -3,7 +3,6 @@
    [clj-time.core :as ct]
    [clojure.data :refer (diff)]
    [clojure.java.io :as io]
-   [clojure.java.shell :as shell]
    [clojure.pprint :as pp]
    [clojure.pprint :refer (pprint)]
    [clojure.repl :refer (doc)]
@@ -13,7 +12,7 @@
    [clojure.tools.cli :refer (parse-opts)]
    [datomic.api :as d]
    [pseudoace.aceparser :as ace]
-   [pseudoace.import :as old-import]
+   [pseudoace.import :refer (importer)]
    [pseudoace.locatable-import :as loc-import]
    [pseudoace.model :as model]
    [pseudoace.model2schema :as model2schema]
@@ -256,55 +255,13 @@
     (println "Converting ACeDump to Datomic Log")
     (println "Creating database connection"))
   (let [con (d/connect url)
-
-        ;; Helper object, holds a cache of schema data.
-        imp (old-import/importer con)
-
-        ;; Must be an empty directory.
-        ;; *Directory path must end in a trailing forward slash, see:
-        ;; *
+        imp (importer con)
         directory (io/file log-dir)
         files (get-ace-files acedump-dir)]
     (doseq [file files]
       (acedump-file-to-datalog imp file directory verbose))
     (move-helper-log-file log-dir verbose)
     (d/release con)))
-
-(defn check-sh-result
-  [result & {:keys [verbose]
-             :or {verbose false}}]
-  (if-not (zero? (:exit result))
-    (println
-     "ERROR: Sort command had exit value: "
-     (:exit result)
-     " and err: " (:err result) )
-    (if verbose
-      (println "ok"))))
-
-(defn get-current-directory []
-  (.getCanonicalPath (java.io.File. ".")))
-
-(defn sort-edn-logs
-  "Sort the log files generated from ACeDB dump files."
-  [& {:keys [log-dir verbose]
-      :or {verbose false}}]
-  (if (.exists (io/file log-dir))
-    (let [files (get-edn-log-files log-dir)]
-      (if (and verbose (count files))
-        (println "Sorting timestamped EDN log files"))
-      (doseq [file files]
-        (if verbose
-          (print "Sorting file:" file " ... "))
-        (let [gzipped-file (io/file log-dir file)
-              file-path (.getPath gzipped-file)
-              cwd (get-current-directory)]
-          (check-sh-result
-           (shell/sh
-            "scripts/sort-edn-log.sh"
-            file-path
-            :dir cwd))
-          (println "ok"))))
-    (println "Log directory" log-dir "does not exist!")))
 
 (defn import-logs
   "Import the sorted EDN log files."
@@ -515,7 +472,6 @@
                   #'create-helper-database
                   #'generate-schema-view
                   #'acedump-to-edn-logs
-                  #'sort-edn-logs
                   #'import-logs
                   #'import-helper-edn-logs
                   #'excise-tmp-data

@@ -1,7 +1,6 @@
-(defproject wormbase/pseudoace "0.4"
+(defproject wormbase/pseudoace "0.4.1"
   :dependencies [[clj-time "0.11.0"]
-                 [com.datomic/datomic-pro "0.9.5350"
-                  :exclusions [joda-time]]
+                 [com.datomic/datomic-pro "0.9.5359" :exclusions [joda-time]]
                  [datomic-schema "1.3.0"]
                  [org.clojure/clojure "1.8.0"]
                  [org.clojure/tools.cli "0.3.3"]]
@@ -31,6 +30,9 @@
                              [lein-kibit "0.1.2"]
                              [lein-ns-dep-graph "0.1.0-SNAPSHOT"]]
                    :resource-paths ["test/resources"]}
-             :sql {:dependencies [[mysql/mysql-connector-java "5.1.6"]]}
-             :ddb {:dependencies [[com.amazonaws/aws-java-sdk-dynamodb "1.9.39"
-                                   :exclusions [joda-time]]]}})
+             :sql {:dependencies [[mysql/mysql-connector-java "6.0.2"]]}
+             :ddb {:dependencies [[com.amazonaws/aws-java-sdk-dynamodb "1.10.73"
+                                   :exclusions [joda-time]]]}}
+  :deploy-repositories [["releases" :clojars]]
+  :repositories {"my.datomic.com" {:url "https://my.datomic.com/repo"
+                                   :creds :gpg}})
