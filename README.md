@@ -144,6 +144,7 @@ This process re-uses the [leiningen deployment tools][12]:
 #   TARGET_DATOMIC_TYPE="ddb"
 #   TARGET_DATOMIC_TYPE="sql"
 #   TARGET_DATOMIC_TYPE="dev
+git checkout "${GIT_RELEASE_TAG}"
 ./scripts/bundle-release.sh $GIT_RELEASE_TAG $TARGET_DATOMIC_TYPE
 ```
 
