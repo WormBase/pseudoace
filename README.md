@@ -18,7 +18,7 @@ Features include:
 
  * [leiningen][3].
 
- * Datomic
+ * Datomic Transactor (Local)
    * Visit https://my.datomic.com/downloads/pro
    * Download the version of datomic-pro that matches the version
 	 specified in `project.clj`.
@@ -52,7 +52,7 @@ run-tests
 Other useful leiningen plugins for development include:
 
 #### kibit 
-Recommend [idiomatic source code changes][10].
+Recommends [idiomatic source code changes][10].
 
 There is editor support in Emacs. e.g: `M-x kibit-current-file`
 
@@ -83,61 +83,49 @@ reported in category 4.
 
 [Configure leiningen credentials][9] for [clojars][8].
 
-### Procedure
+Test your setup by running:
+```bash
+# Ensure you are Using `gpg2`, and the `gpg-agent` is running.
+# Here, gpg is a symbolic link to gpg2
+gpg --quiet --batch --decrypt ~/.lein/credentials.clj.gpg
+```
 
-  * On the `develop` branch:
-	
-	* Add an entry in the CHANGES.md file.
+The output should look like (credentials elided):
 
-	* Change the version in the leiningen project.clj
+```
+;; my.datomic.com and clojars credentials
+{#"my\.datomic\.com" {:username ...
+                      :password ...}
+ #"clojars" {:username ...
+             :password ...}}
+```
 
-	  From:
-		`<major.minor.patch>-SNAPSHOT`
+### Releases
 
-	  To:
-		`<major.minor.patch>`
-		
-	  and push these changes.
-  
+This process re-uses the [leiningen deployment tools][12]:
+
+  * Checkout the `develop` branch if not already checked-out.
+  * Update changes entries in the CHANGES.md file
+  * Replace "un-released" in the latest version entry with the current date.
+  * Commit and push all changes.
   * Merge the `develop` branch into to `master` (via a github pull
     request or directly using git)
+  * Checkout the `master` branch.
+  * Run:
+	 
+	 `lein release`
+	 
+  * Checkout the `develop` branch, update `CHANGES.md` with the next
+    version number and a "back to development" stanza, e.g:
 
-  * Create an *annotated* tag in git, using the same version as defined in
-    project.clj:
-	
-	  ```bash
-	  git tag -a $VERSION -m "Releasing $VERSION"`
-	  git push --tags
-	  ```
-  * Deploy to [clojars][8] via leiningen:
-      `line deploy clojars`
-
-	Depending on your credentials setup,
-	you may be prompted for your clojars surname and password.
-
-  * Checkout the develop branch, update CHANGES.md with the next version
-    number and a "back to development" stanza:
-
-	e.g:
 	```markdown
 	# 0.3.2 - (unreleased)
-	  - nothing changed yet
+	  - nothing changed yet.
 	```
-	Update the version in project.clj to be:
 
-	  `<next-major-version>.<next-minor>.<next-patch>-SNAPSHOT`
+    Commit and push these changes, typically with the message:
 
-	commit and push these changes.
-
-
-### Deployment
-
-#### As a *clojars* library for use as a dependency in other Clojure projects
-
-```bash
-git checkout $RELEASE_TAG
-lein deploy clojars
-```
+		"Back to development"
 
 #### As a standalone jar file for running the import peer on a server
 
@@ -284,4 +272,5 @@ platform you run it on.
 [9]: https://github.com/technomancy/leiningen/blob/master/doc/DEPLOY.md#authentication
 [10]: https://github.com/jonase/kibit
 [11]: https://github.com/dakrone/lein-bikeshed
+[12]: https://github.com/technomancy/leiningen/blob/master/doc/DEPLOY.md#deployment
 
