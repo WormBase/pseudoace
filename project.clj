@@ -1,7 +1,6 @@
-(defproject wormbase/pseudoace "0.5-SNAPSHOT"
+(defproject wormbase/pseudoace "0.4.1"
   :dependencies [[clj-time "0.11.0"]
-                 [com.datomic/datomic-pro "0.9.5350"
-                  :exclusions [joda-time]]
+                 [com.datomic/datomic-pro "0.9.5359" :exclusions [joda-time]]
                  [datomic-schema "1.3.0"]
                  [org.clojure/clojure "1.8.0"]
                  [org.clojure/tools.cli "0.3.3"]]
