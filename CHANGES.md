@@ -41,6 +41,6 @@
   - Use `lein release` for releases.
   - Bump versions of datomic and storage dependencies.
 
-## 0.4.2 - (un-released)
-  - Nothing changed yet.
+## 0.4.2 - (2016-04-28)
+  - Updated documentation.
   
