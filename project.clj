@@ -3,6 +3,7 @@
                  [com.datomic/datomic-pro "0.9.5359" :exclusions [joda-time]]
                  [datomic-schema "1.3.0"]
                  [org.clojure/clojure "1.8.0"]
+                 [org.clojure/tools.nrepl "0.2.12"]
                  [org.clojure/tools.cli "0.3.3"]]
   :description "ACeDB migration tools"
   :source-paths ["src"]
@@ -30,7 +31,8 @@
                              [lein-kibit "0.1.2"]
                              [lein-ns-dep-graph "0.1.0-SNAPSHOT"]]
                    :resource-paths ["test/resources"]}
-             :sql {:dependencies [[mysql/mysql-connector-java "6.0.2"]]}
+             :mysql {:dependencies [[mysql/mysql-connector-java "6.0.2"]]}
+             :postgresql {:dependencies [[org.postgresql/postgresql "9.4-1208"]]}
              :ddb {:dependencies [[com.amazonaws/aws-java-sdk-dynamodb "1.9.39"
                                    :exclusions [joda-time]]]}}
   :deploy-repositories [["releases" :clojars]]
