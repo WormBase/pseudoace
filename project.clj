@@ -32,7 +32,7 @@
                              [lein-ns-dep-graph "0.1.0-SNAPSHOT"]]
                    :resource-paths ["test/resources"]}
              :mysql {:dependencies [[mysql/mysql-connector-java "6.0.2"]]}
-             :postgresql {:dependencies [[org.postgresql/postgresql "9.4-1208"]]}
+             :postgresql {:dependencies [[org.postgresql/postgresql "9.4.1208"]]}
              :ddb {:dependencies [[com.amazonaws/aws-java-sdk-dynamodb "1.9.39"
                                    :exclusions [joda-time]]]}}
   :deploy-repositories [["releases" :clojars]]
