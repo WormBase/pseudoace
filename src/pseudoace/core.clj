@@ -472,17 +472,17 @@
   (let [con (d/connect url)]
     (d/release con)))
 
-(def cli-actions [#'create-database
+(def cli-actions [#'acedump-to-edn-logs
+                  #'create-database
                   #'create-helper-database
-                  #'generate-schema-view
-                  #'acedump-to-edn-logs
-                  #'import-logs
-                  #'import-helper-edn-logs
+                  #'delete-database
                   #'excise-tmp-data
-                  #'run-test-query
                   #'generate-report
+                  #'generate-schema-view
+                  #'import-helper-edn-logs
+                  #'import-logs
                   #'list-databases
-                  #'delete-database])
+                  #'run-test-query])
 
 (def cli-action-metas (map meta cli-actions))
 
