@@ -482,6 +482,7 @@
                   #'import-helper-edn-logs
                   #'import-logs
                   #'list-databases
+                  #'prepare-import
                   #'run-test-query])
 
 (def cli-action-metas (map meta cli-actions))
