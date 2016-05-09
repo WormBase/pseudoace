@@ -4117,5 +4117,3 @@
 (schema
  keyword
  (fields [id :string :unique-identity "Built-in ?Keyword type."]))
-
-	Releasing database connection
