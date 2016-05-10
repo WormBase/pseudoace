@@ -498,7 +498,7 @@
 
 (def ^:private space-join (partial str/join "  "))
 
-(defn- single-space
+(defn- collapse-space
   "Remove occruances of multiple spaces in `s` with a single space."
   [s]
   (str/replace s #"\s{2,}" " "))
@@ -553,7 +553,7 @@
         (let [usage-doc (-> doc-string
                             str/split-lines
                             space-join
-                            single-space)]
+                            collapse-space)]
           (format line-template action-name usage-doc)))))))
 
 (defn -main [& args]
