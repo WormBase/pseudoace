@@ -400,8 +400,8 @@
                 attribute (name element-attribute)
                 expression [:find '(count ?eid) '.
                             :where ['?eid element-attribute]]
-                name-of-entity (d/q expression db )
-                line (str element "\t" attribute "\t" name-of-entity)]
+                entity-name (d/q expression db)
+                line (str element "\t" attribute "\t" entity-name)]
             (println line)))))))
 
 (defn generate-report
