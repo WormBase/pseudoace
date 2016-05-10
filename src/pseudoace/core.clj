@@ -1,6 +1,7 @@
 (ns pseudoace.core
   (:require
    [clj-time.core :as ct]
+   [clj-time.coerce :refer (to-date)]
    [clojure.data :refer (diff)]
    [clojure.java.io :as io]
    [clojure.pprint :as pp]
@@ -289,7 +290,9 @@
   (let [con (d/connect url)]
     (d/transact
      con
-     [{:db/id (d/tempid :db.part/user) :db/excise :importer/temp}])))
+     [{:db/id (d/tempid :db.part/user)
+       :db/excise :importer/temp}])
+    (d/gc-storage (to-date (ct/now)))))
 
 (defn run-test-query
   "Perform tests on the generated database."
