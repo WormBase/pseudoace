@@ -139,7 +139,7 @@ This process re-uses the [leiningen deployment tools][12]:
 # projet.clj, e.g:
 #  GIT_RELEASE_TAG="0.3.2-SNAPSHOT"
 #
-# TARGET_DATOMIC_TYPE can be any named lein profile,
+# LEIN_PROFILE can be any named lein profile (or multiple delimiter by comma),
 # examples:
 #   TARGET_DATOMIC_TYPE="aws"
 #   TARGET_DATOMIC_TYPE="mysql"
