@@ -1,6 +1,7 @@
 (ns pseudoace.core
   (:require
    [clj-time.core :as ct]
+   [clj-time.coerce :refer (to-date)]
    [clojure.data :refer (diff)]
    [clojure.java.io :as io]
    [clojure.pprint :as pp]
@@ -289,7 +290,9 @@
   (let [con (d/connect url)]
     (d/transact
      con
-     [{:db/id (d/tempid :db.part/user) :db/excise :importer/temp}])))
+     [{:db/id (d/tempid :db.part/user)
+       :db/excise :importer/temp}])
+    (d/gc-storage (to-date (ct/now)))))
 
 (defn run-test-query
   "Perform tests on the generated database."
@@ -400,8 +403,8 @@
                 attribute (name element-attribute)
                 expression [:find '(count ?eid) '.
                             :where ['?eid element-attribute]]
-                name-of-entity (d/q expression db )
-                line (str element "\t" attribute "\t" name-of-entity)]
+                entity-name (d/q expression db)
+                line (str element "\t" attribute "\t" entity-name)]
             (println line)))))))
 
 (defn generate-report
@@ -498,7 +501,7 @@
 
 (def ^:private space-join (partial str/join "  "))
 
-(defn- single-space
+(defn- collapse-space
   "Remove occruances of multiple spaces in `s` with a single space."
   [s]
   (str/replace s #"\s{2,}" " "))
@@ -553,7 +556,7 @@
         (let [usage-doc (-> doc-string
                             str/split-lines
                             space-join
-                            single-space)]
+                            collapse-space)]
           (format line-template action-name usage-doc)))))))
 
 (defn -main [& args]
