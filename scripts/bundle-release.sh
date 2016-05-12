@@ -20,7 +20,8 @@ pre_release_check() {
 }
 
 pre_release_checks() {
-    local run_lein_check="lein with-profile test,${LEIN_PROFILE}"
+    local lein_profiles="test,datomic-${DATOMIC_FLAVOUR},${LEIN_PROFILE}"
+    local run_lein_check="lein with-profile ${lein_profiles}"
     # TBD: use git signed git tags? Requires all team committers to setup GPG keys.
     # pre_release_check "You must create a git tag first!" \
     # 		      git tag -v "${PROJ_VERSION}"
@@ -37,19 +38,28 @@ pre_release_checks() {
     return 0;
 }
 
+make_release_jar () {
+    local lein_profiles="datomic-${DATOMIC_FLAVOUR},${LEIN_PROFILE}"
+    run_step "Preparing release jar" \
+	     "lein with-profile ${lein_profiles}" do clean, uberjar &> "${LOGFILE}"
+}
+
 PROJ_ROOT="$(git rev-parse --show-toplevel)"
 LOGFILE="${PROJ_ROOT}/bundle-release.log"
 RELEASE_TAG="$1"
 if [ -z "${RELEASE_TAG}" ]; then
-    echo "USAGE: $0 <RELEASE_TAG> [LEIN_PROFILE]"
+    echo "USAGE: $0 <RELEASE_TAG> [LEIN_PROFILE=ddb] [DATOMIC_FLAVOUR=pro]"
     exit 1
 fi
 
 LEIN_PROFILE="$2"
 if [ -z "${LEIN_PROFILE}" ]; then
-    lein="lein"
-else
-    lein="lein with-profile ${LEIN_PROFILE}"
+    LEIN_PROFILE="ddb"
+fi
+
+DATOMIC_FLAVOUR="$3"
+if [ -z "${DATOMIC_FLAVOUR}" ]; then
+    DATOMIC_FLAVOUR="pro"
 fi
 
 PROJ_NAME="$(proj_meta ${PROJ_ROOT} name)"
@@ -74,8 +84,7 @@ mkdir -p "${RELEASE_DIR}"
 release_file "${RELEASE_TAG}" \
 	 "${LOG_SORT_SCRIPT}" \
 	 "${BUILD_DIR}/${PROJ_FQNAME}/$(basename ${LOG_SORT_SCRIPT})"
-run_step "Preparing release jar" \
-	 "$lein" do clean, uberjar &> "${LOGFILE}"
+make_release_jar
 mv "${PROJ_ROOT}/target/${PROJ_NAME}-${RELEASE_TAG}-standalone.jar" \
    "${DEPLOY_JAR}"
 cd "${BUILD_DIR}"
@@ -97,4 +106,4 @@ else
     exit 999
 fi
 # "lein test" will fail unless one cleans after uberjar'ing
-run_step "Cleaning up" "$lein" clean
+run_step "Cleaning up" "lein with-profile ${LEIN_PROFILE}" clean
