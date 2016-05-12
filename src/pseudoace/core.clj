@@ -112,9 +112,9 @@
       (doseq [s (schema-datomic/schema-from-db (d/db con))]
         (pp/pprint s)
         (println)))
-       (if verbose
-         (println \tab "Releasing database connection"))
-       (d/release con)))
+    (if verbose
+      (println \tab "Releasing database connection"))
+    (d/release con)))
 
 (defn generate-schema
   "Generate the database schema from the annotated ACeDB models."
