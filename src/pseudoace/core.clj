@@ -292,7 +292,7 @@
      con
      [{:db/id (d/tempid :db.part/user)
        :db/excise :importer/temp}])
-    (d/gc-storage (to-date (ct/now)))))
+    (d/gc-storage con (to-date (ct/now)))))
 
 (defn run-test-query
   "Perform tests on the generated database."
