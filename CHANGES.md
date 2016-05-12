@@ -48,4 +48,6 @@
   - Rollback version of aws library.
 
 ## 0.4.4 - (un-released)
-  - Back to development.
+  - Support distributing a release bundle using either datomic-free or datomic-pro.
+  - Add generated schema for WS253, WS254
+  - Various minor fixes for the command line interface.
