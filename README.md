@@ -139,13 +139,14 @@ This process re-uses the [leiningen deployment tools][12]:
 # projet.clj, e.g:
 #  GIT_RELEASE_TAG="0.3.2-SNAPSHOT"
 #
-# TARGET_DATOMIC_TYPE can be any named lein profile,
+# LEIN_PROFILE can be any named lein profile (or multiple delimiter by comma),
 # examples:
-#   TARGET_DATOMIC_TYPE="ddb"
-#   TARGET_DATOMIC_TYPE="sql"
-#   TARGET_DATOMIC_TYPE="dev
+#   LEIN_PROFILE="aws"
+#   LEIN_PROFILE="mysql"
+#   LEIN_PROFILE="postgresql"
+#   LEIN_PROFILE="dev
 git checkout "${GIT_RELEASE_TAG}"
-./scripts/bundle-release.sh $GIT_RELEASE_TAG $TARGET_DATOMIC_TYPE
+./scripts/bundle-release.sh $GIT_RELEASE_TAG $LEIN_PROFILE
 ```
 
 An archive named `pseudoace-$GIT_RELEASE_TAG.tar.gz` will be created in the

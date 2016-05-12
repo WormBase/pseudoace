@@ -1,6 +1,7 @@
 (ns pseudoace.core
   (:require
    [clj-time.core :as ct]
+   [clj-time.coerce :refer (to-date)]
    [clojure.data :refer (diff)]
    [clojure.java.io :as io]
    [clojure.pprint :as pp]
@@ -111,9 +112,9 @@
       (doseq [s (schema-datomic/schema-from-db (d/db con))]
         (pp/pprint s)
         (println)))
-       (if verbose
-         (println \tab "Releasing database connection"))
-       (d/release con)))
+    (if verbose
+      (println \tab "Releasing database connection"))
+    (d/release con)))
 
 (defn generate-schema
   "Generate the database schema from the annotated ACeDB models."
@@ -289,7 +290,9 @@
   (let [con (d/connect url)]
     (d/transact
      con
-     [{:db/id (d/tempid :db.part/user) :db/excise :importer/temp}])))
+     [{:db/id (d/tempid :db.part/user)
+       :db/excise :importer/temp}])
+    (d/gc-storage con (to-date (ct/now)))))
 
 (defn run-test-query
   "Perform tests on the generated database."
@@ -400,8 +403,8 @@
                 attribute (name element-attribute)
                 expression [:find '(count ?eid) '.
                             :where ['?eid element-attribute]]
-                name-of-entity (d/q expression db )
-                line (str element "\t" attribute "\t" name-of-entity)]
+                entity-name (d/q expression db)
+                line (str element "\t" attribute "\t" entity-name)]
             (println line)))))))
 
 (defn generate-report
@@ -418,44 +421,48 @@
         db (d/db con)
         report (qa/class-by-class-report db build-data)
         width-left (apply max (map count (:class-names report)))
-        format-left (partial format (str "%" width-left "s"))]
+        format-left (partial format (str "%" width-left "s"))
+        format-num (partial format "%10d")
+        tab-join (partial str/join \tab)]
     (with-open [writer (io/writer report-filename)]
       (let [write-line (fn [line]
                          (.write writer line)
                          (.newLine writer))
-            header-line
-            (str/join
-             \tab
-             (map format-left ["Class" "Missing" "Added" "Identical"]))]
+            header-line (tab-join (map
+                                   format-left
+                                   ["Class" "Missing" "Added" "Identical"]))]
         (write-line header-line)
         (if verbose
           (println header-line))
-        (doseq [entry (:entries report)
-                :let [class-name (:class-name entry)
-                      format-num (partial format "%10d")]]
+        (doseq [entry (sort-by :class-name (:entries report))
+                :let [class-name (:class-name entry)]]
           (if (utils/not-nil? entry)
             (let [n-ref-only (.n-ref-only entry)
                   n-db-only (.n-db-only entry)
-                  out-line (str/join
-                            \tab
-                            (map
-                             format-left
-                             [class-name
-                              (format-num n-ref-only)
-                              (format-num n-db-only)
-                              (format-num (.n-both entry))]))]
+                  n-both (.n-both entry)
+                  counts [n-ref-only n-db-only n-both]
+                  f-counts (map format-num counts)
+                  out-line (tab-join
+                            (map format-left (concat [class-name] f-counts)))]
               (write-line out-line)
-              (when (not= n-ref-only n-db-only 0)
+              (if verbose
+                (println out-line))
+              (when (< (count (filter zero? counts)) 2)
                 (let [write-class-ids (partial
                                        qa/write-class-ids
                                        class-ids-dir
-                                       class-name)]
-                  (future (write-class-ids (:ref-only entry) "ref-only"))
-                  (future (write-class-ids (:db-only entry) "db-only"))))
-              (if verbose
-                (println out-line)))))
+                                       class-name)
+                      label-suffix (if (and (= n-ref-only n-db-only)
+                                            (not= n-ref-only n-db-only 0))
+                                     "_bad-identifiers"
+                                     "")]
+                  (doseq [topic ["ref-only" "db-only"]
+                          :let [label (str topic label-suffix)
+                                kw (keyword topic)
+                                ids (kw entry)]]
+                    (future (write-class-ids ids label))))))))))
     (d/release con)
-    nil))))
+    nil))
 
 ;; TODO: remove in favour of using datomic backup-db command
 (defn backup-database
@@ -468,17 +475,18 @@
   (let [con (d/connect url)]
     (d/release con)))
 
-(def cli-actions [#'create-database
+(def cli-actions [#'acedump-to-edn-logs
+                  #'create-database
                   #'create-helper-database
-                  #'generate-schema-view
-                  #'acedump-to-edn-logs
-                  #'import-logs
-                  #'import-helper-edn-logs
+                  #'delete-database
                   #'excise-tmp-data
-                  #'run-test-query
                   #'generate-report
+                  #'generate-schema-view
+                  #'import-helper-edn-logs
+                  #'import-logs
                   #'list-databases
-                  #'delete-database])
+                  #'prepare-import
+                  #'run-test-query])
 
 (def cli-action-metas (map meta cli-actions))
 
@@ -493,7 +501,7 @@
 
 (def ^:private space-join (partial str/join "  "))
 
-(defn- single-space
+(defn- collapse-space
   "Remove occruances of multiple spaces in `s` with a single space."
   [s]
   (str/replace s #"\s{2,}" " "))
@@ -548,7 +556,7 @@
         (let [usage-doc (-> doc-string
                             str/split-lines
                             space-join
-                            single-space)]
+                            collapse-space)]
           (format line-template action-name usage-doc)))))))
 
 (defn -main [& args]

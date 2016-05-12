@@ -144,13 +144,13 @@
    "Identity attribute for the object at the outbound end of the XREF."]
   [import
    :boolean
-   "Should inbound occurrences of this XREF be considered by the ACeDB importer."]
+   "Whether inbound occurrences of this XREF be considered by the ACeDB importer."]
   [export
    :boolean
-   "Should inbound occurrences of this XREF be dumped by the .ace file exporter."]
+   "Whether inbound occurrences of this XREF be dumped by the .ace file exporter."]
   [view
    :boolean
-   "Should inbound occurrences of this XREF be shown in user-oriented viewers."]
+   "Should inbound occurrences of this XREFbe shown in user-oriented viewers."]
   [use-ns
    :string
    :many
@@ -163,7 +163,7 @@
   [text
    :string
    :fulltext
-   "The text associated with this object.  A full-text index will be built."]))
+   "The text associated with this object.A full-text index will be built."]))
 
 (schema
  dna
@@ -183,7 +183,7 @@
   [temp
    :string
    :unique-identity
-   "Identifier used as scaffolding by the timestamp-aware importer.  Should generally be excised after import is complete."]
+   "Identifier used as scaffolding by the timestamp-aware importer. Should generally be excised after import is complete."]
   [ts-name :string "Username from a legacy timestamp."]))
 
 (schema
@@ -216,25 +216,21 @@
 (schema
  locatable
  (fields
-  [parent
-   :ref
-   "An entity (e.g. sequence or protein) which defines the coordinate system for this locatable."]
+  [score :float "Feature score, as used in ?Feature_data."]
   [min
    :long
    :indexed
    "The lower bound of a half-open (UCSC-style) interval defining the location."]
+  [method
+   :ref
+   "Method entity defining the meaning of this feature. Required for lightweight features."]
+  [parent
+   :ref
+   "An entity (e.g. sequence or protein) which defines the coordinate system for this locatable."]
   [max
    :long
    :indexed
    "The upper bound of a half-open (UCSC-style) interval defining the location."]
-  [strand
-   :enum
-   [:negative :positive]
-   "Token designating the strand or orientation of this feature.  Omit if unknown or irrelevant."]
-  [method
-   :ref
-   "Method entity defining the meaning of this feature.  Required for lightweight features."]
-  [score :float "Feature score, as used in ?Feature_data."]
   [note
    :string
    :many
@@ -242,8 +238,12 @@
   [murmur-bin
    :long
    :indexed
-   "Bottom 20 bits contain a UCSC/BAM-style bin number.  High bits contain a Murmur3 hash code\n           for the parent sequence.  Only used for locatables attached to a parent with a :sequence/id."]
-  [assembly-parent :ref "The parent sequence in a genome assembly."]))
+   "Bottom 20 bits contain a UCSC/BAM-style bin number.High bits contain a Murmur3 hash code for the parent sequence.  Only used for locatables attached to a parent with a :sequence/id."]
+  [assembly-parent :ref "The parent sequence in a genome assembly."]
+  [strand
+   :enum
+   [:negative :positive]
+   "Token designating the strand or orientation of this feature.  Omit if unknown or irrelevant."]))
 
 (schema
  splice-confirm
@@ -283,10 +283,10 @@
   [min
    :long
    :indexed
-   "Lower bound of a half-open interval defining the extent of this homology \n         in the target's coordinate system."]
+   "Lower bound of a half-open interval defining the extent of this homology in the target's coordinate system."]
   [gap
    :string
-   "Gapped alignment.  The locations of matches and gaps are encoded \n           in a CIGAR-like format as defined in \n           http://www.sequenceontology.org/gff3.shtml"]
+   "Gapped alignment. The locations of matches and gaps are encoded in a CIGAR-like format as defined in http://www.sequenceontology.org/gff3.shtml"]
   [expr
    :ref
    "Expression-pattern which is mapped to a sequence by this homology."]
@@ -300,7 +300,7 @@
   [max
    :long
    :indexed
-   "Upper bound of a half-open interval defining the extent of this homology \n         in the target's coordinate system."]
+   "Upper bound of a half-open interval defining the extent of this homology in the target's coordinate system."]
   [motif
    :ref
    "A motif entity which is mapped to a sequence by this homology."]
@@ -316,7 +316,7 @@
   [strand
    :enum
    [:negative :positive]
-   "Token designating the strand or orientation of this homology on the \n           target's coordinate system. Should only be used in situations where \n           a negative-to-negative alignment would be meaningful (e.g. tblastx)"]
+   "Token designating the strand or orientation of this homology on the target's coordinate system. Should only be used in situations where a negative-to-negative alignment would be meaningful (e.g. tblastx)"]
   [ms-peptide
    :ref
    "Mass-spec-peptide which is mapped to a sequence by this homology."]
@@ -3973,7 +3973,7 @@
   [id :string :unique-identity]
   [public-name :string :indexed :many]
   [formula :string :indexed :many]
-  [monoisotopic-mass :ref :many]
+  [monoisotopic-mass :double :many]
   [iupac :string :indexed :many]
   [smiles :string :indexed :many]
   [inchi :string :indexed :many]
@@ -4117,3 +4117,4 @@
 (schema
  keyword
  (fields [id :string :unique-identity "Built-in ?Keyword type."]))
+
