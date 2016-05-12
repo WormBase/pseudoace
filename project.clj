@@ -1,6 +1,5 @@
 (defproject wormbase/pseudoace "0.4.5-SNAPSHOT"
   :dependencies [[clj-time "0.11.0"]
-                 [com.datomic/datomic-pro "0.9.5359" :exclusions [joda-time]]
                  [datomic-schema "1.3.0"]
                  [org.clojure/clojure "1.8.0"]
                  [org.clojure/tools.nrepl "0.2.12"]
@@ -32,10 +31,10 @@
                              [lein-kibit "0.1.2"]
                              [lein-ns-dep-graph "0.1.0-SNAPSHOT"]]
                    :resource-paths ["test/resources"]}
-             :datomic-pro {:dependencies [[com.datomic/datomic-pro "0.9.5359"
-                                           :exclusions [joda-time]]]}
-             :datomic-free {:dependencies [[com.datomic/datomic-free "0.9.5359"
-                                           :exclusions [joda-time]]]}
+             :provided {:dependencies [[com.datomic/datomic-free "0.9.5359"
+                                        :exclusions [joda-time]]
+                                       [com.datomic/datomic-pro "0.9.5359"
+                                        :exclusions [joda-time]]]}
              :mysql {:dependencies [[mysql/mysql-connector-java "6.0.2"]]}
              :postgresql {:dependencies [[org.postgresql/postgresql "9.4.1208"]]}
              :ddb {:dependencies [[com.amazonaws/aws-java-sdk-dynamodb "1.9.39"

@@ -53,4 +53,6 @@
   - Various minor fixes for the command line interface.
 
 ## 0.4.5 - (un-released)
-  - Nothing changed yet.
+  - Remove hard-dependency on datomic-pro.
+    Library users will now have to choose which flavour (and version)
+    of datomic to include.
