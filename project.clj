@@ -22,6 +22,7 @@
              ;; "-XX:-OmitStackTraceInFastThrow"
              ]
   :main ^:skip-aot pseudoace.core
+  :target-path "target/%s"
   :profiles {:uberjar {:aot :all}
              :test {:resource-paths ["test/resources"]}
              :dev {:dependencies [[datomic-schema-grapher "0.0.1"]]
@@ -31,6 +32,10 @@
                              [lein-kibit "0.1.2"]
                              [lein-ns-dep-graph "0.1.0-SNAPSHOT"]]
                    :resource-paths ["test/resources"]}
+             :datomic-pro {:dependencies [[com.datomic/datomic-pro "0.9.5359"
+                                           :exclusions [joda-time]]]}
+             :datomic-free {:dependencies [[com.datomic/datomic-free "0.9.5359"
+                                           :exclusions [joda-time]]]}
              :mysql {:dependencies [[mysql/mysql-connector-java "6.0.2"]]}
              :postgresql {:dependencies [[org.postgresql/postgresql "9.4.1208"]]}
              :ddb {:dependencies [[com.amazonaws/aws-java-sdk-dynamodb "1.9.39"
