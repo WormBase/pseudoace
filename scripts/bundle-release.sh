@@ -48,25 +48,19 @@ PROJ_ROOT="$(git rev-parse --show-toplevel)"
 LOGFILE="${PROJ_ROOT}/bundle-release.log"
 RELEASE_TAG="$1"
 if [ -z "${RELEASE_TAG}" ]; then
-    echo "USAGE: $0 <RELEASE_TAG> [LEIN_PROFILE=datomic-pro]"
+    echo "USAGE: $0 <RELEASE_TAG> [LEIN_PROFILE]"
     exit 1
 fi
 
 LEIN_PROFILE="$2"
-if [ -z "${LEIN_PROFILE}" ]; then
-    LEIN_PROFILE="datomic-pro"
-fi
-
-if ! [[ "${LEIN_PROFILE}" == *"datomic-"* ]]; then
-    LEIN_PROFILE="${LEIN_PROFILE},datomic-pro"
-fi
-
 PROJ_NAME="$(proj_meta ${PROJ_ROOT} name)"
 PROJ_VERSION="$(proj_meta ${PROJ_ROOT} version)"
+
 if [ -z "$PROJ_NAME" ] || [ -z "$PROJ_VERSION" ]; then
     echo "[ ❌ ] Could not determine Clojure project name and version."
     exit 2
 fi
+
 BUILD_DIR="${PROJ_NAME}-$$"
 PROJ_FQNAME="${PROJ_NAME}-${RELEASE_TAG}"
 LOG_SORT_SCRIPT="scripts/sort-edn-log.sh"
