@@ -1,4 +1,5 @@
 # pseudoace
+[![Clojars Project](https://img.shields.io/clojars/v/wormbase/pseudoace.svg)](https://clojars.org/wormbase/pseudoace)
 
 Provides a Clojure library for use by the [Wormbase][1] project.
 
