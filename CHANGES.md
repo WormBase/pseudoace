@@ -51,3 +51,8 @@
   - Support distributing a release bundle using either datomic-free or datomic-pro.
   - Add generated schema for WS253, WS254
   - Various minor fixes for the command line interface.
+
+## 0.4.5 - (un-released)
+  - Remove hard-dependency on datomic-pro.
+    Library users will now have to choose which flavour (and version)
+    of datomic to include.

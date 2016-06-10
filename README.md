@@ -6,26 +6,38 @@ Provides a Clojure library for use by the [Wormbase][1] project.
 Features include:
 
   * Model-driven import of ACeDB data into a [Datomic][2] database.
-    * (Dynamic generation of an isomorphic Datomic schema from an
-      annotated ACeDB models file)
+
+      * (Dynamic generation of an isomorphic Datomic schema from an
+        annotated ACeDB models file)
+
   * Conversion of ACeDB database dump files into a datomic database
+
   * Routines for parsing and dumping ACeDB "dump files".
+
   * Utility functions and macros for querying WormBase data.
+
   * A command line interface for utilities described above (via `lein run`)
 
 ## Installation
 
  * Java 1.8 (Prefer official oracle version)
 
- * [leiningen][3].
+ * [leiningen][3]
 
- * Datomic Transactor (Local)
-   * Visit https://my.datomic.com/downloads/pro
-   * Download the version of datomic-pro that matches the version
-	 specified in `project.clj`.
-   * When upgrading datomic, download the latest version and update
-     `project.clj` accordingly.
-   * Unzip the downloaded archive, and run: `bin/maven-install`
+   * You will also need to specify which flavour and version of
+     datomic you want use in your [lein peer project configuration][13].
+
+     Example:
+
+     ```clojure
+     (defproject myproject-0.1-SNAPSHOT
+        :dependencies [[com.datomic/datomic-free "0.9.5359"
+                        :exclusions [joda-time]]
+                       [wormbase/pseudoace "0.4.4"]])
+     ```
+
+ * [Install datomic][14]
+
 
 ## Development
 
@@ -43,8 +55,8 @@ Run all tests regularly, but in particular:
   * before issuing a new pull request
 
   * after checking out a feature-branch
-  
-  
+
+
 ```bash
 alias run-tests="lein with-profile dev,test do eastwood, test"
 run-tests
@@ -52,7 +64,7 @@ run-tests
 
 Other useful leiningen plugins for development include:
 
-#### kibit 
+#### kibit
 Recommends [idiomatic source code changes][10].
 
 There is editor support in Emacs. e.g: `M-x kibit-current-file`
@@ -68,11 +80,15 @@ Command line examples:
 #### bikeshed
 Reports on [subjectively bad][11] code.
 This tool checks for:
+
   1. "files ending in blank lines"
+
   2. redefined var roots in source directories"
+
   3. "whether you keep up with your docstrings"
+
   4. arguments colliding with clojure.core functions
-  
+
 Of the above, only 1. 2. and 3. are generally useful to fix,
 since 4. requires creative (short) naming that may not be intuitive
 for the reader. Use your discretion when choosing to "fix" any "violations"
@@ -106,18 +122,26 @@ The output should look like (credentials elided):
 This process re-uses the [leiningen deployment tools][12]:
 
   * Checkout the `develop` branch if not already checked-out.
+
   * Update changes entries in the CHANGES.md file
+
   * Replace "un-released" in the latest version entry with the current date.
+
   * Commit and push all changes.
+
   * Merge the `develop` branch into to `master` (via a github pull
     request or directly using git)
+
   * Checkout the `master` branch.
+
   * Run:
-	 
+
 	 `lein release`
-	 
+
   * Checkout the `develop` branch.
+
   * Merge the `master` branch back into `develop`.
+
   * Update `CHANGES.md` with the next
     version number and a "back to development" stanza, e.g:
 
@@ -166,7 +190,7 @@ The archive contains two artefacts:
 >   contained therein is *never* distributed to a public server
 >   for download, as this would violate the terms of any preparatory
 >   Congnitech Datomic license.**
- 
+
 
 ## Usage
 
@@ -278,4 +302,5 @@ platform you run it on.
 [10]: https://github.com/jonase/kibit
 [11]: https://github.com/dakrone/lein-bikeshed
 [12]: https://github.com/technomancy/leiningen/blob/master/doc/DEPLOY.md#deployment
-
+[13]: http://docs.datomic.com/integrating-peer-lib.html
+[14]: http://docs.datomic.com/getting-started.html
