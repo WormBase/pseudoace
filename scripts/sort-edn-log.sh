@@ -17,7 +17,7 @@ fi
 
 sorted_filename="$(echo $log_filename | sed 's/.gz$/.sort.gz/')"
 
-tmp_sort_dir="sort-temp"
+tmp_sort_dir="sort-temp$$"
 
 cd $log_dir
 
@@ -34,4 +34,3 @@ else
     exit 1
 fi
 rmdir "$tmp_sort_dir"
-
