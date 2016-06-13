@@ -5,7 +5,7 @@
 ;; Raw binning functions based on BAM spec.
 ;;
 
-(defn- reg2bin [beg end]
+(defn reg2bin [beg end]
   (let [end (dec end)]
     (cond
      (= (bit-shift-right beg 14) (bit-shift-right end 14))
@@ -26,7 +26,7 @@
      :default
      0)))
 
-(defn- reg2bins [beg end]
+(defn reg2bins [beg end]
   (concat
    [0]
    (range (+ 1 (bit-shift-right beg 26)) (+ 1 1 (bit-shift-right end 26)))
@@ -34,10 +34,6 @@
    (range (+ 73 (bit-shift-right beg 20)) (+ 73 1 (bit-shift-right end 20)))
    (range (+ 585 (bit-shift-right beg 17)) (+ 585 1 (bit-shift-right end 17)))
    (range (+ 4681 (bit-shift-right beg 14)) (+ 4681 1 (bit-shift-right end 14)))))
-
-;;
-;; Public API.
-;;
 
 (defn bin
   "Return a WB bin number for features overlapping the region from
