@@ -59,3 +59,6 @@
   - Made all functions in the `pseudoace.binning` module public.
   - EDN log sorting script now allows parallel execution.
   - Annotated models for WS255 (including generated EDN schema)
+
+## 0.4.5 - (un-released)
+  - Nothing changed yet.
