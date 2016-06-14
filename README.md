@@ -123,27 +123,33 @@ This process re-uses the [leiningen deployment tools][12]:
 
   * Checkout the `develop` branch if not already checked-out.
 
-  * Update changes entries in the CHANGES.md file
+	* Update changes entries in the CHANGES.md file
 
-  * Replace "un-released" in the latest version entry with the current date.
+	* Replace "un-released" in the latest version entry with the current date.
 
-  * Commit and push all changes.
+	* Change the version from `MAJOR.MINOR.PATCH-SNAPSHOT` to `MAJOR.MINOR.PATCH`
+      in `project.clj`.
 
-  * Merge the `develop` branch into to `master` (via a github pull
-    request or directly using git)
+	* Commit and push all changes.
 
   * Checkout the `master` branch.
 
-  * Run:
+	* Merge the `develop` branch into to `master` (via a github pull
+      request or directly using git)
 
-	 `lein release`
+	* Run:
+
+		`lein deploy`
 
   * Checkout the `develop` branch.
 
-  * Merge the `master` branch back into `develop`.
+	* Merge the `master` branch back into `develop`.
 
-  * Update `CHANGES.md` with the next
-    version number and a "back to development" stanza, e.g:
+	* Change the version from `MAJOR.MINOR.PATCH` to `MAJOR.MINOR.PATCH-SNAPSHOT`
+      in `project.clj`.
+
+	* Update `CHANGES.md` with the next
+      version number and a "back to development" stanza, e.g:
 
 	```markdown
 	## 0.3.2 - (unreleased)
@@ -152,7 +158,7 @@ This process re-uses the [leiningen deployment tools][12]:
 
     Commit and push these changes, typically with the message:
 
-		"Back to development"
+/		"Back to development"
 
 #### As a standalone jar file for running the import peer on a server
 
