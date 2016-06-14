@@ -1,4 +1,4 @@
-(defproject wormbase/pseudoace "0.4.6-SNAPSHOT"
+(defproject wormbase/pseudoace "0.4.6"
   :dependencies [[clj-time "0.11.0"]
                  ;; [com.datomic/datomic-pro "0.9.5359"
                  ;;  :exclusions [joda-time]]
