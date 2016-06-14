@@ -455,7 +455,7 @@
 //   
 //////////////////////////////////////////////////////////////////////////////////////
                                    
-?Interaction    Interaction_type ^type ENUM Physical Proteinprotein
+?Interaction    Interaction_type ^type ENUM Physical ProteinProtein
                                                      ProteinDNA
                                                      ProteinRNA
                                             Predicted
