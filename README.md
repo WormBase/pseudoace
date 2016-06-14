@@ -158,7 +158,7 @@ This process re-uses the [leiningen deployment tools][12]:
 
     Commit and push these changes, typically with the message:
 
-/		"Back to development"
+		"Back to development"
 
 #### As a standalone jar file for running the import peer on a server
 
