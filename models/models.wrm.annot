@@ -455,7 +455,7 @@
 //   
 //////////////////////////////////////////////////////////////////////////////////////
                                    
-?Interaction    Interaction_type ^type ENUM Physical Proteinprotein
+?Interaction    Interaction_type ^type ENUM Physical ProteinProtein
                                                      ProteinDNA
                                                      ProteinRNA
                                             Predicted
@@ -3810,4 +3810,4 @@
 // WS252
 // WS253
 // WS254
-//
+// WS255
