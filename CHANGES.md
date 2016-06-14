@@ -52,7 +52,7 @@
   - Add generated schema for WS253, WS254
   - Various minor fixes for the command line interface.
 
-## 0.4.5 - (un-released)
+## 0.4.5 - (2016-06-14)
   - Remove hard-dependency on datomic-pro.
     Library users will now have to choose which flavour (and version)
     of datomic to include.
