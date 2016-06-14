@@ -56,3 +56,6 @@
   - Remove hard-dependency on datomic-pro.
     Library users will now have to choose which flavour (and version)
     of datomic to include.
+  - Made all functions in the `pseudoace.binning` module public.
+  - EDN log sorting script now allows parallel execution.
+  - Annotated models for WS255 (including generated EDN schema)
