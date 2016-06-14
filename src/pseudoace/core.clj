@@ -528,7 +528,7 @@
       (apply action (flatten (into '() options)))
       (println
        "Missing required options:"
-       (str/join "--" (conj (map name missing) nil))))))
+       (str/join " --" (conj (map name missing) nil))))))
 
 (defn usage
   "Display command usage to the user."
