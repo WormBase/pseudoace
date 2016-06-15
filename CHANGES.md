@@ -60,5 +60,5 @@
   - EDN log sorting script now allows parallel execution.
   - Annotated models for WS255 (including generated EDN schema)
 
-## 0.4.6 - (un-released)
+## 0.4.6 - (2016-06-15)
   - Added back missing `xbin` function in `pseudoace.binning`.
