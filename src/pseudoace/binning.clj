@@ -5,6 +5,9 @@
 ;; Raw binning functions based on BAM spec.
 ;;
 
+(defn xbin [id x]
+  (bit-or x (bit-shift-left (bit-and id 0x3ffffffffff) 16)))
+
 (defn reg2bin [beg end]
   (let [end (dec end)]
     (cond
