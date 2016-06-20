@@ -65,3 +65,7 @@
 
 ## 0.4.7 - (un-released)
   - Back to development.
+  - Fix for circular xrefs for `phenotype` and
+    `phenotype_not_observed` in annotated models (#46)
+  - Bug in sort-edn-log.sh - Sort command now uses the temporary sort
+    directory.
