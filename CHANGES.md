@@ -62,3 +62,12 @@
 
 ## 0.4.6 - (2016-06-15)
   - Added back missing `xbin` function in `pseudoace.binning`.
+
+## 0.4.7 - (un-released)
+  - Back to development.
+  - `2_point_data` ACeDB class renamed to two-point-data in annotated
+    models (#33).
+  - Fix for circular xrefs for `phenotype` and
+    `phenotype_not_observed` in annotated models (#46)
+  - Bug in sort-edn-log.sh - Sort command now uses the temporary sort
+    directory.

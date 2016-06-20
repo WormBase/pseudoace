@@ -24,7 +24,7 @@ cd $log_dir
 mkdir -p "$tmp_sort_dir"
 
 gzip -dc "$log_filename" \
-    | sort -T sort-temp -k 1,1 -s \
+    | sort -T "$tmp_sort_dir" -k 1,1 -s \
     | gzip -c > "$sorted_filename"
 
 if [ $? -eq 0 ] && [ -f "$sorted_filename" ]; then
