@@ -70,3 +70,6 @@
     `phenotype_not_observed` in annotated models (#46)
   - Bug in sort-edn-log.sh - Sort command now uses the temporary sort
     directory.
+
+## 0.4.8-SNAPSHOT - (un-released)
+  - Fix wrong exit-code when helper.gz is encountered in `sort-edn-log.sh`.
