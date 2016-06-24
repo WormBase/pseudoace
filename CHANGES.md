@@ -71,5 +71,5 @@
   - Bug in sort-edn-log.sh - Sort command now uses the temporary sort
     directory.
 
-## 0.4.8-SNAPSHOT - (un-released)
+## 0.4.8-SNAPSHOT - (2016-06-24)
   - Fix wrong exit-code when helper.gz is encountered in `sort-edn-log.sh`.
