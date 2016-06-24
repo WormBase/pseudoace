@@ -12,7 +12,7 @@ fi
 log_filename="$(basename $edn_path)"
 
 if [ "$log_filename" = "helper.edn.gz" ]; then
-    exit 1
+    exit 0
 fi
 
 sorted_filename="$(echo $log_filename | sed 's/.gz$/.sort.gz/')"

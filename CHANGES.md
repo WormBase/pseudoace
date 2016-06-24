@@ -72,4 +72,4 @@
     directory.
 
 ## 0.4.8-SNAPSHOT - (un-released)
-  - Back to development.
+  - Fix wrong exit-code when helper.gz is encountered in `sort-edn-log.sh`.
