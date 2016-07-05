@@ -1,5 +1,6 @@
 (ns pseudoace.acedump
   (:require [datomic.api :as d]
+            [clojure.java.io :as io]
             [clojure.string :as str]
             [clj-time.coerce :as tc]
             [clj-time.format :as tf]
@@ -227,6 +228,12 @@
          (mapcat #(flatten-object path %) c)
          [path]))))
 
+(defn- is-leaf-tag [node]
+  (if-let [children (:children node)]
+    (and (= (:type node) :tag)
+         (not= (:type (first children)) :tag))
+    false))
+
 (defn- ace-node-value [node]
   (if (#{:tag :float :int} (:type node))
     (:value node)
@@ -237,9 +244,10 @@
     [(ace-node-value node)
      "-O"
      (str \" (:ts node) \")]
-    [(ace-node-value node)]))
+    (if (or (is-leaf-tag node) (not= (:type node) :tag))
+      [(ace-node-value node)])))
 
-(defn- ace-line [toks]
+(defn ace-line [toks]
   (str
    (first toks)
    \tab
@@ -278,3 +286,24 @@
                     (take (or limit Integer/MAX_VALUE)))]
       (dump-object (ace-object db id)))
     (throw-exc "Couldn't find '" class "'")))
+
+(defn dump-ace-files
+  "Dump ace files from a query."
+  [db ident obj-name-prefix & {:keys [include-timestamps? out-dir]
+                               :or {include-timestamps? false
+                                    out-dir "/tmp"}}]
+  (let [result (sort-by
+                second
+                (d/q '[:find ?id ?name
+                       :in $ ?ident
+                       :where
+                       [clojure.string/starts-with? ?name obj-name-prefix]
+                       [?id ?ident ?name]]
+                     db ident))]
+    (doseq [id (map first result)
+            :let [obj (ace-object db id)
+                  filename (str out-dir (:value obj) ".ace")]]
+      (with-open [wrtr (io/writer filename)]
+        (binding [*out* wrtr
+                  *timestamps* include-timestamps?]
+          (dump-object obj))))))

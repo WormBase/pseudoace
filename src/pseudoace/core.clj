@@ -13,6 +13,7 @@
    [clojure.tools.cli :refer (parse-opts)]
    [datomic.api :as d]
    [pseudoace.aceparser :as ace]
+   [pseudoace.acedump :as acedump]
    [pseudoace.import :refer (importer)]
    [pseudoace.locatable-import :as loc-import]
    [pseudoace.model :as model]
