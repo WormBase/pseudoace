@@ -32,10 +32,10 @@
 (defn smin
   "Generalized `min` which works on anything that can be `compare`d."
   [a b]
-  (if (> (compare a b) 0)
+  (if (pos? (compare a b))
     b a))
 
-(defn- squote
+(defn squote
   "ACeDB-style string quoting"
   [s]
   (str \" (str/replace s "\"" "\\\"") \"))
@@ -137,8 +137,7 @@
         named-tree    (reduce
                        (fn [root [attr datoms]]
                          (if-let [tags (:pace/tags attr)]
-                           (let [min-ts    (->> (map (comp tsmap :tx) datoms)
-                                                (reduce smin))]
+                           (let [min-ts (reduce smin (map (comp tsmap :tx) datoms))]
                              (if (= (:db/valueType attr) :db.type/boolean)
                                (if (some :v datoms)
                                  (splice-in-tagpath
@@ -176,8 +175,7 @@
                                                (map (fn [tx]
                                                       [tx (tx->ts (d/entity db tx))]))
                                                (into {}))
-                                  min-ts  (->> (map (comp tsmap :tx) datoms)
-                                               (reduce smin))]
+                                  min-ts (reduce smin (map (comp tsmap :tx) datoms))]
                               (splice-in-tagpath
                                root
                                (str/split (:pace.xref/tags xref) #"\s")
