@@ -327,8 +327,7 @@
  ([model]
   (model->schema {} model))
  ([tpm {:keys [name alt-name] :as model}]
-  (let [mns (or alt-name
-                (datomize-name name))
+  (let [mns (or alt-name (datomize-name name))
         is-hash? (.startsWith name "#")
         pid (if (not is-hash?)
               (tempid :db.part/db))

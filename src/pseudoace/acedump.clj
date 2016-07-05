@@ -113,10 +113,9 @@
   (ace-object db eid nil))
  ([db eid restrict-ns]
   (let [datoms        (d/datoms db :eavt eid)
-        data          (->>
-                       (partition-by :a datoms)
-                       (map (fn [d]
-                              [(d/entity db (:a (first d))) d])))
+        data          (map (fn [d]
+                             [(d/entity db (:a (first d))) d])
+                           (partition-by :a datoms))
         data          (if restrict-ns
                         (filter (fn [[a v]]
                                   (restrict-ns (namespace (:db/ident a))))
@@ -204,7 +203,9 @@
 
      ;; Positional parameters exist.
      (seq positional)
-     (loop [[[attr datoms] & rest] (reverse (sort-by (comp :pace/order first) positional))
+     (loop [[[attr datoms] & rest] (reverse
+                                    (sort-by (comp :pace/order first)
+                                             positional))
             children               (:children named-tree)]
        (let [n (assoc (value-node db attr (tsmap (:tx (first datoms))) (first datoms))
                  :children children)]
