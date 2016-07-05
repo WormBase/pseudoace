@@ -127,6 +127,7 @@
        :db/cardinality      :db.cardinality/one
        :db.install/_attribute :db.part/db
        :pace/tags           (str/join " " tagpath))]
+
      ;; "simple enum" case -- the only ones we auto-detect.
      ;; Could this be merged with the other enum case?
      (every? simple-tag? (:children node))
@@ -143,19 +144,21 @@
                                :db.cardinality/many)
          :db.install/_attribute :db.part/db
          :pace/tags       (str/join " " tagpath))))
+
      (or (and (= (count (:children node)) 1)
               (#{:int :float :text :ref :date :hash} (:type fchild)))
          (:enum node))      ;; "Simple" enums have already been caught at this point.
+
      (if (and (empty? (:children fchild))
               (not= (:type fchild) :hash)
               (not (:enum node))
               ;; Becomes complex if there's a hash at the other end of the XREF.
-              (not (if-let [x (:xref fchild)] 
+              (not (if-let [x (:xref fchild)]
                      (:use-ns (tpm [(datomize-name (:name fchild)) x])))))
        ;; "simple datum" case
        (when-not (:suppress-xref fchild)
          (let [cname       (:name fchild)
-               type        (modeltype-to-datomic  (:type fchild))
+               type        (modeltype-to-datomic (:type fchild))
                schema [(utils/vmap
                         :db/id           (tempid :db.part/db)
                         :db/ident        attribute
@@ -285,7 +288,7 @@
                                    :pace.xref/use-ns     use-ns)}))
                    schema)))
              ;; In enum case, order 0 is reserved for the enum.
-             (iterate inc (if enum 1 0)) 
+             (iterate inc (if enum 1 0))
              concretes
              (tuple-member-names concretes attribute)))
 
@@ -327,8 +330,7 @@
  ([model]
   (model->schema {} model))
  ([tpm {:keys [name alt-name] :as model}]
-  (let [mns (or alt-name
-                (datomize-name name))
+  (let [mns (or alt-name (datomize-name name))
         is-hash? (.startsWith name "#")
         pid (if (not is-hash?)
               (tempid :db.part/db))

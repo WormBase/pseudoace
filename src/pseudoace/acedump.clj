@@ -1,5 +1,6 @@
 (ns pseudoace.acedump
   (:require [datomic.api :as d]
+            [clojure.java.io :as io]
             [clojure.string :as str]
             [clj-time.coerce :as tc]
             [clj-time.format :as tf]
@@ -32,10 +33,10 @@
 (defn smin
   "Generalized `min` which works on anything that can be `compare`d."
   [a b]
-  (if (> (compare a b) 0)
+  (if (pos? (compare a b))
     b a))
 
-(defn- squote
+(defn squote
   "ACeDB-style string quoting"
   [s]
   (str \" (str/replace s "\"" "\\\"") \"))
@@ -97,7 +98,7 @@
 
 (defn- xref-obj
   "Helper to find the object at the outbound end of an inbound XREF.
-   Returns a vector of [object attribute comp] where `comp` is the 
+   Returns a vector of [object attribute comp] where `comp` is the
    component entity which reifies this XREF, or nil for a simple XREF."
   ([db ent obj-ref]
    (xref-obj db ent nil nil obj-ref))
@@ -107,16 +108,15 @@
       [r (d/entity db a) v])
     (if-let [[e a v t] (first (d/datoms db :vaet (:db/id ent)))]
       (xref-obj db (d/entity db e) a v obj-ref)))))
-     
+
 (defn ace-object
  ([db eid]
   (ace-object db eid nil))
  ([db eid restrict-ns]
   (let [datoms        (d/datoms db :eavt eid)
-        data          (->>
-                       (partition-by :a datoms)
-                       (map (fn [d]
-                              [(d/entity db (:a (first d))) d])))
+        data          (map (fn [d]
+                             [(d/entity db (:a (first d))) d])
+                           (partition-by :a datoms))
         data          (if restrict-ns
                         (filter (fn [[a v]]
                                   (restrict-ns (namespace (:db/ident a))))
@@ -137,8 +137,7 @@
         named-tree    (reduce
                        (fn [root [attr datoms]]
                          (if-let [tags (:pace/tags attr)]
-                           (let [min-ts    (->> (map (comp tsmap :tx) datoms)
-                                                (reduce smin))]
+                           (let [min-ts (reduce smin (map (comp tsmap :tx) datoms))]
                              (if (= (:db/valueType attr) :db.type/boolean)
                                (if (some :v datoms)
                                  (splice-in-tagpath
@@ -176,8 +175,7 @@
                                                (map (fn [tx]
                                                       [tx (tx->ts (d/entity db tx))]))
                                                (into {}))
-                                  min-ts  (->> (map (comp tsmap :tx) datoms)
-                                               (reduce smin))]
+                                  min-ts (reduce smin (map (comp tsmap :tx) datoms))]
                               (splice-in-tagpath
                                root
                                (str/split (:pace.xref/tags xref) #"\s")
@@ -206,7 +204,9 @@
 
      ;; Positional parameters exist.
      (seq positional)
-     (loop [[[attr datoms] & rest] (reverse (sort-by (comp :pace/order first) positional))
+     (loop [[[attr datoms] & rest] (reverse
+                                    (sort-by (comp :pace/order first)
+                                             positional))
             children               (:children named-tree)]
        (let [n (assoc (value-node db attr (tsmap (:tx (first datoms))) (first datoms))
                  :children children)]
@@ -228,6 +228,12 @@
          (mapcat #(flatten-object path %) c)
          [path]))))
 
+(defn- is-leaf-tag [node]
+  (if-let [children (:children node)]
+    (and (= (:type node) :tag)
+         (not= (:type (first children)) :tag))
+    false))
+
 (defn- ace-node-value [node]
   (if (#{:tag :float :int} (:type node))
     (:value node)
@@ -238,9 +244,10 @@
     [(ace-node-value node)
      "-O"
      (str \" (:ts node) \")]
-    [(ace-node-value node)]))
+    (if (or (is-leaf-tag node) (not= (:type node) :tag))
+      [(ace-node-value node)])))
 
-(defn- ace-line [toks]
+(defn ace-line [toks]
   (str
    (first toks)
    \tab
@@ -279,3 +286,24 @@
                     (take (or limit Integer/MAX_VALUE)))]
       (dump-object (ace-object db id)))
     (throw-exc "Couldn't find '" class "'")))
+
+(defn dump-ace-files
+  "Dump ace files from a query."
+  [db ident obj-name-prefix & {:keys [include-timestamps? out-dir]
+                               :or {include-timestamps? false
+                                    out-dir "/tmp"}}]
+  (let [result (sort-by
+                second
+                (d/q '[:find ?id ?name
+                       :in $ ?ident
+                       :where
+                       [clojure.string/starts-with? ?name obj-name-prefix]
+                       [?id ?ident ?name]]
+                     db ident))]
+    (doseq [id (map first result)
+            :let [obj (ace-object db id)
+                  filename (str out-dir (:value obj) ".ace")]]
+      (with-open [wrtr (io/writer filename)]
+        (binding [*out* wrtr
+                  *timestamps* include-timestamps?]
+          (dump-object obj))))))
