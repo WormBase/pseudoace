@@ -98,7 +98,7 @@
 
 (defn- xref-obj
   "Helper to find the object at the outbound end of an inbound XREF.
-   Returns a vector of [object attribute comp] where `comp` is the 
+   Returns a vector of [object attribute comp] where `comp` is the
    component entity which reifies this XREF, or nil for a simple XREF."
   ([db ent obj-ref]
    (xref-obj db ent nil nil obj-ref))
@@ -108,7 +108,7 @@
       [r (d/entity db a) v])
     (if-let [[e a v t] (first (d/datoms db :vaet (:db/id ent)))]
       (xref-obj db (d/entity db e) a v obj-ref)))))
-     
+
 (defn ace-object
  ([db eid]
   (ace-object db eid nil))

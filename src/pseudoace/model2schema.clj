@@ -153,12 +153,12 @@
               (not= (:type fchild) :hash)
               (not (:enum node))
               ;; Becomes complex if there's a hash at the other end of the XREF.
-              (not (if-let [x (:xref fchild)] 
+              (not (if-let [x (:xref fchild)]
                      (:use-ns (tpm [(datomize-name (:name fchild)) x])))))
        ;; "simple datum" case
        (when-not (:suppress-xref fchild)
          (let [cname       (:name fchild)
-               type        (modeltype-to-datomic  (:type fchild))
+               type        (modeltype-to-datomic (:type fchild))
                schema [(utils/vmap
                         :db/id           (tempid :db.part/db)
                         :db/ident        attribute
@@ -288,7 +288,7 @@
                                    :pace.xref/use-ns     use-ns)}))
                    schema)))
              ;; In enum case, order 0 is reserved for the enum.
-             (iterate inc (if enum 1 0)) 
+             (iterate inc (if enum 1 0))
              concretes
              (tuple-member-names concretes attribute)))
 
