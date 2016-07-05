@@ -127,6 +127,7 @@
        :db/cardinality      :db.cardinality/one
        :db.install/_attribute :db.part/db
        :pace/tags           (str/join " " tagpath))]
+
      ;; "simple enum" case -- the only ones we auto-detect.
      ;; Could this be merged with the other enum case?
      (every? simple-tag? (:children node))
@@ -143,9 +144,11 @@
                                :db.cardinality/many)
          :db.install/_attribute :db.part/db
          :pace/tags       (str/join " " tagpath))))
+
      (or (and (= (count (:children node)) 1)
               (#{:int :float :text :ref :date :hash} (:type fchild)))
          (:enum node))      ;; "Simple" enums have already been caught at this point.
+
      (if (and (empty? (:children fchild))
               (not= (:type fchild) :hash)
               (not (:enum node))
