@@ -71,8 +71,10 @@
   - Bug in sort-edn-log.sh - Sort command now uses the temporary sort
     directory.
 
-## 0.4.8-SNAPSHOT - (2016-06-24)
+## 0.4.8 - (2016-06-24)
   - Fix wrong exit-code when helper.gz is encountered in `sort-edn-log.sh`.
+
+## 0.4.9 - (unreleased)
   - When dumping .ace files, only present the leaf tag (as the `tace`
     `Show` command) - enables easier comparisons of ace output.
   - Add functions for dumping a query to .ace files
