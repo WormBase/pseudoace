@@ -78,3 +78,6 @@
   - When dumping .ace files, only present the leaf tag (as the `tace`
     `Show` command) - enables easier comparisons of ace output.
   - Add functions for dumping a query to .ace files
+
+## 0.4.10 (unreleased)
+  - Nothing changed yet.
