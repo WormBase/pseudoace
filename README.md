@@ -139,7 +139,7 @@ This process re-uses the [leiningen deployment tools][12]:
 
 	* Run:
 
-		`lein deploy`
+		`lein with-profile datomic-pro deploy clojars`
 
   * Checkout the `develop` branch.
 
