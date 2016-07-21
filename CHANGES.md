@@ -80,4 +80,7 @@
   - Add functions for dumping a query to .ace files
 
 ## 0.4.10 (unreleased)
-  - Nothing changed yet.
+  - Bump version of various packages, notably datomic-pro and dynamodb
+    aws-sdk libraries.
+  - Explicitly pass the annotated models filename as arguments to the CLI
+    (Annotated ACeDB models file now lives in the wormbase-pipeline repository).
