@@ -31,14 +31,14 @@
                              [lein-kibit "0.1.2"]
                              [lein-ns-dep-graph "0.1.0-SNAPSHOT"]]
                    :resource-paths ["test/resources"]}
-             :datomic-free {:dependencies [[com.datomic/datomic-free "0.9.5359"
+             :datomic-free {:dependencies [[com.datomic/datomic-free "0.9.5385"
                                             :exclusions [joda-time]]]
                             :exclusions [com.datomic/datomic-pro]}
-             :datomic-pro {:dependencies [[com.datomic/datomic-pro "0.9.5359"
+             :datomic-pro {:dependencies [[com.datomic/datomic-pro "0.9.5385"
                                            :exclusions [joda-time]]]}
              :mysql {:dependencies [[mysql/mysql-connector-java "6.0.2"]]}
              :postgresql {:dependencies [[org.postgresql/postgresql "9.4.1208"]]}
-             :ddb {:dependencies [[com.amazonaws/aws-java-sdk-dynamodb "1.9.39"
+             :ddb {:dependencies [[com.amazonaws/aws-java-sdk-dynamodb "1.11.6"
                                    :exclusions [joda-time]]]}}
   :deploy-repositories [["releases" :clojars]]
   :repositories {"my.datomic.com" {:url "https://my.datomic.com/repo"
