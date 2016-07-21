@@ -78,3 +78,9 @@
   - When dumping .ace files, only present the leaf tag (as the `tace`
     `Show` command) - enables easier comparisons of ace output.
   - Add functions for dumping a query to .ace files
+
+## 0.4.10 (unreleased)
+  - Bump version of various packages, notably datomic-pro and dynamodb
+    aws-sdk libraries.
+  - Explicitly pass the annotated models filename as arguments to the CLI
+    (Annotated ACeDB models file now lives in the wormbase-pipeline repository).
