@@ -65,6 +65,9 @@
     "--build-data PATH"
     (str "Path to a file containing class-by-class "
          "values form a previous build.")]
+   [nil
+    "--models-filename PATH"
+    (str "Path to the annotated models file")]
    ["-v" "--verbose"]
    ["-f" "--force"]
    ["-h" "--help"]])
@@ -139,7 +142,7 @@
   "Load the schema for the database."
   ([url models-filename]
    (load-schema url false))
-  ([url model-filename verbose]
+  ([url models-filename verbose]
    (when verbose
      (println (str/join " " ["Loading Schema into:" url]))
      (println \tab "Creating database connection"))
