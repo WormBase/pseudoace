@@ -2,6 +2,7 @@
   (:use [clojure.test])
   (:require
    [clj-time.coerce :refer (to-date)]
+   [clojure.java.io :as io]
    [clojure.instant :refer (read-instant-date)]
    [datomic.api :as d]
    [pseudoace.core :as core]
@@ -10,9 +11,21 @@
 
 (def db-uri "datomic:mem://wb-test")
 
+(def annotated-models-path "/tmp/latest-annotated-models.wrm")
+
 (defn db-created [test-fn]
   (d/create-database db-uri)
   (test-fn))
+
+(def annotated-models-uri
+  (str "https://raw.githubusercontent.com/"
+       "WormBase/wormbase-pipeline/master/"
+       "wspec/models.wrm.annot"))
+
+(defn slurp-latest-annotated-models []
+  (with-open [in (io/input-stream annotated-models-uri)
+              out (io/output-stream annotated-models-path)]
+    (io/copy in out)))
 
 (use-fixtures :each db-created)
 
@@ -37,7 +50,9 @@
     (is (<= ltd exp))))
 
 (deftest test-install
-  (let [main-schema (core/generate-schema)
+  (slurp-latest-annotated-models)
+  (let [main-schema (core/generate-schema
+                     :models-filename annotated-models-path)
         con (d/connect db-uri)]
     (schemata/install con main-schema)
     (let [db (d/db con)]
