@@ -84,3 +84,6 @@
     aws-sdk libraries.
   - Explicitly pass the annotated models filename as arguments to the CLI
     (Annotated ACeDB models file now lives in the wormbase-pipeline repository).
+
+## 0.4.11 (unreleased)
+  - Nothing changed yet.
