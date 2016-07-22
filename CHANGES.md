@@ -79,7 +79,7 @@
     `Show` command) - enables easier comparisons of ace output.
   - Add functions for dumping a query to .ace files
 
-## 0.4.10 (unreleased)
+## 0.4.10 (2016-07-22)
   - Bump version of various packages, notably datomic-pro and dynamodb
     aws-sdk libraries.
   - Explicitly pass the annotated models filename as arguments to the CLI
