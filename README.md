@@ -292,9 +292,9 @@ java -jar pseudoace-$GIT_RELEASE_TAG.jar \
 	 -v import-logs
 ```
 
-Using a full dump of a recent release of Wormbase, you can expect the
-import process to take in the region of 8-12 hours depending on the
-platform you run it on.
+Using a full dump of a recent ACeDB release of WormBase, you can
+expect the full import process to take in the region of 48 hours,
+dependent on the platform you run it on.
 
 [1]: http://www.wormbase.org/
 [2]: http://www.datomic.com/
