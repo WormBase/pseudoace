@@ -276,7 +276,7 @@
   "Import the sorted EDN log files."
   [& {:keys [url log-dir partition-max-count partition-max-text verbose]
       :or {verbose false
-           partition-max-count 100
+           partition-max-count 1000
            partition-max-text 5000}}]
   (if verbose
     (println "Importing logs into datomic" url log-dir verbose))
@@ -332,8 +332,11 @@
 
 (defn import-helper-edn-logs
   "Import the helper log files."
-  [& {:keys [url log-dir verbose]
-      :or {verbose false}}]
+  [& {:keys
+      [url log-dir partition-max-count partition-max-text verbose]
+      :or {partition-max-count 1000
+           partition-max-text 5000
+           verbose false}}]
   (if verbose
     (println "Importing helper log into helper database"))
   (let [helper-uri (uri-to-helper-uri url)
@@ -342,7 +345,9 @@
       (ts-import/play-logfile
        helper-connection
        (java.util.zip.GZIPInputStream.
-        (io/input-stream (helper-dest-file log-dir)))))
+        (io/input-stream (helper-dest-file log-dir)))
+       partition-max-count
+       partition-max-text))
     (if verbose
       (println \tab "Releasing helper database connection"))
     (d/release helper-connection)))
