@@ -274,8 +274,10 @@
 
 (defn import-logs
   "Import the sorted EDN log files."
-  [& {:keys [url log-dir verbose]
-      :or {verbose false}}]
+  [& {:keys [url log-dir partition-max-count partition-max-text verbose]
+      :or {verbose false
+           partition-max-count 100
+           partition-max-text 5000}}]
   (if verbose
     (println "Importing logs into datomic" url log-dir verbose))
   (let [con (d/connect url)
@@ -289,7 +291,9 @@
         (println \tab "importing: " (.getName file)))
       (ts-import/play-logfile
        con
-       (java.util.zip.GZIPInputStream. (io/input-stream file))))
+       (java.util.zip.GZIPInputStream. (io/input-stream file))
+       partition-max-count
+       partition-max-text))
     (d/release con)))
 
 (defn excise-tmp-data
@@ -315,7 +319,9 @@
         results (d/q datalog-query (d/db con))
         n-results (count results)]
     (when verbose
-      (println "Testing datomic data, expecting exactly" n-expected "result")
+      (println "Testing datomic data, expecting exactly"
+               n-expected
+               "result")
       (println "Datalog query:" datalog-query)
       (print "Results: ")
       (pprint results))
@@ -358,7 +364,8 @@
    (run-locatables-importer-for-helper url acedump-dir :verbose false))
   ([url log-dir acedump-dir verbose]
    (if verbose
-     (println "Importing logs with loactables importer into helper database"))
+     (println (str "Importing logs with loactables "
+                   "importer into helper database")))
    (let [helper-uri (uri-to-helper-uri url)
          helper-connection (d/connect helper-uri)
          helper-db (d/db helper-connection)
@@ -436,9 +443,10 @@
       (let [write-line (fn [line]
                          (.write writer line)
                          (.newLine writer))
-            header-line (tab-join (map
-                                   format-left
-                                   ["Class" "Missing" "Added" "Identical"]))]
+            header-line
+            (tab-join (map
+                       format-left
+                       ["Class" "Missing" "Added" "Identical"]))]
         (write-line header-line)
         (if verbose
           (println header-line))
@@ -451,7 +459,9 @@
                   counts [n-ref-only n-db-only n-both]
                   f-counts (map format-num counts)
                   out-line (tab-join
-                            (map format-left (concat [class-name] f-counts)))]
+                            (map
+                             format-left
+                             (concat [class-name] f-counts)))]
               (write-line out-line)
               (if verbose
                 (println out-line))
@@ -460,7 +470,8 @@
                                        qa/write-class-ids
                                        class-ids-dir
                                        class-name)
-                      label-suffix (if (and (= n-ref-only n-db-only)
+                      label-suffix (if
+                                       (and (= n-ref-only n-db-only)
                                             (not= n-ref-only n-db-only 0))
                                      "_bad-identifiers"
                                      "")]
@@ -545,7 +556,11 @@
         action-docs (vals cli-doc-map)
         doc-width-left (+ 10 (apply max (map count action-docs)))
         action-width-right (+ 10 (apply max (map count action-names)))
-        line-template (str "%-" action-width-right "s%-" doc-width-left "s")]
+        line-template (str "%-"
+                           action-width-right
+                           "s%-"
+                           doc-width-left
+                           "s")]
     (str/join
      \newline
      (concat
