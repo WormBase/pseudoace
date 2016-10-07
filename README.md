@@ -172,7 +172,7 @@ This process re-uses the [leiningen deployment tools][12]:
 #
 # LEIN_PROFILE can be any named lein profile (or multiple delimiter by comma),
 # examples:
-#   LEIN_PROFILE="aws"
+#   LEIN_PROFILE="ddb"
 #   LEIN_PROFILE="mysql"
 #   LEIN_PROFILE="postgresql"
 #   LEIN_PROFILE="dev
