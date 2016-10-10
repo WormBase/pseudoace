@@ -1,6 +1,6 @@
 # Change-log
 
-## 0.4.11 (unreleased)
+## 0.4.11 (2016-10-10)
   - Add generated schema for WS256
   - Ability to specify max-count and max-text for log partitioning via
     a command line option to the `import-logs` command.
