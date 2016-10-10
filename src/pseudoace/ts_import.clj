@@ -861,27 +861,28 @@
         ffirst
         from-date)))
 
-(defn play-logfile [con logfile]
-  (with-open [r (reader logfile)]
-    (doseq [rblk (partition-log 100 5000 (logfile-seq r))] ;; was 1000 50000
-      (doseq [sblk (partition-by first rblk)
-              :let [stamp (ffirst sblk)]]
-        (let [blk (map second sblk)
-              db      (d/db con)
-              fdatoms (filter (fn [[_ _ _ v]] (not (map? v))) blk)
-              tx-meta (txmeta stamp)
-              datoms  (fixup-datoms db fdatoms)
-              ms->s #(/ 1000 %)
-              imp-tx-secs (ms->s (-> tx-meta
-                                     :db/txInstant
-                                     (.getTime)))
-              last-db-tx-secs (ms->s (-> db
-                                         latest-transaction-date
-                                         to-date
-                                         (.getTime)))]
-          (if (<= imp-tx-secs last-db-tx-secs)
-            (try
-              @(d/transact-async con (conj datoms tx-meta))
-              (catch Throwable t
-                (.printStackTrace t)))
-            (println "Skipping transaction with past-date:" stamp)))))))
+(defn play-logfile
+  [con logfile max-count max-text]
+   (with-open [r (reader logfile)]
+     (doseq [rblk (partition-log max-count max-text (logfile-seq r))]
+       (doseq [sblk (partition-by first rblk)
+               :let [stamp (ffirst sblk)]]
+         (let [blk (map second sblk)
+               db (d/db con)
+               fdatoms (filter (fn [[_ _ _ v]] (not (map? v))) blk)
+               tx-meta (txmeta stamp)
+               datoms (fixup-datoms db fdatoms)
+               ms->s #(/ 1000 %)
+               imp-tx-secs (ms->s (-> tx-meta
+                                      :db/txInstant
+                                      (.getTime)))
+               last-db-tx-secs (ms->s (-> db
+                                          latest-transaction-date
+                                          to-date
+                                          (.getTime)))]
+           (if (<= imp-tx-secs last-db-tx-secs)
+             (try
+               @(d/transact-async con (conj datoms tx-meta))
+               (catch Throwable t
+                 (.printStackTrace t)))
+             (println "Skipping transaction with past-date:" stamp)))))))
