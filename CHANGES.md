@@ -1,5 +1,8 @@
 # Change-log
 
+## 0.4.12 (unlreleased)
+  - Nothing changed yet.
+
 ## 0.4.11 (2016-10-10)
   - Add generated schema for WS256
   - Ability to specify max-count and max-text for log partitioning via
