@@ -1,7 +1,11 @@
 # Change-log
 
 ## 0.4.11 (unreleased)
-  - Nothing changed yet.
+  - Add generated schema for WS256
+  - Ability to specify max-count and max-text for log partitioning via
+    a command line option to the `import-logs` command.
+  - Use composite lein profiles.
+
 
 ## 0.4.10 (2016-07-22)
   - Bump version of various packages, notably datomic-pro and dynamodb
