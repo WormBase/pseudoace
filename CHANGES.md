@@ -1,6 +1,6 @@
 # Change-log
 
-## 0.4.12 (unlreleased)
+## 0.4.12 (unreleased)
   - Nothing changed yet.
 
 ## 0.4.11 (2016-10-10)
