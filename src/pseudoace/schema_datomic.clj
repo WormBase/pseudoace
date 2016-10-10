@@ -34,7 +34,7 @@
        (keyword (name (:db/valueType attr))))
 
      (if enums
-       (vec enums))
+       (vec (sort enums)))
 
      (if-let [u (:db/unique attr)]
        (if (= u :db.unique/identity)
@@ -81,6 +81,6 @@
            (cons
             'fields
             (doall
-             (for [attr (sort-by :db/id attrs)]
+             (for [attr (sort-by :db/ident attrs)]
                (field-schema attr)))))))
        (doall)))
