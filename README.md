@@ -91,8 +91,10 @@ This tool checks for:
 
 Of the above, only 1. 2. and 3. are generally useful to fix,
 since 4. requires creative (short) naming that may not be intuitive
-for the reader. Use your discretion when choosing to "fix" any "violations"
-reported in category 4.
+for the reader.
+
+Use your discretion when choosing to "fix" any
+"violations" reported in category 4.
 
 ## Releases
 
@@ -117,18 +119,21 @@ The output should look like (credentials elided):
              :password ...}}
 ```
 
-### Releases
+### Releasing to Clojars
 
-This process re-uses the [leiningen deployment tools][12]:
+Clojars is a public repository for packaged clojure libraries.
+
+This release process re-uses the [leiningen deployment tools][12]:
 
   * Checkout the `develop` branch if not already checked-out.
 
 	* Update changes entries in the CHANGES.md file
 
-	* Replace "un-released" in the latest version entry with the current date.
+	* Replace "un-released" in the latest version entry with the
+      current date.
 
-	* Change the version from `MAJOR.MINOR.PATCH-SNAPSHOT` to `MAJOR.MINOR.PATCH`
-      in `project.clj`.
+	* Change the version from `MAJOR.MINOR.PATCH-SNAPSHOT` to
+      `MAJOR.MINOR.PATCH` in `project.clj`.
 
 	* Commit and push all changes.
 
@@ -145,8 +150,8 @@ This process re-uses the [leiningen deployment tools][12]:
 
 	* Merge the `master` branch back into `develop`.
 
-	* Change the version from `MAJOR.MINOR.PATCH` to `MAJOR.MINOR.PATCH-SNAPSHOT`
-      in `project.clj`.
+	* Change the version from `MAJOR.MINOR.PATCH` to
+      `MAJOR.MINOR.PATCH-SNAPSHOT` in `project.clj`.
 
 	* Update `CHANGES.md` with the next
       version number and a "back to development" stanza, e.g:
@@ -170,7 +175,8 @@ This process re-uses the [leiningen deployment tools][12]:
 # projet.clj, e.g:
 #  GIT_RELEASE_TAG="0.3.2-SNAPSHOT"
 #
-# LEIN_PROFILE can be any named lein profile (or multiple delimiter by comma),
+# LEIN_PROFILE can be any named lein profile
+# (or multiple delimiter by comma)
 # examples:
 #   LEIN_PROFILE="ddb"
 #   LEIN_PROFILE="mysql"
@@ -180,12 +186,13 @@ git checkout "${GIT_RELEASE_TAG}"
 ./scripts/bundle-release.sh $GIT_RELEASE_TAG $LEIN_PROFILE
 ```
 
-An archive named `pseudoace-$GIT_RELEASE_TAG.tar.gz` will be created in the
-`release-archives` directory.
+An archive named `pseudoace-$GIT_RELEASE_TAG.tar.gz` will be created
+in the `./release-archives` directory.
 
 The archive contains two artefacts:
 
    ```bash
+   cd ./release-archives
    tar tvf pseudoace-$GIT_RELEASE_TAG.tar.gz
    ./pseudoace-$GIT_RELEASE_TAG.jar
    ./sort-edn-log.sh
@@ -208,7 +215,7 @@ A command line utility has been developed for ease of usage:
 
 URL_OF_TRANSACTOR="datomic:dev://localhost:4334/*"
 
-lein run --url $URL_OF_TRANSACTOR <command>
+lein run --url "${URL_OF_TRANSACTOR}" <command>
 
 ```
 
@@ -228,12 +235,14 @@ lein repl
 Example of invoking a sub-command:
 
 ```clojure
-(list-databases {:url (System/getenv "URL_OF_TRANSACTOR")})
+(require '[environ.core :as env])
+(list-databases {:url (env :url-of-transactor)})
 ```
 
 ### Staging/Production
 
-Run `pseudoace` with the same arguments as you would when using `lein run`:
+Run `pseudoace` with the same arguments as you would when using `lein
+run`:
 
   ```bash
   java -jar pseudoace-$GIT_RELEASE_TAG.jar -v
