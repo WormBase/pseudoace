@@ -194,7 +194,7 @@ The archive contains two artefacts:
 > **To ensure we comply with the datomic license
 >   ensure this tar file, and specifically  the jar file
 >   contained therein is *never* distributed to a public server
->   for download, as this would violate the terms of any preparatory
+>   for download, as this would violate the terms of any proprietary
 >   Congnitech Datomic license.**
 
 
