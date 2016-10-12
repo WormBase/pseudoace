@@ -23,3 +23,4 @@ pom.xml
 pom.xml.asc
 release-archives/
 target/
+/bundle-release.log
