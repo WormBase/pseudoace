@@ -143,7 +143,7 @@
 (defn load-schema
   "Load the schema for the database."
   ([url models-filename]
-   (load-schema url true false))
+   (load-schema url models-filename true false))
   ([url models-filename apply-fixups verbose]
    (when verbose
      (println (str/join " " ["Loading Schema into:" url]))
