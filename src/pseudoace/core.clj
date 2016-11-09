@@ -284,7 +284,10 @@
            partition-max-count 1000
            partition-max-text 5000}}]
   (if verbose
-    (println "Importing logs into datomic" url log-dir verbose))
+    (println "Importing logs into datomic database"
+             url
+             "from log files in"
+             log-dir))
   (let [con (d/connect url)
         db (d/db con)
         latest-tx-dt (ts-import/latest-transaction-date db)
