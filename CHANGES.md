@@ -1,6 +1,9 @@
 # Change-log
 
-## 0.4.12 (2016-11-09)
+## 0.4.13 (unreleased)
+  - Nothing changed yet.
+
+## 0.4.12 (2016-11-09) (DO NOT USE)
   - Support suppression of schema "fix-ups" (for smallace/training
     databases).
 
