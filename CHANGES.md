@@ -1,7 +1,8 @@
 # Change-log
 
-## 0.4.12 (unreleased)
-  - Nothing changed yet.
+## 0.4.12 (2016-11-09)
+  - Support suppression of schema "fix-ups" (for smallace/training
+    databases).
 
 ## 0.4.11 (2016-10-10)
   - Add generated schema for WS256
