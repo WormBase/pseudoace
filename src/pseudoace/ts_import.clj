@@ -644,13 +644,14 @@
 
         :default
         (merge-logs
-         (log-nodes
-          this
-          db
-          nil   ;; Assume no pre-existing object
-          (:lines obj)
-          imp
-          #{(namespace (:db/ident ci))})
+         (if-let [ns-ident (:db/ident ci)]
+           (log-nodes
+            this
+            db
+            nil   ;; Assume no pre-existing object
+            (:lines obj)
+            imp
+            #{(namespace ns-ident)}))
 
          (log-xref-nodes
           this

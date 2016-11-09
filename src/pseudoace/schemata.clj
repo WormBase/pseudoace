@@ -527,14 +527,19 @@
   "Installs the various schemata with datomic connection `con`.
 
   The order the various schemata are transacted in is important."
-  [con main-schema]
-  (let [txs [meta-schema
-             basetypes-schema
-             locatable-schemas
-             main-schema
-             locatable-extras
-             top-level-locatable-fixups
-             xref-fixups]
+  [con main-schema & {:keys [fixups]
+                      :or {fixups true}}]
+  (let [base-txs [meta-schema
+                  basetypes-schema
+                  locatable-schemas
+                  main-schema
+                  locatable-extras]
+        txs (if fixups
+              (vec (concat base-txs [top-level-locatable-fixups
+                                     xref-fixups]))
+              base-txs)
         transact (partial transact-silenced con)]
     (doseq [tx txs]
-      (-> tx mark-tx-early transact))))
+      (-> tx
+          (mark-tx-early)
+          (transact)))))

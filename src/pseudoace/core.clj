@@ -68,6 +68,9 @@
    [nil
     "--models-filename PATH"
     (str "Path to the annotated models file")]
+   [nil
+    "--supress-schema-fixups"
+    (str "Supress schema \"fixups\" (smallace)")]
    ["-v" "--verbose"]
    ["-f" "--force"]
    ["-h" "--help"]])
@@ -140,8 +143,8 @@
 (defn load-schema
   "Load the schema for the database."
   ([url models-filename]
-   (load-schema url false))
-  ([url models-filename verbose]
+   (load-schema url true false))
+  ([url models-filename apply-fixups verbose]
    (when verbose
      (println (str/join " " ["Loading Schema into:" url]))
      (println \tab "Creating database connection"))
@@ -149,18 +152,21 @@
          main-schema (generate-schema
                       :models-filename models-filename
                       :verbose verbose)]
-     (schemata/install con main-schema)
+     (schemata/install con main-schema :fixups apply-fixups)
      (d/release con))))
 
 (defn create-database
   "Create a Datomic database from a schema generated
   and an annotated ACeDB models file."
-  [& {:keys [url models-filename verbose]
-      :or {verbose false}}]
-  (if verbose
-    (println "Creating Database"))
+  [& {:keys [url models-filename supress-schema-fixups verbose]
+      :or {supress-schema-fixups false
+           verbose false}}]
+  (when verbose
+    (println "Creating Database")
+    (if supress-schema-fixups
+      (println "Fixups will not be applied")))
   (d/create-database url)
-  (load-schema url models-filename verbose)
+  (load-schema url models-filename (not supress-schema-fixups) verbose)
   true)
 
 (defn uri-to-helper-uri [uri]
@@ -223,7 +229,7 @@
   ([imp file log-dir]
    (acedump-file-to-datalog imp file log-dir false))
   ([imp file log-dir verbose]
-   (if (utils/not-nil? verbose)
+   (if (not verbose)
      (println \tab "Converting" file))
    ;; then pull out objects from the pipeline in chunks of 20 objects.
    ;; Larger block size may be faster if you have plenty of memory
