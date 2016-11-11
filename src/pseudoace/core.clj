@@ -146,8 +146,8 @@
 (defn load-schema
   "Load the schema for the database."
   ([url models-filename]
-   (load-schema url models-filename true true false))
-  ([url models-filename apply-locatable-schema apply-fixups verbose]
+   (load-schema url models-filename false false false))
+  ([url models-filename no-locatables no-fixups verbose]
    (when verbose
      (println (str/join " " ["Loading Schema into:" url]))
      (println \tab "Creating database connection"))
@@ -157,8 +157,8 @@
                       :verbose verbose)]
      (schemata/install con
                        main-schema
-                       :locatables apply-locatable-schema
-                       :fixups apply-fixups)
+                       :no-locatables no-locatables
+                       :no-fixups no-fixups)
      (d/release con))))
 
 (defn create-database
@@ -181,8 +181,8 @@
   (d/create-database url)
   (load-schema url
                models-filename
-               (not no-locatable-schema)
-               (not no-fixups)
+               no-locatable-schema
+               no-fixups
                verbose)
   true)
 
