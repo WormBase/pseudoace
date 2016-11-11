@@ -1,5 +1,8 @@
 # Change-log
 
+## 0.4.14 (2016-11-11)
+  - Allow migrations with no locatable schema and/or schema fixups.
+
 ## 0.4.13 (2016-11-09)
   - Bugfix release for 0.4.12
 
