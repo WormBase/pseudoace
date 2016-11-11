@@ -200,7 +200,7 @@
    :verbose verbose)
   (let [helper-uri (uri-to-helper-uri url)]
     (d/create-database helper-uri)
-    (load-schema helper-uri verbose)))
+    (load-schema helper-uri models-filename verbose)))
 
 (defn directory-walk [directory pattern]
   (doall (filter #(re-matches pattern (.getName %))
