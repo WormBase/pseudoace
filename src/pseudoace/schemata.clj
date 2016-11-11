@@ -531,7 +531,9 @@
                       :or {no-locatables false
                            no-fixups false}}]
   (let [transact (partial transact-silenced con)
-        transact-schema #(-> % (mark-tx-early) (transact))
+        transact-schema #(-> %
+                             (mark-tx-early)
+                             (transact))
         base-schemas [meta-schema basetypes-schema]]
     (doseq [base-schema base-schemas]
       (transact-schema base-schema))
