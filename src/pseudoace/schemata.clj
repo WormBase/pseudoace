@@ -471,7 +471,7 @@
 
 ;; See:
 ;; https://github.com/WormBase/db/wiki/Ace-to-Datomic-mapping#xrefs-in-hash-models
-(def xref-fixups
+(def component-xref-fixups
   "XREFs inside hash models"
   [{:db/id               (d/tempid :db.part/user)
     :pace.xref/attribute :multi-counts.gene/gene
@@ -511,7 +511,7 @@
 
 (def fixups
   "All the schema fixups together for convenience."
-  (concat top-level-locatable-fixups xref-fixups))
+  (concat top-level-locatable-fixups component-xref-fixups))
 
 (defn- transact-silenced
   "Tranact the entity `tx` using `con`.
@@ -527,20 +527,20 @@
   "Installs the various schemata with datomic connection `con`.
 
   The order the various schemata are transacted in is important."
-  [con main-schema & {:keys [locatables fixups]
-                      :or {locatables true
-                           fixups true}}]
-  (let [transact (partial transact-silenced con)]
-    (doseq [tx [meta-schema basetypes-schema]]
-      (-> tx
-          (mark-tx-early)
-          (transact)))
-    (if locatables
-      (transact (mark-tx-early locatable-schemas)))
-    (transact (mark-tx-early main-schema))
-    (if locatables
-      (transact (mark-tx-early locatable-extras)))
-    (if fixups
-      (-> (vec (concat [top-level-locatable-fixups xref-fixups]))
-          (mark-tx-early)
-          (transact)))))
+  [con main-schema & {:keys [no-locatables no-fixups]
+                      :or {no-locatables false
+                           no-fixups false}}]
+  (let [transact (partial transact-silenced con)
+        transact-schema #(-> % (mark-tx-early) (transact))
+        base-schemas [meta-schema basetypes-schema]]
+    (doseq [base-schema base-schemas]
+      (transact-schema base-schema))
+    (if-not no-locatables
+      (transact-schema locatable-schemas))
+    (transact-schema main-schema)
+    (if-not no-locatables
+      (let [loc-schemas [locatable-extras top-level-locatable-fixups]]
+        (doseq [loc-schema loc-schemas]
+          (transact-schema loc-schema))))
+    (if-not no-fixups
+      (transact-schema component-xref-fixups))))

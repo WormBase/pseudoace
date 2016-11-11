@@ -15,7 +15,8 @@
 
 (defn db-created [test-fn]
   (d/create-database db-uri)
-  (test-fn))
+  (test-fn)
+  (d/delete-database db-uri))
 
 (def annotated-models-uri
   (str "https://raw.githubusercontent.com/"
@@ -49,13 +50,45 @@
         exp (.getTime schemata/earliest-tx-timestamp)]
     (is (<= ltd exp))))
 
-(deftest test-install
+(defn- check-schema
+  [db]
+  (doseq [check [check-installed-attr-count
+                 check-pace-metaschema
+                 check-schema-tx-time-is-early]]
+    (check db)))
+
+(defn- do-install
+  [& {:keys [no-locatables no-fixups]
+      :or {:no-locatables false
+           :no-fixups false}}]
   (slurp-latest-annotated-models)
   (let [main-schema (core/generate-schema
                      :models-filename annotated-models-path)
         con (d/connect db-uri)]
-    (schemata/install con main-schema)
-    (let [db (d/db con)]
-      (check-installed-attr-count db)
-      (check-pace-metaschema db)
-      (check-schema-tx-time-is-early db))))
+    (schemata/install con
+                      main-schema
+                      :no-locatables no-locatables
+                      :no-fixups no-fixups)
+    con))
+
+(deftest test-install
+  (let [con (do-install)
+        db (d/db con)]
+    (check-schema db)))
+
+(deftest test-install-no-locatables
+  (let [con (do-install :no-locatables true)
+        db (d/db con)]
+    (check-schema db)
+    (is (= nil (d/q '[:find (count ?e) .
+                      :where [?e :pace/use-ns #{"locatable"}]] db)))))
+
+(deftest test-install-no-fixups
+  (let [con (do-install :no-fixups true)
+        db (d/db con)]
+    (check-schema db)))
+
+(deftest test-install-no-locatables-or-fixups
+  (let [con (do-install :no-locatables true :no-fixups true)
+        db (d/db con)]
+    (check-schema db)))
