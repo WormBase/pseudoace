@@ -147,6 +147,8 @@
   "Load the schema for the database."
   ([url models-filename]
    (load-schema url models-filename false false false))
+  ([url models-filename verbose]
+   (load-schema url models-filename false false verbose))
   ([url models-filename no-locatables no-fixups verbose]
    (when verbose
      (println (str/join " " ["Loading Schema into:" url]))
