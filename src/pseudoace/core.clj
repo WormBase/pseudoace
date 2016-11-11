@@ -69,8 +69,11 @@
     "--models-filename PATH"
     (str "Path to the annotated models file")]
    [nil
-    "--supress-schema-fixups"
-    (str "Supress schema \"fixups\" (smallace)")]
+    "--no-locatable-schema"
+    "Supress locatables schema"]
+   [nil
+    "--no-fixups"
+    "Supress schema \"fixups\" (smallace)"]
    ["-v" "--verbose"]
    ["-f" "--force"]
    ["-h" "--help"]])
@@ -143,8 +146,8 @@
 (defn load-schema
   "Load the schema for the database."
   ([url models-filename]
-   (load-schema url models-filename true false))
-  ([url models-filename apply-fixups verbose]
+   (load-schema url models-filename true true false))
+  ([url models-filename apply-locatable-schema apply-fixups verbose]
    (when verbose
      (println (str/join " " ["Loading Schema into:" url]))
      (println \tab "Creating database connection"))
@@ -152,21 +155,35 @@
          main-schema (generate-schema
                       :models-filename models-filename
                       :verbose verbose)]
-     (schemata/install con main-schema :fixups apply-fixups)
+     (schemata/install con
+                       main-schema
+                       :locatables apply-locatable-schema
+                       :fixups apply-fixups)
      (d/release con))))
 
 (defn create-database
   "Create a Datomic database from a schema generated
   and an annotated ACeDB models file."
-  [& {:keys [url models-filename supress-schema-fixups verbose]
-      :or {supress-schema-fixups false
+  [& {:keys [url
+             models-filename
+             no-locatable-schema
+             no-fixups
+             verbose]
+      :or {no-locatable-schema false
+           no-fixups false
            verbose false}}]
   (when verbose
     (println "Creating Database")
-    (if supress-schema-fixups
+    (if no-locatable-schema
+      (println "Locatable schema will not be applied"))
+    (if no-fixups
       (println "Fixups will not be applied")))
   (d/create-database url)
-  (load-schema url models-filename (not supress-schema-fixups) verbose)
+  (load-schema url
+               models-filename
+               (not no-locatable-schema)
+               (not no-fixups)
+               verbose)
   true)
 
 (defn uri-to-helper-uri [uri]
@@ -404,11 +421,15 @@
              log-dir
              acedump-dir
              schema-filename
+             no-locatable-schema
+             no-fixups
              verbose]
       :or {schema-filename nil
            verbose false}}]
   (create-database :url url
                    :models-filename models-filename
+                   :no-locatable-schema no-locatable-schema
+                   :no-fixups no-fixups
                    :verbose verbose)
   (acedump-to-edn-logs :url url
                        :log-dir log-dir
