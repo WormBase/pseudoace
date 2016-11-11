@@ -399,10 +399,17 @@
 
 (defn prepare-import
   "Setup the database schema and parse the acedb files for later sorting."
-  [& {:keys [url log-dir acedump-dir schema-filename verbose]
+  [& {:keys [url
+             models-filename
+             log-dir
+             acedump-dir
+             schema-filename
+             verbose]
       :or {schema-filename nil
            verbose false}}]
-  (create-database :url url :verbose verbose)
+  (create-database :url url
+                   :models-filename models-filename
+                   :verbose verbose)
   (acedump-to-edn-logs :url url
                        :log-dir log-dir
                        :acedump-dir acedump-dir
