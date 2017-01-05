@@ -56,45 +56,10 @@ Run all tests regularly, but in particular:
 
   * after checking out a feature-branch
 
-
 ```bash
 alias run-tests="lein with-profile dev,test do eastwood, test"
 run-tests
 ```
-
-Other useful leiningen plugins for development include:
-
-#### kibit
-Recommends [idiomatic source code changes][10].
-
-There is editor support in Emacs. e.g: `M-x kibit-current-file`
-
-Command line examples:
-
-  ```bash
-  # whole project
-  lein with-profile dev kibit
-  # single file
-  lein with-profile dev kibit src/pseudoace/core.clj
-  ```
-#### bikeshed
-Reports on [subjectively bad][11] code.
-This tool checks for:
-
-  1. "files ending in blank lines"
-
-  2. redefined var roots in source directories"
-
-  3. "whether you keep up with your docstrings"
-
-  4. arguments colliding with clojure.core functions
-
-Of the above, only 1. 2. and 3. are generally useful to fix,
-since 4. requires creative (short) naming that may not be intuitive
-for the reader.
-
-Use your discretion when choosing to "fix" any
-"violations" reported in category 4.
 
 ## Releases
 
