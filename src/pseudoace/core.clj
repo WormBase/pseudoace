@@ -116,14 +116,10 @@
   (when verbose
     (println "Generating Datomic schema view")
     (println \tab "Creating database connection"))
-  (let [con (d/connect url)]
+  (let [con (d/connect url)
+        schemas (schema-datomic/schema-from-db (d/db con))]
     (utils/with-outfile schema-filename
-      (doseq [s (schema-datomic/schema-from-db (d/db con))]
-        (pp/pprint s)
-        (println)))
-    (if verbose
-      (println \tab "Releasing database connection"))
-    (d/release con)))
+      (-> schemas vec pprint))))
 
 (defn generate-schema
   "Generate the database schema from the annotated ACeDB models."

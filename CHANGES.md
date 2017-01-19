@@ -1,7 +1,8 @@
 # Change-log
 
 ## 0.4.15 (unreleased)
-  - Nothing changed yet.
+  - Added generated schema for WS257.
+  - Make output of generated schema valid EDN.
 
 ## 0.4.14 (2016-11-11)
   - Allow migrations with no locatable schema and/or schema fixups.
