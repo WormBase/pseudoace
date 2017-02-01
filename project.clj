@@ -10,7 +10,6 @@
   :plugins [[lein-environ "1.0.0"]
             [lein-pprint "1.1.1"]]
   :javac-options ["-target" "1.8" "-source" "1.8"]
-  :license "GPLv2"
   :jvm-opts ["-Xmx6G"
              ;; same GC options as the transactor,
              "-XX:+UseG1GC" "-XX:MaxGCPauseMillis=50"
