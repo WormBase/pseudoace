@@ -5,7 +5,7 @@
    [clojure.java.io :as io]
    [clojure.instant :refer (read-instant-date)]
    [datomic.api :as d]
-   [pseudoace.core :as core]
+   [pseudoace.cli :as cli]
    [pseudoace.ts-import :refer (latest-transaction-date)]
    [pseudoace.schemata :as schemata]))
 
@@ -62,7 +62,7 @@
       :or {:no-locatables false
            :no-fixups false}}]
   (slurp-latest-annotated-models)
-  (let [main-schema (core/generate-schema
+  (let [main-schema (cli/generate-schema
                      :models-filename annotated-models-path)
         con (d/connect db-uri)]
     (schemata/install con

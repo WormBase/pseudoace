@@ -20,7 +20,7 @@
              ;; Uncomment to prevent missing trace (HotSpot optimisation)
              ;; "-XX:-OmitStackTraceInFastThrow"
              ]
-  :main pseudoace.core
+  :main pseudoace.cli
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}
              :datomic-free [{:dependencies
