@@ -59,8 +59,7 @@ Run all tests regularly, but in particular:
   * after checking out a feature-branch
 
 ```bash
-alias run-tests="lein with-profile dev,test do eastwood, test"
-run-tests
+lein do eastwood, test
 ```
 
 ## Releases

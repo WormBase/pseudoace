@@ -30,28 +30,22 @@
              :datomic-pro [{:dependencies
                              [[com.datomic/datomic-pro "0.9.5554"
                                :exclusions [joda-time]]]}]
-             :test [{:resource-paths ["test/resources"]}]
-             :ddb [:datomic-pro
-                   {:dependencies
+             :ddb [{:dependencies
                     [[com.amazonaws/aws-java-sdk-dynamodb "1.11.6"
                       :exclusions [joda-time]]]}]
-             :dev [{:dependencies [[datomic-schema-grapher "0.0.1"]]
-                    :plugins [[datomic-schema-grapher "0.0.1"]
-                              [jonase/eastwood "0.2.3"]
+             :dev [:datomic-pro
+                   :ddb
+                   {:dependencies [[datomic-schema-grapher "0.0.1"]]
+                    :plugins [[jonase/eastwood "0.2.3"]
                               [lein-ancient "0.6.8"]
-                              [lein-bikeshed "0.3.0"]
-                              [lein-kibit "0.1.2"]
-                              [lein-ns-dep-graph "0.1.0-SNAPSHOT"]]
+                              [refactor-nrepl "0.2.2"]]
+                    :repl {:plugins
+                           [[cider/cider-nrepl "0.15.0-SNAPSHOT"]]}
                     :resource-paths ["test/resources"]}]
-             :dev-ddb [:ddb :dev]
              :dev-free [:datomic-free :dev]
-             :dev-mysql [:dev
-                         {:dependencies
-                          [[mysql/mysql-connector-java "6.0.2"]]}]
-             :dev-postgresql [:dev
-                              {:dependencies
-                               [[org.postgresql/postgresql "9.4.1209"]]}]
-             :prod [:ddb]}
+             :prod [:datomic-pro :ddb]
+             :test [{:resource-paths ["test/resources"]
+                     :env {:wb-db-uri "datomic:memory://test/WS123"}}]}
   :deploy-repositories [["releases" :clojars]]
   :repositories {"my.datomic.com" {:url "https://my.datomic.com/repo"
                                    :creds :gpg}})
