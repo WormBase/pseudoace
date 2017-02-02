@@ -42,8 +42,7 @@
                     :resource-paths ["test/resources"]}]
              :dev-free [:datomic-free :dev]
              :prod [:datomic-pro :ddb]
+             :uberjar [{:aot :all}]
              :test [{:resource-paths ["test/resources"]
                      :env {:wb-db-uri "datomic:memory://test/WS123"}}]}
-  :deploy-repositories [["releases" :clojars]]
-  :repositories {"my.datomic.com" {:url "https://my.datomic.com/repo"
-                                   :creds :gpg}})
+  :deploy-repositories [["releases" :clojars]])
