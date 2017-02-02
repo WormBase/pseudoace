@@ -16,7 +16,8 @@ Features include:
 
   * Utility functions and macros for querying WormBase data.
 
-  * A command line interface for utilities described above (via `lein run`)
+  * A command line interface for utilities described above
+	(via `lein run`)
 
 ## Installation
 
@@ -47,7 +48,8 @@ Follow the [GitFlow][6] mechanism for branching and committing changes:
     i.e:. git checkout -b feature-x develop
 
 ### Coding style
-This project attempts to adhere to the [Clojure coding-style][7] conventions.
+This project attempts to adhere to the [Clojure coding-style][7]
+conventions.
 
 ### Testing & code QA
 Run all tests regularly, but in particular:
