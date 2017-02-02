@@ -6,30 +6,28 @@
                  [org.clojure/clojure "1.8.0"]
                  [org.clojure/tools.nrepl "0.2.12"]
                  [org.clojure/tools.cli "0.3.5"]]
-  :description "ACeDB migration tools"
+  :description "WormBase database migration library and CLI."
   :source-paths ["src"]
   :resource-paths ["models"]
   :plugins [[lein-environ "1.0.0"]
             [lein-pprint "1.1.1"]]
   :javac-options ["-target" "1.8" "-source" "1.8"]
-  :jvm-opts ["-Xmx6G"
-             ;; same GC options as the transactor,
-             "-XX:+UseG1GC" "-XX:MaxGCPauseMillis=50"
-             ;; should minimize long pauses.
-             "-Ddatomic.objectCacheMax=2500000000"
-             "-Ddatomic.txTimeoutMsec=1000000"
-             ;; Uncomment to prevent missing trace (HotSpot optimisation)
-             ;; "-XX:-OmitStackTraceInFastThrow"
-             ]
+  :jvm-opts
+  [
+   ;; Uncomment to prevent missing trace (HotSpot optimisation)
+   ;; "-XX:-OmitStackTraceInFastThrow"
+   "-XX:+UseG1GC" "-XX:MaxGCPauseMillis=50"
+   ;; should minimize long pauses.
+   "-Ddatomic.objectCacheMax=2500000000"
+   "-Ddatomic.txTimeoutMsec=1000000"]
   :main pseudoace.cli
   :target-path "target/%s"
-  :profiles {:uberjar {:aot :all}
-             :datomic-free [{:dependencies
+  :profiles {:datomic-free [{:dependencies
                               [[com.datomic/datomic-free "0.9.5554"
                                 :exclusions [joda-time]]]}]
              :datomic-pro [{:dependencies
-                             [[com.datomic/datomic-pro "0.9.5554"
-                               :exclusions [joda-time]]]}]
+                            [[com.datomic/datomic-pro "0.9.5554"
+                              :exclusions [joda-time]]]}]
              :ddb [{:dependencies
                     [[com.amazonaws/aws-java-sdk-dynamodb "1.11.6"
                       :exclusions [joda-time]]]}]
