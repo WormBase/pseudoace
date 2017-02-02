@@ -38,7 +38,7 @@
 (def cli-options
   [[nil
     "--url URL"
-    (str "URL of the dataomic transactor; "
+    (str "Datomic database URL; "
          "Example: datomic:free://localhost:4334/WS250")]
    [nil
     "--schema-filename PATH"
