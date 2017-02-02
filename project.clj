@@ -34,15 +34,16 @@
              :dev [:datomic-pro
                    :ddb
                    {:dependencies [[datomic-schema-grapher "0.0.1"]]
-                    :plugins [[jonase/eastwood "0.2.3"]
+                    :plugins [[jonase/eastwood "0.2.3"
+                               :exclusions [org.clojure/clojure]]
                               [lein-ancient "0.6.8"]
                               [refactor-nrepl "0.2.2"]]
-                    :repl {:plugins
-                           [[cider/cider-nrepl "0.15.0-SNAPSHOT"]]}
                     :resource-paths ["test/resources"]}]
              :dev-free [:datomic-free :dev]
-             :prod [:datomic-pro :ddb]
+             :prod [:datomic-pro :ddb
+                    {:wb-db-uri "datomic:ddb://us-east-1/WS257/wormbase"}]
              :uberjar [{:aot :all}]
              :test [{:resource-paths ["test/resources"]
-                     :env {:wb-db-uri "datomic:memory://test/WS123"}}]}
+                     :env
+                     {:wb-db-uri "datomic:dev://localhost:4334/WS257"}}]}
   :deploy-repositories [["releases" :clojars]])
