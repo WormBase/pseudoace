@@ -141,14 +141,12 @@ This release process re-uses the [leiningen deployment tools][12]:
 # projet.clj, e.g:
 #  GIT_RELEASE_TAG="0.3.2-SNAPSHOT"
 #
-# LEIN_PROFILE can be any named lein profile
-# (or multiple delimiter by comma)
-# examples:
-#   LEIN_PROFILE="ddb"
-#   LEIN_PROFILE="mysql"
-#   LEIN_PROFILE="postgresql"
-#   LEIN_PROFILE="dev
-git checkout "${GIT_RELEASE_TAG}"
+# LEIN_PROFILE
+# should be:
+#   - "prod" (for datomic-pro, ddb release)
+#   - "dev" (for open-source release)
+# e.g:
+git checkout "${GIT_RELEASE_TAG}" "dev"
 ./scripts/bundle-release.sh $GIT_RELEASE_TAG $LEIN_PROFILE
 ```
 
