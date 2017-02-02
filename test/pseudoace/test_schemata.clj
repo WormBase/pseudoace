@@ -23,12 +23,14 @@
        "WormBase/wormbase-pipeline/master/"
        "wspec/models.wrm.annot"))
 
-(defn slurp-latest-annotated-models []
+(defn slurp-latest-annotated-models [_]
+  (println annotated-models-uri)
   (with-open [in (io/input-stream annotated-models-uri)
               out (io/output-stream annotated-models-path)]
     (io/copy in out)))
 
 (use-fixtures :each db-created)
+(use-fixtures :once slurp-latest-annotated-models)
 
 (defn- check-installed-attr-count
   "An installed schema will have over 2500 attributes installed."
@@ -61,7 +63,6 @@
   [& {:keys [no-locatables no-fixups]
       :or {:no-locatables false
            :no-fixups false}}]
-  (slurp-latest-annotated-models)
   (let [main-schema (cli/generate-schema
                      :models-filename annotated-models-path)
         con (d/connect db-uri)]
