@@ -24,7 +24,6 @@
        "wspec/models.wrm.annot"))
 
 (defn slurp-latest-annotated-models [_]
-  (println annotated-models-uri)
   (with-open [in (io/input-stream annotated-models-uri)
               out (io/output-stream annotated-models-path)]
     (io/copy in out)))
