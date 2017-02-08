@@ -1,25 +1,25 @@
 (ns pseudoace.ts-import
   (:require
-   [clj-time.core :as t]
-   [clj-time.coerce :refer (from-date to-date)]
-   [clojure.instant :refer (read-instant-date)]
-   [clojure.java.io :refer (file reader writer)]
+   [clj-time.coerce :refer [from-date to-date]]
+   [clojure.instant :refer [read-instant-date]]
+   [clojure.java.io :refer [file reader writer]]
    [clojure.string :as str]
    [datomic.api :as d]
    [pseudoace.aceparser :as ace]
-   [pseudoace.binning :refer (bin)]
-   [pseudoace.import :refer (datomize-objval get-tags)]
-   [pseudoace.utils :refer (throw-exc
+   [pseudoace.binning :refer [bin]]
+   [pseudoace.import :refer [datomize-objval get-tags]]
+   [pseudoace.utils :refer [throw-exc
                             conj-if
                             conjv
                             indexed
                             parse-double
                             parse-int
-                            vmap)])
-  (:import java.io.FileInputStream
-           java.io.FileOutputStream
-           java.util.zip.GZIPInputStream
-           java.util.zip.GZIPOutputStream))
+                            vmap]])
+  (:import
+   (java.io FileInputStream)
+   (java.io FileOutputStream)
+   (java.util.zip GZIPInputStream)
+   (java.util.zip GZIPOutputStream)))
 
 ;; Logs are sets of :db/add and :db/retract keyed by ACeDB-style timestamps.
 ;;

@@ -6,7 +6,6 @@
    [clojure.test :refer (deftest is)]
    [pseudoace.utils :as utils]))
 
-
 (deftest test-vmap
   (is (= (utils/vmap "onearg") {}))
   (is (= (utils/vmap "" "") {"" ""}))

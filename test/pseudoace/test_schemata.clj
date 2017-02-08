@@ -1,12 +1,11 @@
 (ns pseudoace.test-schemata
-  (:use [clojure.test])
   (:require
-   [clj-time.coerce :refer (to-date)]
+   [clj-time.coerce :refer [to-date]]
    [clojure.java.io :as io]
-   [clojure.instant :refer (read-instant-date)]
+   [clojure.test :refer :all]
    [datomic.api :as d]
-   [pseudoace.core :as core]
-   [pseudoace.ts-import :refer (latest-transaction-date)]
+   [pseudoace.cli :as cli]
+   [pseudoace.ts-import :refer [latest-transaction-date]]
    [pseudoace.schemata :as schemata]))
 
 (def db-uri "datomic:mem://wb-test")
@@ -23,12 +22,14 @@
        "WormBase/wormbase-pipeline/master/"
        "wspec/models.wrm.annot"))
 
-(defn slurp-latest-annotated-models []
+(defn slurp-latest-annotated-models [_]
   (with-open [in (io/input-stream annotated-models-uri)
               out (io/output-stream annotated-models-path)]
     (io/copy in out)))
 
 (use-fixtures :each db-created)
+
+(use-fixtures :once slurp-latest-annotated-models)
 
 (defn- check-installed-attr-count
   "An installed schema will have over 2500 attributes installed."
@@ -61,8 +62,7 @@
   [& {:keys [no-locatables no-fixups]
       :or {:no-locatables false
            :no-fixups false}}]
-  (slurp-latest-annotated-models)
-  (let [main-schema (core/generate-schema
+  (let [main-schema (cli/generate-schema
                      :models-filename annotated-models-path)
         con (d/connect db-uri)]
     (schemata/install con

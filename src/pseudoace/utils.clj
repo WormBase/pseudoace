@@ -1,9 +1,8 @@
 (ns pseudoace.utils
   (:require
-   [clj-time.coerce :refer (from-date)]
-   [clojure.instant :refer (read-instant-date)]
-   [clojure.java.io :refer (writer)]
-   [clojure.set :refer (union)]))
+   [clj-time.coerce :refer [from-date]]
+   [clojure.instant :refer [read-instant-date]]
+   [clojure.set :refer [union]]))
 
 (def not-nil? (complement nil?))
 
@@ -12,7 +11,7 @@
   associated with nil values."
   [& args]
   (into {} (for [[k v] (partition 2 args)
-                 :when (not (nil? v))]
+                 :when (not-nil? v)]
              [k v])))
 
 (defn vmap-if
@@ -103,7 +102,7 @@
   "Execute `body` with *out* bound to `(writer f)`."
   [f & body]
   (let [fh (gensym)]
-    `(with-open [~fh (writer ~f)]
+    `(with-open [~fh (io/writer ~f)]
        (binding [*out* ~fh]
          ~@body))))
 
@@ -179,3 +178,5 @@
                item-dt (-> ts-str read-instant-date from-date)]
            (if (pred item-dt dt)
              item))))))))
+
+(load "utils_wbdb")

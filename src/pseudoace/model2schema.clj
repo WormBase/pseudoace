@@ -1,9 +1,9 @@
 (ns pseudoace.model2schema
-  (:require [datomic.api :as d :refer (tempid q touch entity entity-db)]
-            [pseudoace.model :as model]
-            [pseudoace.utils :as utils]
-            [clojure.string :as str])
-  (:import [pseudoace.model ModelNode]))
+  (:require
+   [clojure.string :as str]
+   [datomic.api :as d :refer [entity entity-db q tempid]]
+   [pseudoace.model :refer [model-node]]
+   [pseudoace.utils :as utils]))
 
 (def ^:dynamic *schema-notes* false)
 
@@ -419,12 +419,7 @@
           index    (utils/find-index
                     #(= (:name %) (first tagpath))
                     children)
-          model-node (ModelNode.
-                      :tag (first tagpath)
-                      false
-                      false
-                      nil
-                      nil)]
+          model-node (model-node :tag (first tagpath) false false nil nil)]
       (assoc root :children
              (if (nil? index)
                (conj
@@ -452,19 +447,19 @@
 (defn attr->model* [ti]
   (case (:db/valueType ti)
     :db.type/long
-    [(ModelNode. :int "Int" false false nil nil)]
+    [(model-node :int "Int" false false nil nil)]
 
     :db.type/float
-    [(ModelNode. :float "Float" false false nil nil)]
+    [(model-node :float "Float" false false nil nil)]
 
     :db.type/double
-    [(ModelNode. :float "Float" false false nil nil)]
+    [(model-node :float "Float" false false nil nil)]
 
     :db.type/instant
-    [(ModelNode. :datetype "DateType" false false nil nil)]
+    [(model-node :datetype "DateType" false false nil nil)]
 
     :db.type/string
-    [(ModelNode. :text (if (:db/index ti)
+    [(model-node :text (if (:db/index ti)
                          "?Text"
                          "Text")
                  false false nil nil)]
@@ -489,7 +484,7 @@
 
           (reduce
            (fn [next hash]
-             (ModelNode.
+             (model-node
               :hash
               (str "#" (:pace/identifies-class hash))
               false
@@ -501,9 +496,10 @@
           concs)])
 
      (:pace/obj-ref ti)
-     [(ModelNode.
+     [(model-node
        :ref
-       (str "?" (:pace/identifies-class (entity (entity-db ti) (:pace/obj-ref ti))))
+       (str "?" (:pace/identifies-class
+                 (entity (entity-db ti) (:pace/obj-ref ti))))
        false
        false
        nil
@@ -513,15 +509,17 @@
      (if-let [enums (seq
                      (pace-items-for-ns
                       (entity-db ti)
-                      (str (namespace (:db/ident ti)) "." (name (:db/ident ti)))))]
+                      (str (namespace (:db/ident ti))
+                           "."
+                           (name (:db/ident ti)))))]
        (for [e enums]
-         (ModelNode. :tag
+         (model-node :tag
                      (:pace/tags e)
                      false
                      false
                      nil
                      nil))
-       (ModelNode. :ref
+       (model-node :ref
                    "?Funny"
                    false
                    false
@@ -543,8 +541,9 @@
        (conj-in-tagpath model
                         (str/split (:pace/tags ti) #" ")
                         (attr->model ti)))
-     (ModelNode. :ref
-                 (str "?" (:pace/identifies-class root)) ; what about hashes?
+     (model-node :ref
+                 ;; what about hashes?
+                 (str "?" (:pace/identifies-class root)) 
                  false
                  false
                  nil

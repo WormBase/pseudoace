@@ -1,20 +1,16 @@
-(ns pseudoace.core
+(ns pseudoace.cli
   (:require
    [clj-time.core :as ct]
-   [clj-time.coerce :refer (to-date)]
-   [clojure.data :refer (diff)]
+   [clj-time.coerce :refer [to-date]]
    [clojure.java.io :as io]
-   [clojure.pprint :as pp]
-   [clojure.pprint :refer (pprint)]
-   [clojure.repl :refer (doc)]
-   [clojure.set :refer (difference)]
+   [clojure.pprint :as pp :refer [pprint]]
+   [clojure.set :refer [difference]]
    [clojure.string :as str]
    [clojure.test :as t]
-   [clojure.tools.cli :refer (parse-opts)]
+   [clojure.tools.cli :refer [parse-opts]]
    [datomic.api :as d]
    [pseudoace.aceparser :as ace]
-   [pseudoace.acedump :as acedump]
-   [pseudoace.import :refer (importer)]
+   [pseudoace.import :refer [importer]]
    [pseudoace.locatable-import :as loc-import]
    [pseudoace.model :as model]
    [pseudoace.model2schema :as model2schema]
@@ -24,13 +20,11 @@
    [pseudoace.ts-import :as ts-import]
    [pseudoace.utils :as utils])
   (:import
-   (java.lang.Runtime)
-   (java.lang.Runtimea)
    (java.net InetAddress)
-   (java.io.FileInputStream)
-   (java.io.File)
-   (java.util.zip.GZIPInputStream)
-   (java.util.zip.GZIPOutputStream))
+   (java.io FileInputStream)
+   (java.io File)
+   (java.util.zip GZIPInputStream)
+   (java.util.zip GZIPOutputStream))
   (:gen-class))
 
 ;; First three strings describe a short-option, long-option with optional
@@ -39,7 +33,7 @@
 (def cli-options
   [[nil
     "--url URL"
-    (str "URL of the dataomic transactor; "
+    (str "Datomic database URL; "
          "Example: datomic:free://localhost:4334/WS250")]
    [nil
     "--schema-filename PATH"
@@ -117,14 +111,10 @@
   (when verbose
     (println "Generating Datomic schema view")
     (println \tab "Creating database connection"))
-  (let [con (d/connect url)]
+  (let [con (d/connect url)
+        schemas (schema-datomic/schema-from-db (d/db con))]
     (utils/with-outfile schema-filename
-      (doseq [s (schema-datomic/schema-from-db (d/db con))]
-        (pp/pprint s)
-        (println)))
-    (if verbose
-      (println \tab "Releasing database connection"))
-    (d/release con)))
+      (-> schemas vec pprint))))
 
 (defn generate-schema
   "Generate the database schema from the annotated ACeDB models."
@@ -252,8 +242,8 @@
      (println \tab "Converting" file))
    ;; then pull out objects from the pipeline in chunks of 20 objects.
    ;; Larger block size may be faster if you have plenty of memory
-   (doseq [blk (->> (java.io.FileInputStream. file)
-                    (java.util.zip.GZIPInputStream.)
+   (doseq [blk (->> (FileInputStream. file)
+                    (GZIPInputStream.)
                     (ace/ace-reader)
                     (ace/ace-seq)
                     (partition-all 20))]
@@ -318,7 +308,7 @@
         (println \tab "importing: " (.getName file)))
       (ts-import/play-logfile
        con
-       (java.util.zip.GZIPInputStream. (io/input-stream file))
+       (GZIPInputStream. (io/input-stream file))
        partition-max-count
        partition-max-text))
     (d/release con)))
@@ -371,7 +361,7 @@
     (binding [ts-import/*suppress-timestamps* true]
       (ts-import/play-logfile
        helper-connection
-       (java.util.zip.GZIPInputStream.
+       (GZIPInputStream.
         (io/input-stream (helper-dest-file log-dir)))
        partition-max-count
        partition-max-text))
@@ -383,8 +373,8 @@
   (if (utils/not-nil? verbose)
     (println \tab "Adding extra data from: " file))
   ;; then pull out objects from the pipeline in chunks of 20 objects.
-  (doseq [blk (->> (java.io.FileInputStream. file)
-                   (java.util.zip.GZIPInputStream.)
+  (doseq [blk (->> (FileInputStream. file)
+                   (GZIPInputStream.)
                    (ace/ace-reader)
                    (ace/ace-seq)
                    (partition-all 20))] ; Larger block size may be faster if

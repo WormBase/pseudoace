@@ -26,11 +26,9 @@ pre_release_checks() {
     # pre_release_check "You must create a git tag first!" \
     # 		      git tag -v "${PROJ_VERSION}"
     pre_release_check \
-	"Local git tag \"${RELEASE_TAG}\" does not exist for ${PROJ_FQNAME}" \
+	"Local git tag \"${RELEASE_TAG}\" \
+         does not exist for ${PROJ_FQNAME}" \
 	git rev-parse --verify --quiet "${PROJ_VERSION}"
-    # pre_release_check \
-    # 	"Git tag ${PROJ_VERSION} has not been pushed to the remote origin" \
-    # 	git ls-remote --exit-code --tags origin "${PROJ_VERSION}"
     pre_release_check \
     	"All linting tests must pass!" "${run_lein_check}" eastwood
     pre_release_check \
@@ -41,7 +39,8 @@ pre_release_checks() {
 make_release_jar () {
     local lein_profiles="${LEIN_PROFILE}"
     run_step "Preparing release jar" \
-	     "lein with-profile ${lein_profiles}" do clean, uberjar &> "${LOGFILE}"
+	     "lein with-profile ${lein_profiles}" \
+	     do clean, uberjar &> "${LOGFILE}"
 }
 
 PROJ_ROOT="$(git rev-parse --show-toplevel)"

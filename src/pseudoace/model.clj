@@ -1,6 +1,6 @@
 (ns pseudoace.model
-  (:require [clojure.string :as str])
-  (:import [java.util.regex Matcher]))
+  (:import
+   (java.util.regex Matcher)))
 
 (defrecord ModelNode [type name unique? repeat? xref children])
 
@@ -75,19 +75,19 @@
 
 (defn- parse-model-line [toks]
   (when-let [[token index] (first toks)]
-    (let [n        (with-meta
-                     (ModelNode. (or (prim-types token)
-                                     (when (.startsWith token "?")
-                                       :ref)
-                                     (when (.startsWith token "#")
-                                       :hash)
-                                     :tag)
-                                 token
-                                 false
-                                 false
-                                 nil
-                                 nil)
-                     {:index index})]
+    (let [n (with-meta
+              (->ModelNode (or (prim-types token)
+                               (when (.startsWith token "?")
+                                 :ref)
+                               (when (.startsWith token "#")
+                                 :hash)
+                               :tag)
+                           token
+                           false
+                           false
+                           nil
+                           nil)
+              {:index index})]
       (parse-model-line* n (rest toks)))))
 
 (defn- append-model-line [model line]
@@ -117,9 +117,9 @@
 (defn parse-models
   "Read ACeDB models from Reader `r`"
   [r]
-  (loop [lines          (map uncomment (line-seq r))
-         models         []
-         cmodel         nil]
+  (loop [lines  (map uncomment (line-seq r))
+         models []
+         cmodel nil]
     (let [toks (if-let [line (first lines)]
                  (indexed-tokens line))]
       (cond
@@ -138,3 +138,8 @@
        (recur (rest lines)
               models
               (append-model-line cmodel (parse-model-line toks)))))))
+
+(defn model-node
+  "ModelNode constructor."
+  [& args]
+  (apply ->ModelNode args))

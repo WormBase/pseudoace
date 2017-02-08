@@ -1,14 +1,13 @@
 (ns pseudoace.qa
   "Quality Assurance routines."
   (:require
-   [clojure.data :refer (diff)]
+   [clojure.data :refer [diff]]
    [clojure.java.io :as io]
-   [clojure.set :refer (union)]
    [clojure.string :as str]
    [datomic.api :as d]
-   [pseudoace.import :refer (get-classes)]
-   [pseudoace.model2schema :refer (datomize-name)]
-   [pseudoace.utils :refer (merge-pairs)]))
+   [pseudoace.import :refer [get-classes]]
+   [pseudoace.model2schema :refer [datomize-name]]
+   [pseudoace.utils :refer [merge-pairs]]))
 
 (defn write-class-ids
   "Write a file named using `id-set-label` of unique `class-name`
