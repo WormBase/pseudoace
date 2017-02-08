@@ -1,10 +1,9 @@
 (ns pseudoace.locatables
-  (:require [datomic.api :as d :refer (q entity)]
-            [pseudoace.binning :refer (bins)]))
+  (:require [datomic.api :as d]))
 
 ;;
-;; Don't pay too much attention to the details here.  Binning scheme and method
-;; handling are likely to change in wb248-imp2
+;; Don't pay too much attention to the details here.  Binning scheme
+;; and method handling are likely to change in wb248-imp2
 ;;
 
 (defn root-segment
@@ -35,68 +34,80 @@
 
 (defmethod features "transcript"
   [db type pid min max]
-  (q '[:find ?f ?fmin ?fmax
-       :in $ % ?seq ?min ?max 
-       :where (or-join [?seq ?min ?max ?f ?fmin ?fmax]
-                       (and
-                        [?ss-seq :locatable/assembly-parent ?seq]
-                        [?ss-seq :locatable/min ?ss-min]
-                        [?ss-seq :locatable/max ?ss-max]
-                        [(<= ?ss-min ?max)]
-                        [(>= ?ss-max ?min)]
-                        [(- ?min ?ss-min) ?rel-min]
-                        [(- ?max ?ss-min) ?rel-max]
-                        (child ?ss-seq ?rel-min ?rel-max ?f ?rel-fmin ?rel-fmax)
-                        [(+ ?rel-fmin ?ss-min) ?fmin]
-                        [(+ ?rel-fmax ?ss-min) ?fmax])
-                       (child ?seq ?min ?max ?f ?fmin ?fmax))
-       [?f :transcript/id _]]
-     db
-     child-rule
-     pid min max))
+  (d/q '[:find ?f ?fmin ?fmax
+         :in $ % ?seq ?min ?max 
+         :where
+         (or-join [?seq ?min ?max ?f ?fmin ?fmax]
+                  (and
+                   [?ss-seq :locatable/assembly-parent ?seq]
+                   [?ss-seq :locatable/min ?ss-min]
+                   [?ss-seq :locatable/max ?ss-max]
+                   [(<= ?ss-min ?max)]
+                   [(>= ?ss-max ?min)]
+                   [(- ?min ?ss-min) ?rel-min]
+                   [(- ?max ?ss-min) ?rel-max]
+                   (child ?ss-seq
+                          ?rel-min
+                          ?rel-max
+                          ?f
+                          ?rel-fmin
+                          ?rel-fmax)
+                   [(+ ?rel-fmin ?ss-min) ?fmin]
+                   [(+ ?rel-fmax ?ss-min) ?fmax])
+                  (child ?seq ?min ?max ?f ?fmin ?fmax))
+         [?f :transcript/id _]]
+       db
+       child-rule
+       pid min max))
 
 (defmethod features "variation"
   [db type pid min max]
-  (q '[:find ?f ?fmin ?fmax
-       :in $ % ?seq ?min ?max 
-       :where (or-join [?seq ?min ?max ?f ?fmin ?fmax]
-                       (and
-                        [?ss-seq :locatable/assembly-parent ?seq]
-                        [?ss-seq :locatable/min ?ss-min]
-                        [?ss-seq :locatable/max ?ss-max]
-                        [(<= ?ss-min ?max)]
-                        [(>= ?ss-max ?min)]
-                        [(- ?min ?ss-min) ?rel-min]
-                        [(- ?max ?ss-min) ?rel-max]
-                        (child ?ss-seq ?rel-min ?rel-max ?f ?rel-fmin ?rel-fmax)
-                        [(+ ?rel-fmin ?ss-min) ?fmin]
-                        [(+ ?rel-fmax ?ss-min) ?fmax])
-                       (child ?seq ?min ?max ?f ?fmin ?fmax))
-       [?f :variation/id _]]
-     db
-     child-rule
-     pid min max))
+  (d/q '[:find ?f ?fmin ?fmax
+         :in $ % ?seq ?min ?max 
+         :where
+         (or-join [?seq ?min ?max ?f ?fmin ?fmax]
+                  (and
+                   [?ss-seq :locatable/assembly-parent ?seq]
+                   [?ss-seq :locatable/min ?ss-min]
+                   [?ss-seq :locatable/max ?ss-max]
+                   [(<= ?ss-min ?max)]
+                   [(>= ?ss-max ?min)]
+                   [(- ?min ?ss-min) ?rel-min]
+                   [(- ?max ?ss-min) ?rel-max]
+                   (child ?ss-seq ?rel-min ?rel-max ?f ?rel-fmin ?rel-fmax)
+                   [(+ ?rel-fmin ?ss-min) ?fmin]
+                   [(+ ?rel-fmax ?ss-min) ?fmax])
+                  (child ?seq ?min ?max ?f ?fmin ?fmax))
+         [?f :variation/id _]]
+       db
+       child-rule
+       pid min max))
 
 (defmethod features :default
   [db type pid min max]
-  (q '[:find ?f ?fmin ?fmax
-       :in $ % ?seq ?min ?max ?meth-name
-       :where
-       [?method :method/id ?meth-name]
-       (or-join [?seq ?min ?max ?f ?fmin ?fmax]
-                (and
-                 [?ss-seq :locatable/assembly-parent ?seq]
-                 [?ss-seq :locatable/min ?ss-min]
-                 [?ss-seq :locatable/max ?ss-max]
-                 [(<= ?ss-min ?max)]
-                 [(>= ?ss-max ?min)]
-                 [(- ?min ?ss-min) ?rel-min]
-                 [(- ?max ?ss-min) ?rel-max]
-                 (child ?ss-seq ?rel-min ?rel-max ?f ?rel-fmin ?rel-fmax)
-                 [(+ ?rel-fmin ?ss-min) ?fmin]
-                 [(+ ?rel-fmax ?ss-min) ?fmax])
-                (child ?seq ?min ?max ?f ?fmin ?fmax))
-               [?f :locatable/method ?method]]
-     db
-     child-rule
-     pid min max type))
+  (d/q '[:find ?f ?fmin ?fmax
+         :in $ % ?seq ?min ?max ?meth-name
+         :where
+         [?method :method/id ?meth-name]
+         (or-join [?seq ?min ?max ?f ?fmin ?fmax]
+                  (and
+                   [?ss-seq :locatable/assembly-parent ?seq]
+                   [?ss-seq :locatable/min ?ss-min]
+                   [?ss-seq :locatable/max ?ss-max]
+                   [(<= ?ss-min ?max)]
+                   [(>= ?ss-max ?min)]
+                   [(- ?min ?ss-min) ?rel-min]
+                   [(- ?max ?ss-min) ?rel-max]
+                   (child ?ss-seq
+                          ?rel-min
+                          ?rel-max
+                          ?f
+                          ?rel-fmin
+                          ?rel-fmax)
+                   [(+ ?rel-fmin ?ss-min) ?fmin]
+                   [(+ ?rel-fmax ?ss-min) ?fmax])
+                  (child ?seq ?min ?max ?f ?fmin ?fmax))
+         [?f :locatable/method ?method]]
+       db
+       child-rule
+       pid min max type))

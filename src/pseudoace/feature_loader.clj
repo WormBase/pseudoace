@@ -1,15 +1,14 @@
 (ns pseudoace.feature-loader
   (:require
    [clojure.edn :as edn]
-   [clojure.instant :refer (read-instant-date)]
    [clojure.java.io :as io]
-   [clojure.string :as str]
-   [datomic.api :as d :refer (db q entity touch tempid)]
+   [datomic.api :as d :refer [db q entity touch tempid]]
    [pseudoace.aceparser :as ace]
-   [pseudoace.utils :refer (parse-double parse-int vmap)])
-  (:import java.io.FileInputStream
-           java.io.PushbackReader
-           java.util.zip.GZIPInputStream))
+   [pseudoace.utils :refer [parse-double parse-int vmap]])
+  (:import
+   (java.io FileInputStream)
+   (java.io PushbackReader)
+   (java.util.zip GZIPInputStream)))
 
 (defrecord FeatureLink [sequence start end])
 

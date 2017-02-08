@@ -1,12 +1,11 @@
 (ns pseudoace.test-schemata
-  (:use [clojure.test])
   (:require
-   [clj-time.coerce :refer (to-date)]
+   [clj-time.coerce :refer [to-date]]
    [clojure.java.io :as io]
-   [clojure.instant :refer (read-instant-date)]
+   [clojure.test :refer :all]
    [datomic.api :as d]
    [pseudoace.cli :as cli]
-   [pseudoace.ts-import :refer (latest-transaction-date)]
+   [pseudoace.ts-import :refer [latest-transaction-date]]
    [pseudoace.schemata :as schemata]))
 
 (def db-uri "datomic:mem://wb-test")
@@ -29,6 +28,7 @@
     (io/copy in out)))
 
 (use-fixtures :each db-created)
+
 (use-fixtures :once slurp-latest-annotated-models)
 
 (defn- check-installed-attr-count

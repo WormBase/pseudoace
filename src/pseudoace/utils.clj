@@ -1,14 +1,8 @@
 (ns pseudoace.utils
   (:require
    [clj-time.coerce :refer [from-date]]
-   [clj-yaml.core :as yaml]
    [clojure.instant :refer [read-instant-date]]
-   [clojure.java.io :as io]
-   [clojure.set :refer [union]]
-   [clojure.string :as str]
-   [environ.core :as environ])
-  (:import
-   (java.net URL)))
+   [clojure.set :refer [union]]))
 
 (def not-nil? (complement nil?))
 
@@ -17,7 +11,7 @@
   associated with nil values."
   [& args]
   (into {} (for [[k v] (partition 2 args)
-                 :when (not (nil? v))]
+                 :when (not-nil? v)]
              [k v])))
 
 (defn vmap-if

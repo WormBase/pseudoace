@@ -1,5 +1,11 @@
 (in-ns 'pseudoace.utils)
 
+(require '[clj-yaml.core :as yaml]
+         '[clojure.java.io :as io]
+         '[clojure.string :as str]
+         '[environ.core :as environ])
+(import '(java.net URL))
+
 (def ^{:private true
        :doc "The filename of the (yaml) configuration used by
   ElasticBeanstalk. Requires that the `.ebextensions`
@@ -13,7 +19,7 @@
   *wbdb-name-env-key* :wbdb-uri)
 
 (defprotocol WormBaseDatabase
-  (-wbdb-name [s] [s environ] "Returns the short-name of the database."))
+  (-wbdb-name [s] "Returns the short-name of the database."))
 
 (extend-protocol WormBaseDatabase
   nil

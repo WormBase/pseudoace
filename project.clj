@@ -33,7 +33,8 @@
                       :exclusions [joda-time]]]}]
              :dev [:datomic-pro
                    :ddb
-                   {:eastwood {:exclude-linters [:no-ns-form-found]
+                   {:eastwood {:add-linters [:unused-namespaces]
+                               :exclude-linters [:no-ns-form-found]
                                :exclude-namespaces [user]}
                     :dependencies [[datomic-schema-grapher "0.0.1"]]
                     :plugins
