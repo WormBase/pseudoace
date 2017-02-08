@@ -1,9 +1,14 @@
 (ns pseudoace.utils
   (:require
-   [clj-time.coerce :refer (from-date)]
-   [clojure.instant :refer (read-instant-date)]
-   [clojure.java.io :refer (writer)]
-   [clojure.set :refer (union)]))
+   [clj-time.coerce :refer [from-date]]
+   [clj-yaml.core :as yaml]
+   [clojure.instant :refer [read-instant-date]]
+   [clojure.java.io :as io]
+   [clojure.set :refer [union]]
+   [clojure.string :as str]
+   [environ.core :as environ])
+  (:import
+   (java.net URL)))
 
 (def not-nil? (complement nil?))
 
@@ -103,7 +108,7 @@
   "Execute `body` with *out* bound to `(writer f)`."
   [f & body]
   (let [fh (gensym)]
-    `(with-open [~fh (writer ~f)]
+    `(with-open [~fh (io/writer ~f)]
        (binding [*out* ~fh]
          ~@body))))
 
@@ -179,3 +184,5 @@
                item-dt (-> ts-str read-instant-date from-date)]
            (if (pred item-dt dt)
              item))))))))
+
+(load "utils_wbdb")

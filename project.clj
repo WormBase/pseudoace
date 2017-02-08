@@ -33,7 +33,9 @@
                       :exclusions [joda-time]]]}]
              :dev [:datomic-pro
                    :ddb
-                   {:dependencies [[datomic-schema-grapher "0.0.1"]]
+                   {:eastwood {:exclude-linters [:no-ns-form-found]
+                               :exclude-namespaces [user]}
+                    :dependencies [[datomic-schema-grapher "0.0.1"]]
                     :plugins
                     [[jonase/eastwood "0.2.3"
                       :exclusions [org.clojure/clojure]]
