@@ -34,10 +34,11 @@
              :dev [:datomic-pro
                    :ddb
                    {:dependencies [[datomic-schema-grapher "0.0.1"]]
-                    :plugins [[jonase/eastwood "0.2.3"
-                               :exclusions [org.clojure/clojure]]
-                              [lein-ancient "0.6.8"]
-                              [refactor-nrepl "0.2.2"]]
+                    :plugins
+                    [[jonase/eastwood "0.2.3"
+                      :exclusions [org.clojure/clojure]]
+                     [lein-ancient "0.6.10"]
+                     [com.jakemccrary/lein-test-refresh "0.18.1"]]
                     :resource-paths ["test/resources"]}]
              :dev-free [:datomic-free :dev]
              :prod [:datomic-pro :ddb
