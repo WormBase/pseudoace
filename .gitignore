@@ -5,14 +5,13 @@
 .lein-*
 .nrepl-port
 /*-init.clj
+/*.bak		
+/*.old
 /*.out
 Build
 Build.bat
-MANIFEST.bak
 META.yml
-MYMETA.yml
 Makefile
-Makefile.old
 _build/
 blib/
 cover_db/
