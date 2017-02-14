@@ -21,10 +21,8 @@
    [pseudoace.utils :as utils])
   (:import
    (java.net InetAddress)
-   (java.io FileInputStream)
-   (java.io File)
-   (java.util.zip GZIPInputStream)
-   (java.util.zip GZIPOutputStream))
+   (java.io File FileInputStream)
+   (java.util.zip GZIPInputStream GZIPOutputStream))
   (:gen-class))
 
 ;; First three strings describe a short-option, long-option with optional
