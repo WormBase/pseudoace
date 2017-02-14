@@ -33,8 +33,14 @@
                [com.amazonaws/aws-java-sdk-dynamodb "1.11.6"
                 :exclusions [joda-time]]]}
              :dev
-             {:dependencies [[datomic-schema-grapher "0.0.1"]]
-              :plugins [[jonase/eastwood "0.2.3"
+             {:aliases
+              {"code-qa"
+               ["do"
+                ["eastwood" "{:exclude-linters [:no-ns-form-found]}"]
+                "test"]}
+              :dependencies [[datomic-schema-grapher "0.0.1"]]
+              :plugins [[com.jakemccrary/lein-test-refresh "0.17.0"]
+                        [jonase/eastwood "0.2.3"
                          :exclusions [org.clojure/clojure]]
                         [lein-ancient "0.6.8"]]
               :resource-paths ["test/resources"]}

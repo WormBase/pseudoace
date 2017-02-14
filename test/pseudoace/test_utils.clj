@@ -46,3 +46,11 @@
              ["2013-04-12.badger"
               "2016-01-02.foo.bar"]))))
 
+(t/deftest test-package-version
+  (t/testing "Getting a package version"
+    (let [is-version (partial re-matches #"^\d\.\d.\d?(-SNAPSHOT|)")
+          pkg-version #(or (utils/package-version %) "")]
+      (is-version (pkg-version "wormbase/pseudoace"))
+      (is-version (pkg-version "org.clojure/core.cache"))
+      (is-version (pkg-version "org.clojure/clojure")))))
+

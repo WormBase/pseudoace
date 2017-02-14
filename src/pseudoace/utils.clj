@@ -2,7 +2,12 @@
   (:require
    [clj-time.coerce :refer [from-date]]
    [clojure.instant :refer [read-instant-date]]
-   [clojure.set :refer [union]]))
+   [clojure.set :refer [union]]
+   [clojure.java.io :as io]
+   [clojure.string :as str]
+   [clojure.walk :as walk])
+  (:import
+   (java.util Properties)))
 
 (def not-nil? (complement nil?))
 
@@ -178,5 +183,23 @@
                item-dt (-> ts-str read-instant-date from-date)]
            (if (pred item-dt dt)
              item))))))))
+
+(defn package-version
+  "Return the version name of a package `pkg-spec`.
+  `pkg-spec` should be of the maven form
+  `groupId/artifactId` as specified in leiningen dependencies."
+  [pkg-spec]
+  (let [pom-props-path (str "META-INF/maven/"
+                            pkg-spec
+                            "/pom.properties")]
+    (if-let [resrc (io/resource pom-props-path)]
+      (->> (doto (Properties.)
+             (.load (io/reader resrc)))
+           (into {})
+           (walk/keywordize-keys)
+           :version)
+      (let [artefact-id (last (str/split pkg-spec #"/"))
+            lein-spec (str artefact-id ".version")]
+        (System/getProperty lein-spec)))))
 
 (load "utils_wbdb")
