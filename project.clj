@@ -22,32 +22,24 @@
    "-Ddatomic.txTimeoutMsec=1000000"]
   :main pseudoace.cli
   :target-path "target/%s"
-  :profiles {:datomic-free [{:dependencies
-                              [[com.datomic/datomic-free "0.9.5554"
-                                :exclusions [joda-time]]]}]
-             :datomic-pro [{:dependencies
-                            [[com.datomic/datomic-pro "0.9.5554"
-                              :exclusions [joda-time]]]}]
-             :ddb [{:dependencies
-                    [[com.amazonaws/aws-java-sdk-dynamodb "1.11.6"
-                      :exclusions [joda-time]]]}]
-             :dev [:datomic-pro
-                   :ddb
-                   {:eastwood {:add-linters [:unused-namespaces]
-                               :exclude-linters [:no-ns-form-found]
-                               :exclude-namespaces [user]}
-                    :dependencies [[datomic-schema-grapher "0.0.1"]]
-                    :plugins
-                    [[jonase/eastwood "0.2.3"
-                      :exclusions [org.clojure/clojure]]
-                     [lein-ancient "0.6.10"]
-                     [com.jakemccrary/lein-test-refresh "0.18.1"]]
-                    :resource-paths ["test/resources"]}]
-             :dev-free [:datomic-free :dev]
-             :prod [:datomic-pro :ddb
-                    {:wb-db-uri "datomic:ddb://us-east-1/WS257/wormbase"}]
+  :profiles {:datomic-free
+             {:dependencies
+              [[com.datomic/datomic-free "0.9.5554"
+                :exclusions [joda-time]]]}
+             :provided
+             {:dependencies
+              [[com.datomic/datomic-pro "0.9.5554"
+                :exclusions [joda-time]]
+               [com.amazonaws/aws-java-sdk-dynamodb "1.11.6"
+                :exclusions [joda-time]]]}
+             :dev
+             {:dependencies [[datomic-schema-grapher "0.0.1"]]
+              :plugins [[jonase/eastwood "0.2.3"
+                         :exclusions [org.clojure/clojure]]
+                        [lein-ancient "0.6.8"]]
+              :resource-paths ["test/resources"]}
              :uberjar [{:aot :all}]
-             :test [{:resource-paths ["test/resources"]
-                     :env
-                     {:wb-db-uri "datomic:dev://localhost:4334/WS257"}}]}
+             :test
+             [{:resource-paths ["test/resources"]
+               :env {:wb-db-uri "datomic:dev://localhost:4334/WS257"}}]}
   :deploy-repositories [["releases" :clojars]])
