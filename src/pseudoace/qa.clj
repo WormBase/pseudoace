@@ -20,6 +20,20 @@
         (doseq [id (sort ids)]
           (println class-name ":" id))))))
 
+(defn quoted? [s]
+  (every? #(= \" (% s)) [first last]))
+
+(defn fixup-identifier-map [ident-map]
+  (reduce-kv (fn [m k vs]
+               (assoc m k
+                      (map (fn [v]
+                             (if (quoted? v)
+                               (str/replace v "\"" "")
+                               v))
+                           vs)))
+             (empty ident-map)
+             ident-map))
+
 (defn read-ref-data
   "Read class data generated from a WormBase ACeDB database via `reader`.
 
@@ -32,7 +46,8 @@
   (with-open [fh reader]
     (let [lines (str/split-lines (slurp fh))
           cls-value-pairs (map #(str/split % #"\s+:\s+") lines)]
-      (merge-pairs cls-value-pairs))))
+      (->> (merge-pairs cls-value-pairs)
+           (fixup-identifier-map)))))
 
 (defrecord ClassStatsReport [class-names entries])
 
@@ -56,8 +71,8 @@
                             :in $ ?attr
                             :where [_ ?attr ?name]] db attr)
         mapped (or (merge-pairs query-result) {})
-        db-values (set (map pr-str (mapped attr)))
-        ref-values (ref-data class-name)
+        db-values (set (mapped attr))
+        ref-values (set (ref-data class-name))
         [ref-only db-only in-both] (diff ref-values db-values)]
     (->ClassStatsReportEntry class-name
                              attr
@@ -66,13 +81,15 @@
                              in-both)))
 
 (defn class-by-class-report
-  "Returns a seqeunence of mappings of the diff between `db` and `ref-data-path`."
+  "Returns a seqeunence of mappings of the diff
+   between `db` and `ref-data-path`."
   [db ref-data-path]
   (let [all-class-names (map
                          (comp :pace/identifies-class #(second %))
                          (get-classes db))
         ;; Filter out names that are mapped to a datomic illegal form
-        ;; (i.e Those whos names start with an integer, e.g "2-point-data")
+        ;; (i.e Those whos names start with an integer, e.g
+        ;; "2-point-data")
         class-names (remove (partial re-find #"^\d+") all-class-names)
         ref-data (read-ref-data (io/reader ref-data-path))
         native-names (map datomize-name class-names)
