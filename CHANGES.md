@@ -5,6 +5,7 @@
   - Make output of generated schema valid EDN.
   - Use latest version of datomic 0.9.5554.
   - Added API for getting the name of the main datomic database.
+  - Added API for getting the version of package.
   
 ## [0.4.14] (2016-11-11)
   - Allow migrations with no locatable schema and/or schema fixups.
