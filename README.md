@@ -59,7 +59,8 @@ Run all tests regularly, but in particular:
   * after checking out a feature-branch
 
 ```bash
-lein do eastwood, test
+# runs eastwood and test via an alias
+lein code-qa
 ```
 
 ## Releases
