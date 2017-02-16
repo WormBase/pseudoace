@@ -111,7 +111,7 @@ This release process re-uses the [leiningen deployment tools][12]:
 
 	* Run:
 
-		`lein with-profile datomic-pro deploy clojars`
+		`lein deploy clojars`
 
   * Checkout the `develop` branch.
 
