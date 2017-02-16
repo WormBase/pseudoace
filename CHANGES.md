@@ -1,5 +1,8 @@
 # Change-log
 
+## [0.5.0-SNAPSHOT] (un-released)
+  - Nothing changed yet.
+  
 ## [0.4.15] (2017-02-16)
   - Added generated schema for WS257.
   - Make output of generated schema valid EDN.
