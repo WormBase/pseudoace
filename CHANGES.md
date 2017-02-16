@@ -23,7 +23,6 @@
     a command line option to the `import-logs` command.
   - Use composite lein profiles.
 
-
 ## [0.4.10] (2016-07-22)
   - Bump version of various packages, notably datomic-pro and dynamodb
     aws-sdk libraries.
