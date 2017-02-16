@@ -26,11 +26,12 @@
 (defn fixup-identifier-map [ident-map]
   (reduce-kv (fn [m k vs]
                (assoc m k
-                      (map (fn [v]
-                             (if (quoted? v)
-                               (str/replace v "\"" "")
-                               v))
-                           vs)))
+                      (->> (map (fn [v]
+                                  (if (quoted? v)
+                                    (str/replace v "\"" "")
+                                    v))
+                                vs)
+                           (set))))
              (empty ident-map)
              ident-map))
 
