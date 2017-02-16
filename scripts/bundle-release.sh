@@ -20,8 +20,6 @@ pre_release_check() {
 }
 
 pre_release_checks() {
-    local lein_profiles="test,${LEIN_PROFILE}"
-    local run_lein_check="lein with-profile ${lein_profiles}"
     # TBD: use git signed git tags? Requires all team committers to setup GPG keys.
     # pre_release_check "You must create a git tag first!" \
     # 		      git tag -v "${PROJ_VERSION}"
@@ -30,28 +28,23 @@ pre_release_checks() {
          does not exist for ${PROJ_FQNAME}" \
 	git rev-parse --verify --quiet "${PROJ_VERSION}"
     pre_release_check \
-    	"All linting tests must pass!" "${run_lein_check}" eastwood
-    pre_release_check \
-    	"All tests must pass!" "${run_lein_check}" test
+    	"Code quality tests must pass!" lein code-qa
     return 0;
 }
 
 make_release_jar () {
-    local lein_profiles="${LEIN_PROFILE}"
     run_step "Preparing release jar" \
-	     "lein with-profile ${lein_profiles}" \
-	     do clean, uberjar &> "${LOGFILE}"
+	     lein do clean, uberjar &> "${LOGFILE}"
 }
 
 PROJ_ROOT="$(git rev-parse --show-toplevel)"
 LOGFILE="${PROJ_ROOT}/bundle-release.log"
 RELEASE_TAG="$1"
 if [ -z "${RELEASE_TAG}" ]; then
-    echo "USAGE: $0 <RELEASE_TAG> [LEIN_PROFILE]"
+    echo "USAGE: $0 <RELEASE_TAG>"
     exit 1
 fi
 
-LEIN_PROFILE="$2"
 PROJ_NAME="$(proj_meta ${PROJ_ROOT} name)"
 PROJ_VERSION="$(proj_meta ${PROJ_ROOT} version)"
 
@@ -98,4 +91,4 @@ else
     exit 999
 fi
 # "lein test" will fail unless one cleans after uberjar'ing
-run_step "Cleaning up" "lein with-profile ${LEIN_PROFILE}" clean
+run_step "Cleaning up" lein clean
