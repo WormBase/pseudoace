@@ -42,8 +42,7 @@
               :plugins [[com.jakemccrary/lein-test-refresh "0.17.0"]
                         [jonase/eastwood "0.2.3"
                          :exclusions [org.clojure/clojure]]
-                        [lein-ancient "0.6.8"]
-                        [lein-marginalia "0.9.0"]]
+                        [lein-ancient "0.6.8"]]
               :resource-paths ["test/resources"]}
              :uberjar [:datomic-free {:aot :all}]
              :test
