@@ -39,8 +39,7 @@
                 ["eastwood" "{:exclude-linters [:no-ns-form-found]}"]
                 "test"]}
               :dependencies [[datomic-schema-grapher "0.0.1"]]
-              :plugins [[com.andrewmcveigh/lein-auto-release "0.1.10"]
-                        [com.jakemccrary/lein-test-refresh "0.17.0"]
+              :plugins [[com.jakemccrary/lein-test-refresh "0.17.0"]
                         [jonase/eastwood "0.2.3"
                          :exclusions [org.clojure/clojure]]
                         [lein-ancient "0.6.8"]
