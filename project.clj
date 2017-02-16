@@ -44,7 +44,7 @@
                          :exclusions [org.clojure/clojure]]
                         [lein-ancient "0.6.8"]]
               :resource-paths ["test/resources"]}
-             :uberjar [{:aot :all}]
+             :uberjar [:datomic-free {:aot :all}]
              :test
              [{:resource-paths ["test/resources"]
                :env {:wb-db-uri "datomic:dev://localhost:4334/WS257"}}]}
