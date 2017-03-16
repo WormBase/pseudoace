@@ -314,12 +314,14 @@
 (defn excise-tmp-data
   "Remove all the temporary data created during processing."
   [& {:keys [url]}]
-  (let [con (d/connect url)]
+  (let [conn (d/connect url)]
     (d/transact
-     con
+     conn
      [{:db/id (d/tempid :db.part/user)
        :db/excise :importer/temp}])
-    (d/gc-storage con (to-date (ct/now)))))
+    (d/request-index conn)
+    (->> conn d/db d/basis-t (d/sync-index conn) deref)
+    (d/gc-storage conn (to-date (ct/now)))))
 
 (defn run-test-query
   "Perform tests on the generated database."
