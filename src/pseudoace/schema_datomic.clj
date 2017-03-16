@@ -59,15 +59,18 @@
      (let [doc (:db/doc attr)]
        (if-not (empty? doc) doc)))))
 
-(defn schema-from-db
-  "Return the current schema of `db` in datomic-schema form."
-  [db]
+(defn raw-schema-from-db [db]
   (->> (d/q
         '[:find [?schema-attr ...]
           :where [:db.part/db :db.install/attribute ?schema-attr]]
         db)
        (map (partial d/entity db))
-       (group-by (comp namespace :db/ident))
+       (group-by (comp namespace :db/ident))))
+
+(defn schema-from-db
+  "Return the current schema of `db` in datomic-schema form."
+  [db]
+  (->> (raw-schema-from-db db)
        (sort-by (fn [[namespace attrs]]
                   ;; Class identifiers can appear out-of-order in
                   ;; auto-generated schema
