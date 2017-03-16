@@ -1,7 +1,9 @@
 # Change-log
 
 ## [0.5.0-SNAPSHOT] (un-released)
-  - Nothing changed yet.
+  - Added `distinct-by` utility function.
+  - `excise-tmp-data` CLI command now correctly requests and syncs index
+    before invoking gc-storage.
 
 ## [0.4.15] (2017-02-16)
   - Added generated schema for WS257.
