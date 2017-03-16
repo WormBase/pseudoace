@@ -520,6 +520,16 @@
   @(d/transact con tx)
   nil)
 
+(defn idents-by-ns [db ns-name]
+  (sort (d/q '[:find [?ident ...]
+               :in $ ?ns-name
+               :where
+               [?e :db/ident ?ident]
+               [_ :db.install/attribute ?e]
+               [(namespace ?ident) ?ns]
+               [(= ?ns ?ns-name)]]
+             db ns-name)))
+
 ;; Built-in schemas
 ;; * Use the d/tempid function to give temporary ids for
 ;; * Include explicit 1970-01-01 timestamps.
