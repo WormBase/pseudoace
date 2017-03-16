@@ -54,3 +54,21 @@
       (is-version (pkg-version "org.clojure/core.cache"))
       (is-version (pkg-version "org.clojure/clojure")))))
 
+(t/deftest test-distinct-by
+  (t/testing "distinct-by each :id key in a sequence of maps"
+    (let [test-seq [{:id "a" :class "gene"}
+                    {:id "b" :class "gene"}
+                    {:id "a" :class "gene"}
+                    {:id "c" :class "gene"}]
+          expected [{:id "a" :class "gene"}
+                    {:id "b" :class "gene"}
+                    {:id "c" :class "gene"}]
+          result (utils/distinct-by :id test-seq)]
+      (t/is (= expected result))))
+  (t/testing "distincy-by custom function"
+    (let [test-seq [{:a {:x 1}} {:a {:x 2}} {:a {:x 1}}]
+          expected [{:a {:x 1}} {:a {:x 2}}]
+          custom-fn #(get-in % [:a :x])
+          actual (utils/distinct-by custom-fn test-seq)]
+      (t/is (= expected actual)))))
+
