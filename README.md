@@ -94,7 +94,7 @@ This release process re-uses the [leiningen deployment tools][12]:
 
   * Checkout the `develop` branch if not already checked-out.
 
-	* Update changes entries in the CHANGES.md file
+	* Update changes entries in the `CHANGELOG.md` file
 
 	* Replace "un-released" in the latest version entry with the
       current date.
@@ -120,7 +120,7 @@ This release process re-uses the [leiningen deployment tools][12]:
 	* Change the version from `MAJOR.MINOR.PATCH` to
       `MAJOR.MINOR.PATCH-SNAPSHOT` in `project.clj`.
 
-	* Update `CHANGES.md` with the next
+	* Update `CHANGELOG.md` with the next
       version number and a "back to development" stanza, e.g:
 
 	```markdown
