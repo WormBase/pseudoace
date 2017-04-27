@@ -1,34 +1,34 @@
 # Change-log
 
-## [0.5.0-SNAPSHOT] (un-released)
+## [0.5.0] (2017-04-27)
   - Added `distinct-by` utility function.
   - `excise-tmp-data` CLI command now correctly requests and syncs index
     before invoking gc-storage.
 
-## [0.4.15] (2017-02-16)
-  - Added generated schema for WS257.
+## [0.4.15] - (2017-02-16)
+  - Added gene rated schema for WS257.
   - Make output of generated schema valid EDN.
   - Use latest version of datomic 0.9.5554.
   - Added API for getting the name of the main datomic database.
   - Added API for getting the version of package.
 
-## [0.4.14] (2016-11-11)
+## [0.4.14] - (2016-11-11)
   - Allow migrations with no locatable schema and/or schema fixups.
 
-## [0.4.13] (2016-11-09)
+## [0.4.13] - (2016-11-09)
   - Bugfix release for 0.4.12
 
-## [0.4.12] (2016-11-09) (DO NOT USE)
+## [0.4.12] - (2016-11-09) (DO NOT USE)
   - Support suppression of schema "fix-ups" (for smallace/training
     databases).
 
-## [0.4.11] (2016-10-10)
+## [0.4.11] - (2016-10-10)
   - Add generated schema for WS256
   - Ability to specify max-count and max-text for log partitioning via
     a command line option to the `import-logs` command.
   - Use composite lein profiles.
 
-## [0.4.10] (2016-07-22)
+## [0.4.10] - (2016-07-22)
   - Bump version of various packages, notably datomic-pro and dynamodb
     aws-sdk libraries.
   - Explicitly pass the annotated models filename as arguments to the CLI

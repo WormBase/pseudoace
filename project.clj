@@ -1,4 +1,4 @@
-(defproject wormbase/pseudoace "0.5.0-SNAPSHOT"
+(defproject wormbase/pseudoace "0.5.0"
   :dependencies [[clj-time "0.13.0"]
                  [clj-yaml "0.4.0"]
                  [datomic-schema "1.3.0"]
