@@ -65,7 +65,7 @@
                     {:id "c" :class "gene"}]
           result (utils/distinct-by :id test-seq)]
       (t/is (= expected result))))
-  (t/testing "distincy-by custom function"
+  (t/testing "distinct-by custom function"
     (let [test-seq [{:a {:x 1}} {:a {:x 2}} {:a {:x 1}}]
           expected [{:a {:x 1}} {:a {:x 2}}]
           custom-fn #(get-in % [:a :x])
