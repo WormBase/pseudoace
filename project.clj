@@ -1,4 +1,4 @@
-(defproject wormbase/pseudoace "0.5.0"
+(defproject wormbase/pseudoace "0.5.1-SNAPSHOT"
   :dependencies [[clj-time "0.13.0"]
                  [clj-yaml "0.4.0"]
                  [datomic-schema "1.3.0"]
@@ -47,5 +47,5 @@
              :uberjar [:datomic-free {:aot :all}]
              :test
              [{:resource-paths ["test/resources"]
-               :env {:wb-db-uri "datomic:dev://localhost:4334/WS258"}}]}
+               :env {:wb-db-uri "datomic:dev://localhost:4334/WS259"}}]}
   :deploy-repositories [["releases" :clojars]])

@@ -1,6 +1,9 @@
 # Change-log
 
-## [0.5.0] (2017-04-27)
+## [0.5.1] - (un-released)
+  - Nothing changed yet.
+
+## [0.5.0] - (2017-04-27)
   - Added `distinct-by` utility function.
   - `excise-tmp-data` CLI command now correctly requests and syncs index
     before invoking gc-storage.
