@@ -516,17 +516,6 @@
     (d/release con)
     nil))
 
-;; TODO: remove in favour of using datomic backup-db command
-(defn backup-database
-  "Backup the database at a given URL to a file."
-  [& {:keys [url verbose]
-      :or {verbose false}}]
-  (throw (UnsupportedOperationException. "Not implemented yet"))
-  (when verbose
-    (println "Backing up database"))
-  (let [con (d/connect url)]
-    (d/release con)))
-
 (def cli-actions [#'acedump-to-edn-logs
                   #'create-database
                   #'create-helper-database
