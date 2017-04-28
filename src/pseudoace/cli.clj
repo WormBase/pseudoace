@@ -440,9 +440,9 @@
     (println database-name)))
 
 (defn write-report [filename db]
-  (let [elements-attributes
-        (sort (d/q
-               '[:find [?ident ...] :where [_ :db/ident ?ident]] db))]
+  (let [elements-attributes (sort (d/q '[:find [?ident ...]
+                                         :where [_ :db/ident ?ident]]
+                                       db))]
     (with-open [wrtr (io/writer filename)]
       (binding [*out* wrtr]
         (print "element" "\t" "attribute" "\t" "count")
