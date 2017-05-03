@@ -1,5 +1,6 @@
 (ns pseudoace.schema-datomic
-  (:require [datomic.api :as d]))
+  (:require [datomic.api :as d]
+            [pseudoace.schemata :as schemata]))
 
 (defn thosev
   "Return a vector consisting (only) of the true arguments,
@@ -59,18 +60,10 @@
      (let [doc (:db/doc attr)]
        (if-not (empty? doc) doc)))))
 
-(defn raw-schema-from-db [db]
-  (->> (d/q
-        '[:find [?schema-attr ...]
-          :where [:db.part/db :db.install/attribute ?schema-attr]]
-        db)
-       (map (partial d/entity db))
-       (group-by (comp namespace :db/ident))))
-
 (defn schema-from-db
   "Return the current schema of `db` in datomic-schema form."
   [db]
-  (->> (raw-schema-from-db db)
+  (->> (schemata/schema-from-db db)
        (sort-by (fn [[namespace attrs]]
                   ;; Class identifiers can appear out-of-order in
                   ;; auto-generated schema

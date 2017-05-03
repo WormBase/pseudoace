@@ -13,6 +13,8 @@
         {:db/id (d/tempid :db.part/tx)
          :db/txInstant earliest-tx-timestamp}))
 
+(def ^:private edn-read (partial edn/read {:readers *data-readers*}))
+
 (defn idents-by-ns [db ns-name]
   (sort (d/q '[:find [?ident ...]
                :in $ ?ns-name
@@ -23,7 +25,13 @@
                [(= ?ns ?ns-name)]]
              db ns-name)))
 
-(def ^:private edn-read (partial edn/read {:readers *data-readers*}))
+(defn schema-from-db [db]
+  (->> (d/q
+        '[:find [?schema-attr ...]
+          :where [:db.part/db :db.install/attribute ?schema-attr]]
+        db)
+       (map (partial d/entity db))
+       (group-by (comp namespace :db/ident))))
 
 (defn read-edn-schema
   "Reads the EDN schemata from a resource.
