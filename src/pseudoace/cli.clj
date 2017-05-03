@@ -109,8 +109,8 @@
   (when verbose
     (println "Generating Datomic schema view")
     (println \tab "Creating database connection"))
-  (let [con (d/connect url)
-        schemas (schema-datomic/schema-from-db (d/db con))]
+  (let [conn (d/connect url)
+        schemas (schema-datomic/schema-from-db (d/db conn))]
     (utils/with-outfile schema-filename
       (-> schemas vec pprint))))
 
@@ -141,15 +141,15 @@
    (when verbose
      (println (str/join " " ["Loading Schema into:" url]))
      (println \tab "Creating database connection"))
-   (let [con (d/connect url)
+   (let [conn (d/connect url)
          main-schema (generate-schema
                       :models-filename models-filename
                       :verbose verbose)]
-     (schemata/install con
+     (schemata/install conn
                        main-schema
                        :no-locatables no-locatables
                        :no-fixups no-fixups)
-     (d/release con))))
+     (d/release conn))))
 
 (defn create-database
   "Create a Datomic database from a schema generated
@@ -275,14 +275,14 @@
   (when verbose
     (println "Converting ACeDump to Datomic Log")
     (println "Creating database connection"))
-  (let [con (d/connect url)
-        imp (importer con)
+  (let [conn (d/connect url)
+        imp (importer conn)
         directory (io/file log-dir)
         files (get-ace-files acedump-dir)]
     (doseq [file files]
       (acedump-file-to-datalog imp file directory verbose))
     (move-helper-log-file log-dir verbose)
-    (d/release con)))
+    (d/release conn)))
 
 (defn import-logs
   "Import the sorted EDN log files."
@@ -295,8 +295,8 @@
              url
              "from log files in"
              log-dir))
-  (let [con (d/connect url)
-        db (d/db con)
+  (let [conn (d/connect url)
+        db (d/db conn)
         latest-tx-dt (ts-import/latest-transaction-date db)
         log-files (get-sorted-edn-log-files log-dir db latest-tx-dt)]
     (if verbose
@@ -305,11 +305,11 @@
       (if verbose
         (println \tab "importing: " (.getName file)))
       (ts-import/play-logfile
-       con
+       conn
        (GZIPInputStream. (io/input-stream file))
        partition-max-count
        partition-max-text))
-    (d/release con)))
+    (d/release conn)))
 
 (defn excise-tmp-data
   "Remove all the temporary data created during processing."
@@ -327,13 +327,13 @@
   "Perform tests on the generated database."
   [& {:keys [url verbose]
       :or {verbose false}}]
-  (let [con (d/connect url)
+  (let [conn (d/connect url)
         n-expected 1
         datalog-query '[:find ?c
                         :in $
                         :where
                         [?c :gene/id "WBGene00018635"]]
-        results (d/q datalog-query (d/db con))
+        results (d/q datalog-query (d/db conn))
         n-results (count results)]
     (when verbose
       (println "Testing datomic data, expecting exactly"
@@ -345,7 +345,7 @@
     (if-let [success (t/is (= n-results 1))]
       (println "OK")
       (println "Failed to find record matching " datalog-query))
-    (d/release con)))
+    (d/release conn)))
 
 (defn import-helper-edn-logs
   "Import the helper log files."
@@ -465,8 +465,8 @@
       (.mkdir dir)))
   (if verbose
     (println "Generating Datomic database report"))
-  (let [con (d/connect url)
-        db (d/db con)
+  (let [conn (d/connect url)
+        db (d/db conn)
         report (qa/class-by-class-report db build-data)
         width-left (apply max (map count (:class-names report)))
         format-left (partial format (str "%" width-left "s"))
@@ -513,7 +513,7 @@
                                 kw (keyword topic)
                                 ids (kw entry)]]
                     (future (write-class-ids ids label))))))))))
-    (d/release con)
+    (d/release conn)
     nil))
 
 (def cli-actions [#'acedump-to-edn-logs
