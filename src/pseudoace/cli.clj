@@ -112,7 +112,12 @@
   (let [conn (d/connect url)
         schemas (schema-datomic/schema-from-db (d/db conn))]
     (utils/with-outfile schema-filename
-      (-> schemas vec pprint))))
+      (-> schemas vec pprint)))
+  (when verbose
+    (print "Releasing db connection ... "))
+  (/release conn)
+  (when verbose
+    (println "done.")))
 
 (defn generate-schema
   "Generate the database schema from the annotated ACeDB models."
