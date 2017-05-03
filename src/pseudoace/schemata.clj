@@ -6,14 +6,14 @@
 
 (def earliest-tx-timestamp #inst "1970-01-01T00:00:01")
 
+(def ^:private edn-read (partial edn/read {:readers *data-readers*}))
+
 (defn mark-tx-early
   "Marks mapping `item` with an early timestamp."
   [schema]
   (conj schema
         {:db/id (d/tempid :db.part/tx)
          :db/txInstant earliest-tx-timestamp}))
-
-(def ^:private edn-read (partial edn/read {:readers *data-readers*}))
 
 (defn idents-by-ns [db ns-name]
   (sort (d/q '[:find [?ident ...]
