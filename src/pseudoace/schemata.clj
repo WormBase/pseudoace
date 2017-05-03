@@ -75,15 +75,15 @@
         transact-schema #(-> %
                              (mark-tx-early)
                              (transact))
-        base-schemas (map -read-edn-schema [:meta :base-types])]
+        base-schemas (map read-edn-schema [:meta :base-types])]
     (doseq [base-schema base-schemas]
       (transact-schema base-schema))
     (if-not no-locatables
-      (transact-schema (-read-edn-schema :locatables)))
+      (transact-schema (read-edn-schema :locatables)))
     (transact-schema main-schema)
     (if-not no-locatables
       (let [schema-kwds [:locatable-extras :top-level-locatable-fixups]]
         (doseq [kw schema-kwds]
-          (transact-schema (-read-edn-schema kw)))))
+          (transact-schema (read-edn-schema kw)))))
     (if-not no-fixups
-      (transact-schema (-read-edn-schema :component-xref-fixups)))))
+      (transact-schema (read-edn-schema :component-xref-fixups)))))
