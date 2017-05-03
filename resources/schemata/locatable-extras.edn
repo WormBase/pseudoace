@@ -1,0 +1,32 @@
+[{:db/id #db/id[:db.part/db]
+  :db/ident :locatable/parent,
+  :pace/obj-ref :sequence/id,
+  :pace/tags "Parent"}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :locatable/min,
+  :pace/tags "Position Min"}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :locatable/max,
+  :pace/tags "Position Max"}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :locatable/method,
+  :pace/obj-ref :method/id,
+  :pace/tags "Method"}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :locatable/score,
+  :pace/tags "Score"}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :locatable/strand,
+  :pace/tags "Strand"}
+ {:db/id #db/id[:db.part/user]
+  :db/ident :locatable.strand/positive,
+  :pace/tags "Positive"}
+ {:db/id #db/id[:db.part/user]
+  :db/ident :locatable.strand/negative,
+  :pace/tags "Negative"}
+ {:db/id #db/id[:db.part/user]
+  :db/ident :homology.strand/positive,
+  :pace/tags "Positive"}
+ {:db/id #db/id[:db.part/user]
+  :db/ident :homology.strand/negative,
+  :pace/tags "Negative"}]

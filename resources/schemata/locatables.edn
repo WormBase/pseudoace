@@ -1,0 +1,247 @@
+[{:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/float,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc "Feature score, as used in ?Feature_data.",
+  :db/ident :locatable/score}
+ {:db/id #db/id[:db.part/db]
+  :db/index true,
+  :db/valueType :db.type/long,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc
+  "The lower bound of a half-open (UCSC-style) interval defining the location.",
+  :db/ident :locatable/min}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/ref,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc
+  "Method entity defining the meaning of this feature. Required for lightweight features.",
+  :db/ident :locatable/method}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/ref,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc
+  "An entity (e.g. sequence or protein) which defines the coordinate system for this locatable.",
+  :db/ident :locatable/parent}
+ {:db/id #db/id[:db.part/db]
+  :db/index true,
+  :db/valueType :db.type/long,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc
+  "The upper bound of a half-open (UCSC-style) interval defining the location.",
+  :db/ident :locatable/max}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/string,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/many,
+  :db/doc "Human-readable note associated with a lightweight feature.",
+  :db/ident :locatable/note}
+ {:db/id #db/id[:db.part/db]
+  :db/index true,
+  :db/valueType :db.type/long,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc
+  "Bottom 20 bits contain a UCSC/BAM-style bin number.High bits contain a Murmur3 hash code for the parent sequence.  Only used for locatables attached to a parent with a :sequence/id.",
+  :db/ident :locatable/murmur-bin}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/ref,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc "The parent sequence in a genome assembly.",
+  :db/ident :locatable/assembly-parent}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/ref,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc
+  "Token designating the strand or orientation of this feature.  Omit if unknown or irrelevant.",
+  :db/ident :locatable/strand}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/ref,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc
+  "sequence entity providing evidence for a false splice site call.",
+  :db/ident :splice-confirm/false-splice}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/ref,
+  :db/isComponent true,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc
+  "Details of RNA-seq data supporting this intron (uses splice-confirm.rna namespace).",
+  :db/ident :splice-confirm/rnaseq}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/ref,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc "cdna entity which supports this intron.",
+  :db/ident :splice-confirm/cdna}
+ {:db/valueType :db.type/ref,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc "sequence entity of an OST which supports this intron.",
+  :db/ident :splice-confirm/ost}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/ref,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc "sequence entity of a UTR which supports this intron.",
+  :db/ident :splice-confirm/utr}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/ref,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc "sequence entity of an RST which supports this intron.",
+  :db/ident :splice-confirm/rst}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/ref,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc "mass-spec-peptide entity which supports this intron.",
+  :db/ident :splice-confirm/mass-spec}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/string,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc
+  "accession number of an external database record which supports this intron (is this used?).",
+  :db/ident :splice-confirm/homology}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/ref,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc "sequence entity of an mRNA which supports this intron.",
+  :db/ident :splice-confirm/mrna}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/ref,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc
+  "sequence entity providing evidence for an inconsistent splice site call.",
+  :db/ident :splice-confirm/inconsistent}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/ref,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc "sequence entity of an EST which supports this intron.",
+  :db/ident :splice-confirm/est}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/ref,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc "Analysis entity describing the RNA-seq dataset.",
+  :db/ident :splice-confirm.rnaseq/analysis}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/long,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc "Number of reads supporting the intron.",
+  :db/ident :splice-confirm.rnaseq/count}
+ {:db/id #db/id[:db.part/db]
+  :db/index true,
+  :db/valueType :db.type/long,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc
+  "Lower bound of a half-open interval defining the extent of this homology in the target's coordinate system.",
+  :db/ident :homology/min}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/string,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc
+  "Gapped alignment. The locations of matches and gaps are encoded in a CIGAR-like format as defined in http://www.sequenceontology.org/gff3.shtml",
+  :db/ident :homology/gap}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/ref,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc
+  "Expression-pattern which is mapped to a sequence by this homology.",
+  :db/ident :homology/expr}
+ {:db/valueType :db.type/ref,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc "Link to target species of alignment.",
+  :db/ident :homology/target-species}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/ref,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc "Sequence entity representing the target of a DNA homology.",
+  :db/ident :homology/dna}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/ref,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc
+  "Structure-data which is mapped to a sequence by this homology.",
+  :db/ident :homology/structure}
+ {:db/id #db/id[:db.part/db]
+  :db/index true,
+  :db/valueType :db.type/long,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc
+  "Upper bound of a half-open interval defining the extent of this homology in the target's coordinate system.",
+  :db/ident :homology/max}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/ref,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc
+  "A motif entity which is mapped to a sequence by this homology.",
+  :db/ident :homology/motif}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/ref,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc
+  "An RNAi entity which is mapped to a sequence by this homology.",
+  :db/ident :homology/rnai}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/ref,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc
+  "An oligo-set which is mapped to a sequence by this homology.",
+  :db/ident :homology/oligo-set}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/ref,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc
+  "Protein entity representing the target of a peptide homology.",
+  :db/ident :homology/protein}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/ref,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc
+  "Token designating the strand or orientation of this homology on the target's coordinate system. Should only be used in situations where a negative-to-negative alignment would be meaningful (e.g. tblastx)",
+  :db/ident :homology/strand}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/ref,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc
+  "Mass-spec-peptide which is mapped to a sequence by this homology.",
+  :db/ident :homology/ms-peptide}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/string,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc "Alignment ID to emit in GFF dumps.",
+  :db/ident :homology/align-id}
+ {:db/id #db/id[:db.part/db]
+  :db/valueType :db.type/ref,
+  :db.install/_attribute :db.part/db,
+  :db/cardinality :db.cardinality/one,
+  :db/doc "SAGE-tag which is mapped to a sequence by this homology.",
+  :db/ident :homology/sage}]

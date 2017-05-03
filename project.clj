@@ -8,7 +8,7 @@
                  [org.clojure/tools.cli "0.3.5"]]
   :description "WormBase database migration library and CLI."
   :source-paths ["src"]
-  :resource-paths ["models"]
+  :resource-paths ["resources"]
   :plugins [[lein-environ "1.0.0"]
             [lein-pprint "1.1.1"]]
   :javac-options ["-target" "1.8" "-source" "1.8"]
