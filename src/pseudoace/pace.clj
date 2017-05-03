@@ -124,8 +124,6 @@
       typ
       value
       (tag-walker tag-filter root)))))
-             
-             
     
 (defn- squote [s]
   (str \" s \"))
@@ -270,12 +268,10 @@
   [format node]
   (throw (Exception. (str "Don't support ace dumping in " format))))
 
-
 ;;
 ;; Current impl of potential-follows is quite ugly since
 ;; we don't have quite enough metadata about component entities
 ;; to statically generate the queries to follow into them.
-;;
 
 (def any (partial some identity))
 
