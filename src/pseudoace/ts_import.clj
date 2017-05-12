@@ -882,8 +882,5 @@
                                           to-date
                                           (.getTime)))]
            (if (<= imp-tx-secs last-db-tx-secs)
-             (try
-               @(d/transact-async con (conj datoms tx-meta))
-               (catch Throwable t
-                 (.printStackTrace t)))
+             @(d/transact-async con (conj datoms tx-meta))
              (println "Skipping transaction with past-date:" stamp)))))))
