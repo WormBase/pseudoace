@@ -54,9 +54,9 @@
     (str "Path to the file that you "
          "would like the report to be written to")]
    [nil
-    "--build-data PATH"
-    (str "Path to a file containing class-by-class "
-         "values form a previous build.")]
+    "--acedb-class-report PATH"
+    (str "Path to a file containing per class object counts "
+         "from ACeDB.")]
    [nil
     "--models-filename PATH"
     (str "Path to the annotated models file")]
@@ -112,10 +112,10 @@
   (let [conn (d/connect url)
         schemas (schema-datomic/schema-from-db (d/db conn))]
     (utils/with-outfile schema-filename
-      (-> schemas vec pprint)))
-  (when verbose
-    (print "Releasing db connection ... "))
-  (/release conn)
+      (-> schemas vec pprint))
+    (when verbose
+      (print "Releasing db connection ... "))
+    (d/release conn))
   (when verbose
     (println "done.")))
 
@@ -462,63 +462,17 @@
 
 (defn generate-report
   "Generate a summary report of database content."
-  [& {:keys [url report-filename build-data class-ids-dir verbose]
-      :or {class-ids-dir "classes-by-id"
-           verbose false}}]
-  (let [dir (io/file class-ids-dir)]
-    (if-not (.exists dir)
-      (.mkdir dir)))
+  [& {:keys [url report-filename acedb-class-report verbose]
+      :or {verbose false}}]
   (if verbose
     (println "Generating Datomic database report"))
   (let [conn (d/connect url)
-        db (d/db conn)
-        report (qa/class-by-class-report db build-data)
-        width-left (apply max (map count (:class-names report)))
-        format-left (partial format (str "%" width-left "s"))
-        format-num (partial format "%10d")
-        tab-join (partial str/join \tab)]
-    (with-open [writer (io/writer report-filename)]
-      (let [write-line (fn [line]
-                         (.write writer line)
-                         (.newLine writer))
-            header-line
-            (tab-join (map
-                       format-left
-                       ["Class" "Missing" "Added" "Identical"]))]
-        (write-line header-line)
-        (if verbose
-          (println header-line))
-        (doseq [entry (sort-by :class-name (:entries report))
-                :let [class-name (:class-name entry)]]
-          (if (utils/not-nil? entry)
-            (let [n-ref-only (.n-ref-only entry)
-                  n-db-only (.n-db-only entry)
-                  n-both (.n-both entry)
-                  counts [n-ref-only n-db-only n-both]
-                  f-counts (map format-num counts)
-                  out-line (tab-join
-                            (map
-                             format-left
-                             (concat [class-name] f-counts)))]
-              (write-line out-line)
-              (if verbose
-                (println out-line))
-              (when (< (count (filter zero? counts)) 2)
-                (let [write-class-ids (partial
-                                       qa/write-class-ids
-                                       class-ids-dir
-                                       class-name)
-                      label-suffix (if
-                                       (and (= n-ref-only n-db-only)
-                                            (not= n-ref-only n-db-only 0))
-                                     "_bad-identifiers"
-                                     "")]
-                  (doseq [topic ["ref-only" "db-only"]
-                          :let [label (str topic label-suffix)
-                                kw (keyword topic)
-                                ids (kw entry)]]
-                    (future (write-class-ids ids label))))))))))
-    (d/release conn)
+        db (d/db conn)]
+    (try
+      (qa/report-import-stats db acedb-class-report report-filename
+                              :verbose verbose)
+      (finally
+        (d/release conn)))
     nil))
 
 (def cli-actions [#'acedump-to-edn-logs

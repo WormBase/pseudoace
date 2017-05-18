@@ -1,6 +1,8 @@
 (defproject wormbase/pseudoace "0.5.1-SNAPSHOT"
   :dependencies [[clj-time "0.13.0"]
                  [clj-yaml "0.4.0"]
+                 [clojure-csv/clojure-csv "2.0.1"]
+                 [com.gfredericks/forty-two "1.0.0"]
                  [datomic-schema "1.3.0"]
                  [environ "1.1.0"]
                  [org.clojure/clojure "1.8.0"]

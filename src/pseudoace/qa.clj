@@ -4,36 +4,21 @@
    [clojure.data :refer [diff]]
    [clojure.java.io :as io]
    [clojure.string :as str]
+   [clojure-csv.core :as csv]
    [datomic.api :as d]
    [pseudoace.import :refer [get-classes]]
    [pseudoace.model2schema :refer [datomize-name]]
    [pseudoace.utils :refer [merge-pairs]]))
 
-(defn write-class-ids
-  "Write a file named using `id-set-label` of unique `class-name`
-  object `ids` in `directory`."
-  [directory class-name ids id-set-label]
-  (let [filename (str class-name "-" id-set-label ".dat")
-        outfile (io/file directory filename)]
-    (with-open [writer (io/writer outfile)]
-      (binding [*out* writer]
-        (doseq [id (sort ids)]
-          (println class-name ":" id))))))
+(def ^:private report-headings
+  ["ACeDB-class" "datomic-ident" "Missing" "Added" "Identical"])
 
-(defn quoted? [s]
-  (every? #(= \" (% s)) [first last]))
-
-(defn fixup-identifier-map [ident-map]
-  (reduce-kv (fn [m k vs]
-               (assoc m k
-                      (->> (map (fn [v]
-                                  (if (quoted? v)
-                                    (str/replace v "\"" "")
-                                    v))
-                                vs)
-                           (set))))
-             (empty ident-map)
-             ident-map))
+(defn- write-append [writer record & {:keys [verbose]
+                                      :or {verbose false}}]
+  (let [s (csv/write-csv [record])]
+    (when verbose
+      (print s))
+    (.write writer s)))
 
 (defn read-ref-data
   "Read class data generated from a WormBase ACeDB database via `reader`.
@@ -43,22 +28,20 @@
 
   Returns a mapping of className to set of identifiers per map.
   "
-  [reader]
-  (with-open [fh reader]
-    (let [lines (str/split-lines (slurp fh))
-          cls-value-pairs (map #(str/split % #"\s+:\s+") lines)]
-      (->> (merge-pairs cls-value-pairs)
-           (fixup-identifier-map)))))
+  [acedb-report-path]
+  (with-open [rdr (io/reader acedb-report-path)]
+    (if-let [records (seq (csv/parse-csv rdr))]
+      (merge-pairs records))))
 
-(defrecord ClassStatsReport [class-names entries])
+(defrecord StatsReport [class-names entries])
 
-(defprotocol StatsReportEntry
+(defprotocol StatsEntry
   (n-ref-only [_])
   (n-db-only [_])
   (n-both [_]))
 
-(defrecord ClassStatsReportEntry [class-name db-attr db-only ref-only both]
-  StatsReportEntry
+(defrecord StatsReportEntry [class-name attr db-only ref-only both]
+  StatsEntry
   (n-ref-only [this]
     (count (:ref-only this)))
   (n-db-only [this]
@@ -66,35 +49,46 @@
   (n-both [this]
     (count (:both this))))
 
-(defn- attr-report [db ref-data native->ref attr]
+(defn- report-entry [db ref-data native->ref attr]
   (let [class-name (native->ref attr)
-        query-result (d/q '[:find ?attr ?name
-                            :in $ ?attr
-                            :where [_ ?attr ?name]] db attr)
+        query-result (d/q '[:find ?a ?v
+                            :in $ ?a
+                            :where [_ ?a ?v]]
+                          db attr)
         mapped (or (merge-pairs query-result) {})
         db-values (set (mapped attr))
         ref-values (set (ref-data class-name))
         [ref-only db-only in-both] (diff ref-values db-values)]
-    (->ClassStatsReportEntry class-name
-                             attr
-                             db-only
-                             ref-only
-                             in-both)))
+    (->StatsReportEntry class-name attr db-only ref-only in-both)))
 
-(defn class-by-class-report
+(defn- stats-data [report]
+  (let [entries (sort-by (comp namespace :attr) (:entries report))]
+    (for [entry entries
+          :let [attr (:attr entry)
+                class-name (:class-name entry)]]
+      (if entry
+        (let [n-ref-only (.n-ref-only entry)
+              n-db-only (.n-db-only entry)
+              n-both (.n-both entry)]
+          (map str [class-name attr n-ref-only n-db-only n-both]))))))
+
+(defn report-import-stats
   "Returns a seqeunence of mappings of the diff
    between `db` and `ref-data-path`."
-  [db ref-data-path]
-  (let [all-class-names (map
-                         (comp :pace/identifies-class #(second %))
-                         (get-classes db))
-        ;; Filter out names that are mapped to a datomic illegal form
-        ;; (i.e Those whos names start with an integer, e.g
-        ;; "2-point-data")
-        class-names (remove (partial re-find #"^\d+") all-class-names)
-        ref-data (read-ref-data (io/reader ref-data-path))
+  [db ref-data-path out-path & {:keys [verbose]
+                                :or {verbose false}}]
+  (let [class-names (->> (get-classes db)
+                         (map (comp :pace/identifies-class #(second %)))
+                         set
+                         sort)
         native-names (map datomize-name class-names)
         attrs (map #(keyword % "id") native-names)
-        native->ref (zipmap attrs class-names)
-        per-attr-report (partial attr-report db ref-data native->ref)]
-    (->ClassStatsReport class-names (pmap per-attr-report attrs))))
+        native->ref (zipmap attrs class-names)]
+    (let [ref-data (read-ref-data ref-data-path)
+          rep-entry (partial report-entry db ref-data native->ref)
+          report (->StatsReport class-names (pmap rep-entry attrs))]
+      (spit out-path "" :append false)
+      (with-open [wtr (io/writer out-path :append true)]
+        (write-append wtr report-headings :verbose verbose)
+        (doseq [record (remove nil? (stats-data report))]
+          (write-append wtr record :verbose verbose))))))
