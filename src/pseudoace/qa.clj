@@ -63,11 +63,11 @@
 
 (defn- stats-data [report]
   (let [entries (sort-by (comp namespace :attr) (:entries report))]
-    (for [entry entries
-          :let [attr (:attr entry)
-                class-name (:class-name entry)]]
+    (for [entry entries]
       (if entry
-        (let [n-ref-only (.n-ref-only entry)
+        (let [attr (:attr entry)
+              class-name (:class-name entry)
+              n-ref-only (.n-ref-only entry)
               n-db-only (.n-db-only entry)
               n-both (.n-both entry)]
           (map str [class-name attr n-ref-only n-db-only n-both]))))))
