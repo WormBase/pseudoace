@@ -36,7 +36,8 @@
                              "Protein" 13})
 
 (deftest test-read-ref-data
-  (with-open [rdr (io/reader (io/resource "WS_build-data.out"))]
+  (with-open [rdr (io/reader
+                   (io/resource "all_classes_report.WS2000.csv"))]
     (let [build-data (qa/read-ref-data rdr)]
       (is (= (keys build-data) (keys expected-class->counts)))
       (is (= (count (keys build-data)) (count expected-class->counts)))
