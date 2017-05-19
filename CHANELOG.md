@@ -1,7 +1,7 @@
 # Change-log
 
 ## [0.5.1] - (un-released)
-  - Nothing changed yet.
+  - QA report now uses new ACeDB id catalog csv format.
 
 ## [0.5.0] - (2017-04-27)
   - Added `distinct-by` utility function.

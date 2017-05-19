@@ -1,6 +1,7 @@
 (ns pseudoace.model2schema
   (:require
    [clojure.string :as str]
+   [com.gfredericks.forty-two :as f2]
    [datomic.api :as d :refer [entity entity-db q tempid]]
    [pseudoace.model :refer [model-node]]
    [pseudoace.utils :as utils]))
@@ -8,15 +9,18 @@
 (def ^:dynamic *schema-notes* false)
 
 (defn datomize-name
-  "Make `n` into a Datomic-friendly name by converting to lower case and replacing
-   underscores with hyphens."
+  "Make `n` into a Datomic-friendly name by converting to lower case
+  and replacing underscores with hyphens."
   [^String n]
   (if (Character/isDigit (first n))
-    (if *schema-notes*
-      (println "WARNING: name starts with a digit: " n)))
-  (let [dn (-> (.toLowerCase n)
+    (when *schema-notes*
+      (println "WARNING: name starts with a digit: " n)
+      (println "         Assuming literal English translation, "
+               "e.g 2 -> two")))
+  (let [dn (-> (str/lower-case n)
+               (str/replace #"^\d+" (comp f2/words read-string))
                (str/replace #"[?#]" "")
-               (str/replace #"_" "-"))]
+               (str/replace #"(_|\s)" "-"))]
     (if (= dn "id")  ; id is reserved for the object name.
       "xid"
       dn)))
