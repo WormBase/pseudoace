@@ -1,5 +1,8 @@
 # Change-log
 
+## [0.5.2] - (un-released)
+ - Nothing changed yet.
+ 
 ## [0.5.1] - (2017-05-19)
   - QA report now uses new ACeDB id catalog csv format.
 
