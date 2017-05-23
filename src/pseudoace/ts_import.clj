@@ -16,20 +16,11 @@
                             parse-int
                             vmap]])
   (:import
-   (java.io FileInputStream)
-   (java.io FileOutputStream)
-   (java.util.zip GZIPInputStream)
-   (java.util.zip GZIPOutputStream)))
+   (java.io FileInputStream FileOutputStream)
+   (java.util.zip GZIPInputStream GZIPOutputStream)))
 
-;; Logs are sets of :db/add and :db/retract keyed by ACeDB-style timestamps.
-;;
-;; The datoms can optionally contain lookup-refs or augmented lookup-refs.
-;; These behave as normal lookup-refs if their target already exists in the
-;; database.  If not, it should be asserted as part of the first transaction
-;; in which it appears.  Lookup refs can optionally contain a third part,
-;; which should be the ident of the preferred partition for that entity.  If
-;; the importer creates the entity, it will attempt to use this partition.
-;; Partition idents are ignored for entities which already exist.
+;; Logs are sets of :db/add and :db/retract keyed by ACeDB-style
+;; timestamps.
 ;;
 ;; The datoms can optionally contain lookup-refs or augmented
 ;; lookup-refs. These behave as normal lookup-refs if their target
@@ -52,7 +43,8 @@
 
 (declare log-nodes)
 
-(def timestamp-pattern #"(\d{4}-\d{2}-\d{2})_(\d{2}:\d{2}:\d{2})(?:\.\d+)?_(.*)")
+(def timestamp-pattern
+  #"(\d{4}-\d{2}-\d{2})_(\d{2}:\d{2}:\d{2})(?:\.\d+)?_(.*)")
 
 (def pmatch @#'ace/pmatch)
 
@@ -66,7 +58,8 @@
     (str (d/squuid))))
 
 (defn select-ts
-  "Return any lines in acedb object `obj` with leading tags matching `path`"
+  "Return any lines in acedb object `obj` with leading tags matching
+  `path`."
   [obj path]
   (for [l (:lines obj)
         :when (pmatch path l)]
@@ -75,7 +68,8 @@
       {:timestamps (nthrest (:timestamps (meta l)) (count path))})))
 
 (defn take-ts
-  "Take `n` maps from `seq-of-maps` for sequences with :timestamps metadata."
+  "Take `n` maps from `seq-of-maps` for sequences with :timestamps
+  metadata."
   [n seq-of-maps]
   (with-meta (take n seq-of-maps)
     {:timestamps (take n (:timestamps (meta seq-of-maps)))}))
@@ -106,17 +100,12 @@
 (defn merge-logs
   ([l1 l2]
    (cond
-     (nil? l2)
-     l1
-
-     (nil? l1)
-     l2
-
-     :default
-     (reduce
-      (fn [m [key vals]]
-        (assoc m key (into (get m key []) vals)))
-      l1 l2)))
+     (nil? l2) l1
+     (nil? l1) l2
+     :default (reduce
+               (fn [m [key vals]]
+                 (assoc m key (into (get m key []) vals)))
+               l1 l2)))
   ([l1 l2 & ls]
    (reduce merge-logs (merge-logs l1 l2) ls)))
 
@@ -179,20 +168,23 @@
             ent))
    {} currents))
 
-(defn- log-components [[_ _ part :as this] current-db current ti imp values]
-  (let [single?  (not= (:db/cardinality ti) :db.cardinality/many)
-        current  ((:db/ident ti) current)
-        current  (or (and current single? [current])
-                     current)
-        concs    (sort-by
-                  :pace/order
-                  ((:tags imp)
-                   (str (namespace (:db/ident ti)) "." (name (:db/ident ti)))))
-        cbc      (current-by-concs imp current concs)
-        nss      (:pace/use-ns ti)
+(defn- log-components
+  [[_ _ part :as this] current-db current ti imp values]
+  (let [single? (not= (:db/cardinality ti) :db.cardinality/many)
+        current ((:db/ident ti) current)
+        current (or (and current single? [current])
+                    current)
+        concs (sort-by
+               :pace/order
+               ((:tags imp)
+                (str (namespace (:db/ident ti))
+                     "."
+                     (name (:db/ident ti)))))
+        cbc (current-by-concs imp current concs)
+        nss (:pace/use-ns ti)
         ordered? (get nss "ordered")
-        hashes   (for [ns nss]
-                   (d/entity (:db imp) (keyword ns "id")))] ; performance?
+        hashes (for [ns nss]
+                 (d/entity (:db imp) (keyword ns "id")))] ; performance?
     (reduce
      (fn [log [index lines]]
        (if (and (pos? index) single?)
@@ -202,15 +194,15 @@
             this
             lines)
            log)
-         (let [cvals  (take-ts (count concs) (first lines))
-               cdata  (map
-                       (fn [conc val stamp]
-                         [conc
-                          (log-datomize-value conc current-db imp [val])
-                          stamp])
-                       concs cvals (lazy-cat
-                                    (:timestamps (meta cvals))
-                                    (repeat nil)))]
+         (let [cvals (take-ts (count concs) (first lines))
+               cdata (map
+                      (fn [conc val stamp]
+                        [conc
+                         (log-datomize-value conc current-db imp [val])
+                         stamp])
+                      concs cvals (lazy-cat
+                                   (:timestamps (meta cvals))
+                                   (repeat nil)))]
            (if-let [current-comp (cbc (mapv second cdata))]
              ;; Component with these concrete values already exists
              (log-nodes
@@ -233,43 +225,44 @@
                      (map (fn [cv]
                             (if-let [[_
                                       alloc?
-                                      alloc-name] (re-matches assign-alloc-re cv)]
+                                      alloc-name] (re-matches
+                                                   assign-alloc-re
+                                                   cv)]
                               (str (d/basis-t current-db) ":" alloc-name)
                               cv))
                           cvals)))
                    compid [:importer/temp temp part]]
-               (->
-                (merge-logs
-                 ;; concretes
-                 (reduce
-                  (fn [log [conc lv stamp]]
-                    (if lv
-                      (update
-                       log
-                       stamp
-                       conj
-                       [:db/add compid (:db/ident conc) lv])
-                      log))
-                  log
-                  cdata)
+               (-> (merge-logs
+                    ;; concretes
+                    (reduce
+                     (fn [log [conc lv stamp]]
+                       (if lv
+                         (update
+                          log
+                          stamp
+                          conj
+                          [:db/add compid (:db/ident conc) lv])
+                         log))
+                     log
+                     cdata)
 
-                 ;; hashes
-                 (log-nodes
-                  compid
-                  current-db
-                  nil
-                  (map (partial drop-ts (count concs)) lines)
-                  imp
-                  nss))
-                (update
-                 (first (:timestamps (meta (first lines))))
-                 conj
-                 [:db/add this (:db/ident ti) compid])
-                (update
-                 (first (:timestamps (meta (first lines))))
-                 conj-if
-                 (if ordered?
-                   [:db/add compid :ordered/index index]))))))))
+                    ;; hashes
+                    (log-nodes
+                     compid
+                     current-db
+                     nil
+                     (map (partial drop-ts (count concs)) lines)
+                     imp
+                     nss))
+                   (update
+                    (first (:timestamps (meta (first lines))))
+                    conj
+                    [:db/add this (:db/ident ti) compid])
+                   (update
+                    (first (:timestamps (meta (first lines))))
+                    conj-if
+                    (if ordered?
+                      [:db/add compid :ordered/index index]))))))))
      {}
      (indexed
       (partition-by (partial take (count concs)) values)))))
@@ -299,12 +292,18 @@
          m)))
    {} lines))
 
-(defn log-nodes [this current-db current lines imp nss]
+(defn- log-nodes [this current-db current lines imp nss]
   (let [tags (get-tag-paths imp nss)]
     (reduce
      (fn [log [ti lines]]
        (if (:db/isComponent ti)
-         (merge-logs log (log-components this current-db current ti imp lines))
+         (merge-logs log
+                     (log-components this
+                                     current-db
+                                     current
+                                     ti
+                                     imp
+                                     lines))
          (reduce
           (fn [log line]
             (if-let [lv (log-datomize-value ti current-db imp line)]
@@ -333,7 +332,7 @@
   (if-let [tags (get-xref-tags clent)]
     (reduce
      (fn [log [{obj-ref :pace.xref/obj-ref
-                attr    :pace.xref/attribute
+                attr :pace.xref/attribute
                 :as xref}
                lines]]
        (let [lines (remove empty? lines) ; Ignore empty inbound XREF lines.
@@ -353,9 +352,10 @@
             log lines)
 
            ;; Complex case
-           (let [[ns an]    (str/split (namespace attr) #"\.")
-                 link-attr  (if an (keyword ns an))
-                 link-ent   (d/entity (d/entity-db clent) link-attr)]
+           (let [[ns an] (str/split (namespace attr) #"\.")
+                 link-attr (if an
+                             (keyword ns an))
+                 link-ent (d/entity (d/entity-db clent) link-attr)]
              (if (and link-ent (= ns (namespace obj-ref)))
                (reduce-kv
                 (fn [log xo lines]
@@ -445,22 +445,29 @@
                 stamp
                 conj-if
                 (if (:db/isComponent ti)
-                  ;; Need to special-case delete-with-value for components.
+                  ;; Need to special-case delete-with-value for
+                  ;; components.
                   (if (seq nodes)
-                    (if-let [comp (find-delete-component this db imp ti nodes)]
+                    (if-let [comp (find-delete-component this
+                                                         db
+                                                         imp
+                                                         ti
+                                                         nodes)]
                       (conj retract comp))
                     retract)
                   (conj-if
                    retract
-                   (log-datomize-value ; If no value then this returns nil and
-                    ti                 ; we get a "wildcard"
-                                       ; retract that will be handled
-                    db                 ; at playback time.
+                   ;; If no value then this returns nil and we get a
+                   ;; "wildcard" retract that will be handled at
+                   ;; playback time.
+                   (log-datomize-value
+                    ti
+                    db
                     imp
                     (if nodes
-                      (with-meta nodes {:timestamps stamps})))))))))))
+                      (with-meta nodes
+                        {:timestamps stamps})))))))))))
      {} lines)))
-
 
 (defmulti log-custom (fn [obj this imp] (:class obj)))
 
@@ -479,7 +486,8 @@
 (defn- pair-ts [s]
   (map vector s (:timestamps (meta s))))
 
-(defmethod log-custom "Position_Matrix" [{:keys [id timestamp] :as obj} _ _]
+(defmethod log-custom "Position_Matrix"
+  [{:keys [id timestamp] :as obj} _ _]
   (let [values (->> (select-ts obj ["Site_values"])
                     (map (juxt first (partial drop-ts 1)))
                     (into {}))
@@ -514,10 +522,26 @@
                           [:position-matrix/id id]
                           :position-matrix/values holder]]
               [timestamp [:db/add holder :ordered/index index]]
-              [a-ts [:db/add holder :position-matrix.value/a (parse-double a)]]
-              [c-ts [:db/add holder :position-matrix.value/c (parse-double c)]]
-              [g-ts [:db/add holder :position-matrix.value/g (parse-double g)]]
-              [t-ts [:db/add holder :position-matrix.value/t (parse-double t)]]]))
+              [a-ts
+               [:db/add
+                holder
+                :position-matrix.value/a
+                (parse-double a)]]
+              [c-ts
+               [:db/add
+                holder
+                :position-matrix.value/c
+                (parse-double c)]]
+              [g-ts
+               [:db/add
+                holder
+                :position-matrix.value/g
+                (parse-double g)]]
+              [t-ts
+               [:db/add
+                holder
+                :position-matrix.value/t
+                (parse-double t)]]]))
          (iterate inc 0)
          (pair-ts (values "A"))
          (pair-ts (values "C"))
@@ -550,7 +574,6 @@
              (bin (second this) (dec start) end)]))))
      {}
      subseqs)))
-
 
 (defmethod log-custom :default [_ _ _] nil)
 
@@ -690,11 +713,11 @@
      (log-custom obj this imp)))))
 
 (defn patch->log [imp db {:keys [id] :as obj}]
-  (let [ci     ((:classes imp) (:class obj))
-        this   (if ci
-                 ;; No partition hint, so we can use this as a plain
-                 ;; Lookup ref.
-                 [(:db/ident ci) (:id obj)])]
+  (let [ci ((:classes imp) (:class obj))
+        this (if ci
+               ;; No partition hint, so we can use this as a plain
+               ;; Lookup ref.
+               [(:db/ident ci) (:id obj)])]
     (if-let [orig (d/entity db this)]
       (cond
        (:delete obj)
@@ -753,7 +776,7 @@
   (let [ref (datom index)]
     (if (vector? ref)
       (let [[k v part] ref
-            lref       [k v]]
+            lref [k v]]
         (if v
           (if (d/entity db lref)
             ;; turn 3-element refs into normal lookup-refs
@@ -769,54 +792,43 @@
         [datom temps]
         (println "Nil in " datom)))))
 
-
-
 (defn fixup-datoms
-  "Replace any lookup refs in `datoms` which can't be resolved in `db` with tempids,
-   and expand wildcard :db/retracts"
+  "Replace any lookup refs in `datoms` which can't be resolved in `db`
+  with tempids, and expand wildcard :db/retracts.
+
+  This function expands transaction forms such as:
+    `[:db/add [:importer/temp tmpid part] ...]`."
   [db datoms]
-  (->>
-   (reduce
-    (fn [{:keys [done temps] :as last} datom]
-      (if-let [[datom temps ex1] (temp-datom db datom temps 1)]
-        (if-let [[datom temps ex2] (temp-datom db datom temps 3)]
-          {:done  (conj-if done datom ex1 ex2)
-           :temps temps}
-          last)
-        last))
-    {:done [] :temps {}}
-    (mapcat
-     (fn [[op e a v :as datom]]
-       (if (and (= op :db/retract)
-                (nil? v))
-         (for [[_ _ v] (d/datoms db :eavt (lur e) a)]
-           (conj datom v))
-         [datom]))
-     datoms))
-   :done))
-
-
-(def ^:dynamic
-  ^{:doc "Don't force :db/txInstant attributes during log replays"}
-  *suppress-timestamps* false)
+  (->> (reduce
+        (fn [{:keys [done temps] :as last} datom]
+          (if-let [[datom temps ex1] (temp-datom db datom temps 1)]
+            (if-let [[datom temps ex2] (temp-datom db datom temps 3)]
+              {:done  (conj-if done datom ex1 ex2)
+               :temps temps}
+              last)
+            last))
+        {:done [] :temps {}}
+        (mapcat
+         (fn [[op e a v :as datom]]
+           (if (and (= op :db/retract)
+                    (nil? v))
+             (for [[_ _ v] (d/datoms db :eavt (lur e) a)]
+               (conj datom v))
+             [datom]))
+         datoms))
+       :done))
 
 (defn- txmeta [stamp]
   (let [[_ ds ts name] (re-matches timestamp-pattern stamp)
         time           (if ds (read-instant-date (str ds "T" ts)))]
     (vmap
-     :db/id             (d/tempid :db.part/tx)
-     :importer/ts-name  name
-     :db/txInstant      (if-not *suppress-timestamps*
-                          time))))
-
-(defn play-log [con log]
-  (doseq [[stamp datoms] (sort-by first log)]
-    (let [db (d/db con)
-          datoms (fixup-datoms db datoms)]
-      @(d/transact con (conj datoms (txmeta stamp))))))
+     :db/id (d/tempid :db.part/tx)
+     :importer/ts-name name
+     :db/txInstant (if-not *suppress-timestamps*
+                     time))))
 
 (def log-fixups
-  {nil        "1977-01-01_01:01:01_nil"
+  {nil "1977-01-01_01:01:01_nil"
    "original" "1970-01-02_01:01:01_original"})
 
 (defn clean-log-keys [log]
@@ -837,7 +849,8 @@
           (println stamp (pr-str l)))))))
 
 (defn split-logs-to-dir
-  "Convert `objs` to log entries then spread them into .edn files split by date."
+  "Convert `objs` to log entries then spread them into .edn files
+  split by date."
   [imp objs dir]
   (logs-to-dir (objs->log imp objs) dir))
 
@@ -884,9 +897,9 @@
   [con logfile max-count max-text]
    (with-open [r (reader logfile)]
      (doseq [rblk (partition-log max-count max-text (logfile-seq r))]
-       (doseq [sblk (partition-by first rblk)
-               :let [stamp (ffirst sblk)]]
-         (let [blk (map second sblk)
+       (doseq [sblk (partition-by first rblk)]
+         (let [stamp (ffirst sblk)
+               blk (map second sblk)
                db (d/db con)
                fdatoms (filter (fn [[_ _ _ v]] (not (map? v))) blk)
                tx-meta (txmeta stamp)
