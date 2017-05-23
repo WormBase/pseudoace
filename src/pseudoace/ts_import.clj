@@ -31,6 +31,24 @@
 ;; the importer creates the entity, it will attempt to use this partition.
 ;; Partition idents are ignored for entities which already exist.
 ;;
+;; The datoms can optionally contain lookup-refs or augmented
+;; lookup-refs. These behave as normal lookup-refs if their target
+;; already exists in the database.  If not, it should be asserted as
+;; part of the first transaction in which it appears.  Lookup refs can
+;; optionally contain a third part, which should be the ident of the
+;; preferred partition for that entity.  If the importer creates the
+;; entity, it will attempt to use this partition.  Partition idents
+;; are ignored for entities which already exist.
+
+(def ^{:private true} msg-db-not-provided
+  "Can't use named allocation when a db is not provided:")
+
+(def ^{:private true} msg-cannot-link-tmpid
+  "Can't link to a non-named tempid")
+
+(def ^:dynamic
+  ^{:doc "Don't force :db/txInstant attributes during log replays"}
+  *suppress-timestamps* false)
 
 (declare log-nodes)
 
@@ -39,6 +57,13 @@
 (def pmatch @#'ace/pmatch)
 
 (def assign-alloc-re #"__(ALLOCATE|ASSIGN)__(.+)?")
+
+(defn- imp-tmp-ident [db alloc-name obj ex-msg]
+  (if alloc-name
+    (if db
+      (str (d/basis-t db) ":" alloc-name)
+      (throw (ex-info ex-msg {:obj obj})))
+    (str (d/squuid))))
 
 (defn select-ts
   "Return any lines in acedb object `obj` with leading tags matching `path`"
@@ -339,14 +364,13 @@
                                          alloc-name] (re-matches
                                                       assign-alloc-re
                                                       xo)]
-                                 (if alloc-name
-                                   [:importer/temp
-                                    (str
-                                     (d/basis-t current-db) ":" alloc-name)]
-                                   (throw-exc
-                                    "Can't link to a non-named tempid: "
-                                    xo)) ; bug fix
-                                 [obj-ref xo (:pace/prefer-part remote-class)])
+                                 (imp-tmp-ident current-db
+                                                alloc-name
+                                                xo
+                                                msg-cannot-link-tmpid)
+                                 [obj-ref
+                                  xo
+                                  (:pace/prefer-part remote-class)])
                         temp (str/join
                               " "
                               [(lur remote)
@@ -611,24 +635,18 @@
  ([imp obj]
   (obj->log imp nil obj))
  ([imp db {:keys [id] :as obj}]
-  (let [ci                     ((:classes imp) (:class obj))
-        [_ alloc? alloc-name]  (re-matches assign-alloc-re id)
-        part                   (or (:pace/prefer-part ci) :db.part/user)
-        this                   (if ci
-                                 (if alloc?
-                                   [:importer/temp
-                                    (if alloc-name
-                                      (if db
-                                        (str (d/basis-t db) ":" alloc-name)
-                                        (throw-exc
-                                         (str "Can't use named allocation "
-                                              "when a db is not provided: ")
-                                         id))
-                                      (str (d/squuid)))
-                                    part]
-                                   [(:db/ident ci)
-                                    (:id obj)
-                                    part]))]
+  (let [ci ((:classes imp) (:class obj))
+        [_ alloc? alloc-name] (re-matches assign-alloc-re id)
+        part (or (:pace/prefer-part ci) :db.part/user)
+        this (if ci
+               (if alloc?
+                 [:importer/temp
+                  (imp-tmp-ident db
+                                 alloc-name
+                                 id
+                                 msg-db-not-provided)
+                  part]
+                 [(:db/ident ci) (:id obj) part]))]
     (merge-logs
      (if (and this alloc?)
        {nil [[:db/add this (:db/ident ci) :allocate]]})
