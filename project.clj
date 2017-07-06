@@ -1,12 +1,12 @@
 (defproject wormbase/pseudoace "0.5.2-SNAPSHOT"
   :dependencies [[clj-time "0.13.0"]
                  [clj-yaml "0.4.0"]
-                 [clojure-csv/clojure-csv "2.0.1"]
+                 [clojure-csv/clojure-csv "2.0.2"]
                  [com.gfredericks/forty-two "1.0.0"]
                  [datomic-schema "1.3.0"]
                  [environ "1.1.0"]
                  [org.clojure/clojure "1.8.0"]
-                 [org.clojure/tools.nrepl "0.2.12"]
+                 [org.clojure/tools.nrepl "0.2.13"]
                  [org.clojure/tools.cli "0.3.5"]]
   :description "WormBase database migration library and CLI."
   :source-paths ["src"]
