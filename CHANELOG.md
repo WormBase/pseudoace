@@ -1,7 +1,8 @@
 # Change-log
 
 ## [0.5.2] - (un-released)
- - Nothing changed yet.
+ - Bumped various dependency versions, notably datomic-pro to version
+   0.5561.50.
  
 ## [0.5.1] - (2017-05-19)
   - QA report now uses new ACeDB id catalog csv format.
