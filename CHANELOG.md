@@ -1,6 +1,6 @@
 # Change-log
 
-## [0.5.2] - (un-released)
+## [0.5.2] - (2017-07-07)
  - Bumped various dependency versions, notably datomic-pro to version
    0.5561.50.
  
