@@ -49,5 +49,5 @@
              :uberjar [:datomic-free {:aot :all}]
              :test
              [{:resource-paths ["test/resources"]
-               :env {:wb-db-uri "datomic:dev://localhost:4334/WS259"}}]}
+               :env {:wb-db-uri "datomic:dev://localhost:4334/WS260"}}]}
   :deploy-repositories [["releases" :clojars]])
