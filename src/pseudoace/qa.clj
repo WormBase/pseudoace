@@ -13,6 +13,14 @@
 (def ^{:private true} report-headings
   ["ACeDB" "datomic" "Missing" "Added" "Identical"])
 
+(defn- parse-csv-line [line-number line]
+  (try
+    (csv/parse-csv line)
+    (catch Exception e
+      (ex-info "Failed to parse CSV line"
+               {:line-number line-number
+                :line line}))))
+
 (defn- write-append [writer record
                      & {:keys [verbose]
                         :or {verbose false}}]
@@ -36,7 +44,8 @@
   Returns a mapping of className to set of identifiers per ACeDB class."
   [acedb-report-path]
   (with-open [rdr (io/reader acedb-report-path)]
-    (->> (csv/parse-csv rdr)
+    (->> (line-seq rdr)
+         (map-indexed parse-csv-line)
          (map merge-split-record)
          (merge-pairs))))
 
