@@ -13,6 +13,14 @@
 (def ^{:private true} report-headings
   ["ACeDB" "datomic" "Missing" "Added" "Identical"])
 
+(defn- parse-csv-line [line-number line]
+  (try
+    (csv/parse-csv line)
+    (catch Exception e
+      (ex-info "Failed to parse CSV line"
+               {:line-number line-number
+                :line line}))))
+
 (defn- write-append [writer record
                      & {:keys [verbose]
                         :or {verbose false}}]
@@ -36,9 +44,11 @@
   Returns a mapping of className to set of identifiers per ACeDB class."
   [acedb-report-path]
   (with-open [rdr (io/reader acedb-report-path)]
-    (->> (csv/parse-csv rdr)
+    (->> (line-seq rdr)
+         (map-indexed parse-csv-line)
+         (map first)
          (map merge-split-record)
-         (merge-pairs))))
+	 (merge-pairs))))
 
 (defrecord StatsReport [class-names entries])
 
@@ -56,14 +66,17 @@
   (n-both [this]
     (count (:both this))))
 
+(defn db-data [db attr]
+  (->> (d/q '[:find [?v ...]
+             :in $ ?a
+             :where [_ ?a ?v]]
+            db attr)
+       (map pr-str)
+       set))
+
 (defn- report-entry [db ref-data native->ref attr]
   (let [class-name (native->ref attr)
-        db-values (->> (d/q '[:find [?v ...]
-                              :in $ ?a
-                              :where [_ ?a ?v]]
-                            db attr)
-                       (map pr-str)
-                       set)
+        db-values (db-data db attr)
         ref-values (set (ref-data class-name))
         [ref-only db-only in-both] (diff ref-values db-values)]
     (->StatsReportEntry class-name attr db-only ref-only in-both)))
