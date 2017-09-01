@@ -2681,8 +2681,8 @@
  (schema
   phenotype
   (fields
+   [alternate-phenotype :ref :many]
    [assay :ref :component]
-   [dead :boolean]
    [description :ref :component]
    [do-term :ref :many :component]
    [go-term :ref :many :component]
@@ -2983,8 +2983,9 @@
    [main-phone :string :many]
    [office-phone :string :many]
    [other-phone :string :many]
-   [street-address :string :many]
+   [street-address :ref :many :component]
    [web-page :string :many]))
+ (schema address.street-address (fields [text :string]))
  (schema
   role
   (fields
