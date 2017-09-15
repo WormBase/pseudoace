@@ -26,13 +26,13 @@
   :target-path "target/%s"
   :profiles {:datomic-free
              {:dependencies
-              [[com.datomic/datomic-free "0.9.5561.50"
+              [[com.datomic/datomic-free "0.9.5561.54"
                 :exclusions [joda-time]]
               [com.amazonaws/aws-java-sdk-dynamodb "1.11.82"
                 :exclusions [joda-time]]]}
              :provided
              {:dependencies
-              [[com.datomic/datomic-pro "0.9.5561.50"
+              [[com.datomic/datomic-pro "0.9.5561.54"
                 :exclusions [joda-time]]
                [com.amazonaws/aws-java-sdk-dynamodb "1.11.82"
                 :exclusions [joda-time]]]}
