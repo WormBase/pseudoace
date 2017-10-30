@@ -1,5 +1,8 @@
 # Change-log
 
+## [0.5.5] - (un-released)
+  - Nothing changed yet.
+  
 ## [0.5.4] - (2017-10-30)
  - Updated version of datomic-free to match datomic-pro.
  
