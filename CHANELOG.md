@@ -1,5 +1,8 @@
 # Change-log
 
+## [0.5.4] - (2017-10-30)
+ - Updated version of datomic-free to match datomic-pro.
+ 
 ## [0.5.3] - (2017-10-30)
  - Upgrade to datomic-pro version 0.9.5561.56
  - Fixes issue with QA report parsing.
