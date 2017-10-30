@@ -1,6 +1,6 @@
 # Change-log
 
-## [0.5.3] - (un-released)
+## [0.5.3] - (2017-10-30)
  - Upgrade to datomic-pro version 0.9.5561.56
  - Fixes issue with QA report parsing.
 
