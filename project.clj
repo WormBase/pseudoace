@@ -1,4 +1,4 @@
-(defproject wormbase/pseudoace "0.5.4"
+(defproject wormbase/pseudoace "0.5.5"
   :dependencies [[clj-time "0.13.0"]
                  [clj-yaml "0.4.0"]
                  [clojure-csv/clojure-csv "2.0.2"]
@@ -26,13 +26,13 @@
   :target-path "target/%s"
   :profiles {:datomic-free
              {:dependencies
-              [[com.datomic/datomic-free "0.9.5561.56"
+              [[com.datomic/datomic-free "0.9.5561"
                 :exclusions [joda-time]]
                [com.amazonaws/aws-java-sdk-dynamodb "1.11.82"
                 :exclusions [joda-time]]]}
              :provided
              {:dependencies
-              [[com.datomic/datomic-pro "0.9.5561.56"
+              [[com.datomic/datomic-pro "0.9.5561"
                 :exclusions [joda-time]]
                [com.amazonaws/aws-java-sdk-dynamodb "1.11.82"
                 :exclusions [joda-time]]]}
