@@ -1,5 +1,8 @@
 # Change-log
 
+## [0.5.6-SNAPSHOT] - (un-released)
+  - Nothing changed yet.
+
 ## [0.5.5] - (2017-12-18)
   - Bumped versions of datomic-pro and datomic-free to `0.9.5651`.
 
