@@ -1,4 +1,4 @@
-(defproject wormbase/pseudoace "0.5.5-SNAPSHOT"
+(defproject wormbase/pseudoace "0.5.5"
   :dependencies [[clj-time "0.13.0"]
                  [clj-yaml "0.4.0"]
                  [clojure-csv/clojure-csv "2.0.2"]
