@@ -1,5 +1,10 @@
 # Change-log
 
+## [0.5.6] - (2018-03-05)
+  - Bumped version of datomic (pro + free) `0.9.5656`
+  - Updated clj-time to latest version.
+  - Addeed generated schema for WS264.
+  
 ## [0.5.5] - (2017-12-18)
   - Bumped versions of datomic-pro and datomic-free to `0.9.5651`.
 
