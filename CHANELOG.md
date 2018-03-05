@@ -1,16 +1,19 @@
 # Change-log
 
+## [0.5.7-SNAPSHOT] - (un-released)
+  - Nothing changed yet.
+
 ## [0.5.6] - (2018-03-05)
   - Bumped version of datomic (pro + free) `0.9.5656`
   - Updated clj-time to latest version.
   - Addeed generated schema for WS264.
-  
+
 ## [0.5.5] - (2017-12-18)
   - Bumped versions of datomic-pro and datomic-free to `0.9.5651`.
 
 ## [0.5.4] - (2017-10-30)
  - Updated version of datomic-free to match datomic-pro.
- 
+
 ## [0.5.3] - (2017-10-30)
  - Upgrade to datomic-pro version 0.9.5561.56
  - Fixes issue with QA report parsing.
@@ -18,7 +21,7 @@
 ## [0.5.2] - (2017-07-07)
  - Bumped various dependency versions, notably datomic-pro to version
    0.5561.50.
- 
+
 ## [0.5.1] - (2017-05-19)
   - QA report now uses new ACeDB id catalog csv format.
 
