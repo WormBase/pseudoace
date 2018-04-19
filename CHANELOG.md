@@ -1,7 +1,8 @@
 # Change-log
 
-## [0.5.7-SNAPSHOT] - (un-released)
-  - Nothing changed yet.
+## [0.5.7] - (2018-04-19)
+  - Bumped version of datomic to `0.9.5697`.
+  - Added generated schema for WS265.
 
 ## [0.5.6] - (2018-03-05)
   - Bumped version of datomic (pro + free) `0.9.5656`
