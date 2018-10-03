@@ -623,7 +623,7 @@
             [:db/add child :locatable/max (max start end)]
             [:db/add child
              :locatable/strand
-             (if (< start end)
+             (if (<= start end)
                :locatable.strand/positive
                :locatable.strand/negative)]
             (if (= (first this) :sequence/id)
