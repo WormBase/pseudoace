@@ -1,5 +1,12 @@
 # Change-log
 
+## [0.5.9] - (2018-12-11)
+  - Bumped version of datomic to `0.9.5703`
+  - Added generated schema for WS269.
+
+## [0.5.8] - (2018-10-24)
+  - Added generated schema for WS267.
+  
 ## [0.5.7] - (2018-04-19)
   - Bumped version of datomic to `0.9.5697`.
   - Added generated schema for WS265.
