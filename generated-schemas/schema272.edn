@@ -1,0 +1,3615 @@
+[(schema
+  db.sys
+  (fields
+   [partiallyIndexed
+    :boolean
+    "System-assigned attribute set to true for transactions not fully incorporated into the index"]
+   [reId
+    :ref
+    "System-assigned attribute for an id e in the log that has been changed to id v in the index"]))
+ (schema
+  db
+  (fields
+   [cardinality
+    :enum
+    [:many :one]
+    "Property of an attribute. Two possible values: :db.cardinality/one for single-valued attributes, and :db.cardinality/many for many-valued attributes. Defaults to :db.cardinality/one."]
+   [code
+    :string
+    :fulltext
+    "String-valued attribute of a data function that contains the function's source code."]
+   [doc :string :fulltext "Documentation string for an entity."]
+   [excise :enum [:attrs :before :beforeT]]
+   [fn
+    :fn
+    "A function-valued attribute for direct use by transactions and queries."]
+   [fulltext
+    :boolean
+    "Property of an attribute. If true, create a fulltext search index for the attribute. Defaults to false."]
+   [ident
+    :keyword
+    :unique-identity
+    "Attribute used to uniquely name an entity."]
+   [index
+    :boolean
+    "Property of an attribute. If true, create an AVET index for the attribute. Defaults to false."]
+   [isComponent
+    :boolean
+    "Property of attribute whose vtype is :db.type/ref. If true, then the attribute is a component of the entity referencing it. When you query for an entire entity, components are fetched automatically. Defaults to nil."]
+   [lang
+    :enum
+    [:clojure :java]
+    "Attribute of a data function. Value is a keyword naming the implementation language of the function. Legal values are :db.lang/java and :db.lang/clojure"]
+   [noHistory
+    :boolean
+    "Property of an attribute. If true, past values of the attribute are not retained after indexing. Defaults to false."]
+   [txInstant
+    :instant
+    :indexed
+    "Attribute whose value is a :db.type/instant. A :db/txInstant is recorded automatically with every transaction."]
+   [unique
+    :enum
+    [:identity :value]
+    "Property of an attribute. If value is :db.unique/value, then attribute value is unique to each entity. Attempts to insert a duplicate value for a temporary entity id will fail. If value is :db.unique/identity, then attribute value is unique, and upsert is enabled. Attempting to insert a duplicate value for a temporary entity id will cause all attributes associated with that temporary id to be merged with the entity already in the database. Defaults to nil."]
+   [valueType
+    :ref
+    "Property of an attribute that specifies the attribute's value type. Built-in value types include, :db.type/keyword, :db.type/string, :db.type/ref, :db.type/instant, :db.type/long, :db.type/bigdec, :db.type/boolean, :db.type/float, :db.type/uuid, :db.type/double, :db.type/bigint,  :db.type/uri."]))
+ (schema
+  db.install
+  (fields
+   [attribute
+    :ref
+    :many
+    "System attribute with type :db.type/ref. Asserting this attribute on :db.part/db with value v will install v as an attribute."]
+   [function
+    :ref
+    :many
+    "System attribute with type :db.type/ref. Asserting this attribute on :db.part/db with value v will install v as a data function."]
+   [partition
+    :ref
+    :many
+    "System attribute with type :db.type/ref. Asserting this attribute on :db.part/db with value v will install v as a partition."]
+   [valueType
+    :ref
+    :many
+    "System attribute with type :db.type/ref. Asserting this attribute on :db.part/db with value v will install v as a value type."]))
+ (schema
+  db.excise
+  (fields [attrs :ref :many] [before :instant] [beforeT :long]))
+ (schema
+  db.alter
+  (fields
+   [attribute
+    :ref
+    :many
+    "System attribute with type :db.type/ref. Asserting this attribute on :db.part/db with value v will alter the definition of existing attribute v."]))
+ (schema
+  fressian
+  (fields
+   [tag
+    :keyword
+    :indexed
+    "Keyword-valued attribute of a value type that specifies the underlying fressian type used for serialization."]))
+ (schema
+  pace
+  (fields
+   [fill-default
+    :boolean
+    "Hint that the importer should supply a default value if none is specified in ACeDB."]
+   [identifies-class
+    :string
+    :unique-identity
+    "Attribute of object-identifers (e.g. :gene/id), indicating the name of the corresponding ACeDB class."]
+   [is-hash
+    :boolean
+    "Marks an object-identifier as identifying a hash-model."]
+   [obj-ref
+    :ref
+    "The object-identifier for the type of object referenced by this attribute."]
+   [order
+    :long
+    "The order of positional parameters within a component."]
+   [prefer-part
+    :ref
+    "Attribute of object-identifiers indicating a preferred Datomic partition for storing entities of this type."]
+   [tags
+    :string
+    "Space-separated sequence of tag names from the ACeDB model."]
+   [use-ns
+    :string
+    :many
+    "For a component attribute, specifies that the component entity may contain attributes from the specied namespace (e.g. \"evidence\")."]
+   [xref
+    :ref
+    :many
+    :component
+    "Information about XREFs to this attribute from other classes."]))
+ (schema
+  pace.xref
+  (fields
+   [attribute
+    :ref
+    :unique-identity
+    "The attribute from the foreign class corresponding to this XREF."]
+   [export
+    :boolean
+    "Whether inbound occurrences of this XREF be dumped by the .ace file exporter."]
+   [import
+    :boolean
+    "Whether inbound occurrences of this XREF be considered by the ACeDB importer."]
+   [obj-ref
+    :ref
+    "Identity attribute for the object at the outbound end of the XREF."]
+   [tags :string "The XREF's tag-path within this class."]
+   [use-ns
+    :string
+    :many
+    "For 'complex' XREFs, a set of namespaces for additional data which should be visible on the inbound end."]
+   [view
+    :boolean
+    "Should inbound occurrences of this XREFbe shown in user-oriented viewers."]))
+ (schema
+  longtext
+  (fields
+   [id :string :unique-identity "Built-in ?LongText class."]
+   [text
+    :string
+    :fulltext
+    "The text associated with this object.A full-text index will be built."]))
+ (schema
+  dna
+  (fields
+   [id :string :unique-identity "Built-in ?DNA class."]
+   [sequence :string "The sequence of this DNA."]))
+ (schema
+  peptide
+  (fields
+   [id :string :unique-identity "Built-in ?Peptide type."]
+   [sequence :string "The sequence of this protein/peptide."]))
+ (schema
+  importer
+  (fields
+   [temp
+    :string
+    :unique-identity
+    "Identifier used as scaffolding by the timestamp-aware importer. Should generally be excised after import is complete."]
+   [ts-name :string "Username from a legacy timestamp."]))
+ (schema
+  ordered
+  (fields
+   [id :string :unique-identity]
+   [index :long "Index in an ordered collection."]))
+ (schema
+  position-matrix
+  (fields
+   [background :ref :component]
+   [bound-by-gene-product :ref :many :component]
+   [brief-id :string :indexed]
+   [consensus :ref :many :component]
+   [derived-from-matrix :ref :many]
+   [description :ref :many :component]
+   [id :string :unique-identity]
+   [remark :ref :many :component]
+   [sites-used :long]
+   [threshold :double :many]
+   [transcription-factor :ref :many :component]
+   [type :enum [:frequency :weight]]
+   [values :ref :many :component]))
+ (schema
+  position-matrix.value
+  (fields [a :float] [c :float] [g :float] [t :float]))
+ (schema
+  locatable
+  (fields
+   [assembly-parent :ref "The parent sequence in a genome assembly."]
+   [max
+    :long
+    :indexed
+    "The upper bound of a half-open (UCSC-style) interval defining the location."]
+   [method
+    :ref
+    "Method entity defining the meaning of this feature. Required for lightweight features."]
+   [min
+    :long
+    :indexed
+    "The lower bound of a half-open (UCSC-style) interval defining the location."]
+   [murmur-bin
+    :long
+    :indexed
+    "Bottom 20 bits contain a UCSC/BAM-style bin number.High bits contain a Murmur3 hash code for the parent sequence.  Only used for locatables attached to a parent with a :sequence/id."]
+   [note
+    :string
+    :many
+    "Human-readable note associated with a lightweight feature."]
+   [parent
+    :ref
+    "An entity (e.g. sequence or protein) which defines the coordinate system for this locatable."]
+   [score :float "Feature score, as used in ?Feature_data."]
+   [strand
+    :enum
+    [:negative :positive]
+    "Token designating the strand or orientation of this feature.  Omit if unknown or irrelevant."]))
+ (schema
+  splice-confirm
+  (fields
+   [cdna :ref "cdna entity which supports this intron."]
+   [est :ref "sequence entity of an EST which supports this intron."]
+   [false-splice
+    :ref
+    "sequence entity providing evidence for a false splice site call."]
+   [homology
+    :string
+    "accession number of an external database record which supports this intron (is this used?)."]
+   [inconsistent
+    :ref
+    "sequence entity providing evidence for an inconsistent splice site call."]
+   [mass-spec
+    :ref
+    "mass-spec-peptide entity which supports this intron."]
+   [mrna :ref "sequence entity of an mRNA which supports this intron."]
+   [ost :ref "sequence entity of an OST which supports this intron."]
+   [rnaseq
+    :ref
+    :component
+    "Details of RNA-seq data supporting this intron (uses splice-confirm.rna namespace)."]
+   [rst :ref "sequence entity of an RST which supports this intron."]
+   [utr :ref "sequence entity of a UTR which supports this intron."]))
+ (schema
+  splice-confirm.rnaseq
+  (fields
+   [analysis :ref "Analysis entity describing the RNA-seq dataset."]
+   [count :long "Number of reads supporting the intron."]))
+ (schema
+  homology
+  (fields
+   [align-id :string "Alignment ID to emit in GFF dumps."]
+   [dna
+    :ref
+    "Sequence entity representing the target of a DNA homology."]
+   [expr
+    :ref
+    "Expression-pattern which is mapped to a sequence by this homology."]
+   [gap
+    :string
+    "Gapped alignment. The locations of matches and gaps are encoded in a CIGAR-like format as defined in http://www.sequenceontology.org/gff3.shtml"]
+   [max
+    :long
+    :indexed
+    "Upper bound of a half-open interval defining the extent of this homology in the target's coordinate system."]
+   [min
+    :long
+    :indexed
+    "Lower bound of a half-open interval defining the extent of this homology in the target's coordinate system."]
+   [motif
+    :ref
+    "A motif entity which is mapped to a sequence by this homology."]
+   [ms-peptide
+    :ref
+    "Mass-spec-peptide which is mapped to a sequence by this homology."]
+   [oligo-set
+    :ref
+    "An oligo-set which is mapped to a sequence by this homology."]
+   [protein
+    :ref
+    "Protein entity representing the target of a peptide homology."]
+   [rnai
+    :ref
+    "An RNAi entity which is mapped to a sequence by this homology."]
+   [sage
+    :ref
+    "SAGE-tag which is mapped to a sequence by this homology."]
+   [strand
+    :enum
+    [:negative :positive]
+    "Token designating the strand or orientation of this homology on the target's coordinate system. Should only be used in situations where a negative-to-negative alignment would be meaningful (e.g. tblastx)"]
+   [structure
+    :ref
+    "Structure-data which is mapped to a sequence by this homology."]
+   [target-species :ref "Link to target species of alignment."]))
+ (schema
+  map
+  (fields
+   [author :string :many]
+   [centre :ref :component]
+   [embl-chromosome :string]
+   [extent :ref :component]
+   [flipped :boolean]
+   [id :string :unique-identity]
+   [includes :ref :many]
+   [inherits-from-map :ref]
+   [main-locus :ref :many]
+   [map :ref :many :component]
+   [no-cache :boolean]
+   [non-graphic :boolean]
+   [title :string :indexed]
+   [unit :string]))
+ (schema map.centre (fields [max :double] [min :double]))
+ (schema map.extent (fields [max :double] [min :double]))
+ (schema map.map (fields [map :ref]))
+ (schema
+  map-position
+  (fields
+   [id :string :unique-identity]
+   [left :ref :component]
+   [multi-ends :ref :many :component]
+   [multi-position :ref :many :component]
+   [position :ref :component]
+   [right :ref :component]
+   [with-clone :ref :component]
+   [with-locus :ref :component]))
+ (schema map-position.position (fields [float :double]))
+ (schema map-position.left (fields [float :double]))
+ (schema map-position.right (fields [float :double]))
+ (schema map-position.multi-position (fields [float :double]))
+ (schema map-position.multi-ends (fields [max :double] [min :double]))
+ (schema map-position.with-locus (fields [locus :ref]))
+ (schema map-position.with-clone (fields [clone :ref]))
+ (schema
+  map-error
+  (fields [error :double] [id :string :unique-identity]))
+ (schema
+  map-offset
+  (fields [id :string :unique-identity] [relative :ref :component]))
+ (schema
+  gene-class
+  (fields
+   [description :string :indexed]
+   [designating-laboratory :ref]
+   [evidence :ref :component]
+   [former-designating-laboratory :ref :many :component]
+   [id :string :unique-identity]
+   [old-member :string :indexed :many]
+   [other-name :ref :many]
+   [phenotype :string :indexed :many]
+   [remark :ref :many :component]))
+ (schema
+  gene-class.former-designating-laboratory
+  (fields [laboratory :ref] [until :instant]))
+ (schema gene-class.remark (fields [text :string :indexed]))
+ (schema
+  locus
+  (fields
+   [detection-method :string :many]
+   [evidence :ref :component]
+   [id :string :unique-identity]
+   [laboratory :ref :many]
+   [map :ref :component]
+   [other-name :ref :many :component]
+   [remark :ref :many :component]
+   [rflp :string :many]
+   [snp :string :many]
+   [snp-assay :ref :many :component]
+   [species :ref]
+   [status :string :many]
+   [transposon-insertion :string :many]
+   [well-ordered :boolean]))
+ (schema locus.other-name (fields [text :string :indexed]))
+ (schema
+  locus.snp-assay
+  (fields [pcr-product :ref] [text :string :indexed]))
+ (schema locus.map (fields [map :ref]))
+ (schema locus.remark (fields [text :string :indexed]))
+ (schema
+  gene
+  (fields
+   [acquires-merge :ref :many]
+   [automated-description :ref :many :component]
+   [biological-process :ref :many :component]
+   [biotype :ref]
+   [cgc-name :ref :component]
+   [cloned-by :ref :component]
+   [complementation-data :string :many]
+   [concise-description :ref :many :component]
+   [corresponding-cds :ref :many :component]
+   [corresponding-cds-history :ref :many]
+   [corresponding-pseudogene :ref :many :component]
+   [corresponding-pseudogene-history :ref :many]
+   [corresponding-transcript :ref :many :component]
+   [corresponding-transcript-history :ref :many]
+   [corresponding-transposon :ref :many :component]
+   [database :ref :many :component]
+   [disease-experimental-model :ref :many :component]
+   [disease-potential-model :ref :many :component]
+   [disease-relevance :ref :many :component]
+   [evidence :ref :component]
+   [expression :ref :many :component]
+   [functional-pathway :ref :many :component]
+   [functional-physical-interaction :ref :many :component]
+   [gene-class :ref]
+   [go-term :ref :many :component]
+   [hide-under :ref :many]
+   [id :string :unique-identity]
+   [interpolated-map-position :ref :component]
+   [laboratory :ref :many]
+   [landmark-gene :boolean]
+   [legacy-information :ref :many :component]
+   [map :ref :component]
+   [molecular-function :ref :many :component]
+   [molecular-name :string :indexed :many]
+   [ortholog :ref :many :component]
+   [other-description :ref :many :component]
+   [other-name :ref :many :component]
+   [other-sequence :ref :many :component]
+   [paralog :ref :many :component]
+   [provisional-description :ref :many :component]
+   [pseudo-map-position :boolean]
+   [public-name :string :indexed]
+   [reference :ref :many]
+   [reference-allele :ref :many :component]
+   [remark :ref :many :component]
+   [rnaseq :ref :many :component]
+   [sequence-features :ref :many :component]
+   [sequence-name :string :indexed]
+   [species :ref]
+   [split-into :ref :many]
+   [status :ref :component]
+   [strain :ref :many]
+   [transposon-in-origin :boolean]
+   [version :long]
+   [version-change :ref :many :component]
+   [well-ordered :boolean]))
+ (schema gene.cgc-name (fields [text :string :indexed]))
+ (schema gene.other-name (fields [text :string :indexed]))
+ (schema
+  gene.database
+  (fields [accession :string :indexed] [database :ref] [field :ref]))
+ (schema
+  gene.version-change
+  (fields [date :instant] [person :ref] [version :long]))
+ (schema gene.status (fields [status :enum [:dead :live :suppressed]]))
+ (schema gene.reference-allele (fields [variation :ref]))
+ (schema gene.legacy-information (fields [text :string]))
+ (schema gene.rnaseq (fields [fpkm :double] [stage :ref]))
+ (schema gene.go-term (fields [go-code :ref] [go-term :ref]))
+ (schema gene.ortholog (fields [gene :ref] [species :ref]))
+ (schema gene.paralog (fields [gene :ref] [species :ref]))
+ (schema gene.provisional-description (fields [text :string :indexed]))
+ (schema gene.concise-description (fields [text :string :indexed]))
+ (schema gene.other-description (fields [text :string :indexed]))
+ (schema gene.automated-description (fields [text :string :indexed]))
+ (schema gene.sequence-features (fields [text :string :indexed]))
+ (schema gene.functional-pathway (fields [text :string :indexed]))
+ (schema
+  gene.functional-physical-interaction
+  (fields [text :string :indexed]))
+ (schema gene.biological-process (fields [text :string :indexed]))
+ (schema gene.molecular-function (fields [text :string :indexed]))
+ (schema gene.expression (fields [text :string :indexed]))
+ (schema
+  gene.disease-experimental-model
+  (fields [do-term :ref] [species :ref]))
+ (schema
+  gene.disease-potential-model
+  (fields [do-term :ref] [species :ref]))
+ (schema
+  gene.disease-relevance
+  (fields [note :string :indexed] [species :ref]))
+ (schema gene.corresponding-cds (fields [cds :ref]))
+ (schema gene.corresponding-transcript (fields [transcript :ref]))
+ (schema gene.corresponding-pseudogene (fields [pseudogene :ref]))
+ (schema gene.corresponding-transposon (fields [transposon :ref]))
+ (schema gene.other-sequence (fields [sequence :ref]))
+ (schema gene.map (fields [map :ref]))
+ (schema
+  gene.interpolated-map-position
+  (fields [map :ref] [position :double]))
+ (schema gene.remark (fields [text :string :indexed]))
+ (schema
+  gene-cluster
+  (fields
+   [analysis :ref :many]
+   [contains-gene :ref :many]
+   [description :string :indexed :many]
+   [id :string :unique-identity]
+   [reference :ref :many :component]))
+ (schema gene-cluster.reference (fields [paper :ref]))
+ (schema
+  gene-history-action
+  (fields
+   [acquires-merge :ref]
+   [cgc-name-change :string]
+   [changed-class :ref :many :component]
+   [created :boolean]
+   [id :string :unique-identity]
+   [imported :string :many]
+   [killed :boolean]
+   [merged-into :ref]
+   [other-name-change :string]
+   [resurrected :boolean]
+   [sequence-name-change :string]
+   [split-from :ref]
+   [split-into :ref]
+   [suppressed :boolean]
+   [transposon-in-origin :boolean]))
+ (schema
+  gene-history-action.changed-class
+  (fields [new :string] [old :string]))
+ (schema
+  interaction
+  (fields
+   [antibody-remark :string :indexed :many]
+   [confidence-description :string :many]
+   [database :ref :many :component]
+   [detection-method :ref :many :component]
+   [feature-interactor :ref :many :component]
+   [from-company :string :indexed]
+   [from-laboratory :ref]
+   [historical-gene :ref :many :component]
+   [id :string :unique-identity]
+   [interaction-phenotype :ref :many]
+   [interaction-rnai :ref :many]
+   [interaction-summary :ref :many :component]
+   [interactor-overlapping-cds :ref :many :component]
+   [interactor-overlapping-gene :ref :many :component]
+   [interactor-overlapping-protein :ref :many :component]
+   [library-screened :ref :many :component]
+   [log-likelihood-score :double]
+   [molecule-interactor :ref :many :component]
+   [other-interactor :ref :many :component]
+   [p-value :double]
+   [paper :ref :many]
+   [pcr-interactor :ref :many :component]
+   [rearrangement :ref :many :component]
+   [regulation-level
+    :enum
+    [:post-transcriptional :post-translational :transcriptional]
+    :many]
+   [regulation-result :ref :many :component]
+   [remark :ref :many :component]
+   [sequence-interactor :ref :many :component]
+   [throughput :enum [:high-throughput :low-throughput]]
+   [type
+    :enum
+    [:genetic
+     :genetic:asynthetic
+     :genetic:complete-mutual-suppression
+     :genetic:complete-suppression
+     :genetic:complete-unilateral-suppression
+     :genetic:enhancement
+     :genetic:epistasis
+     :genetic:genetic-interaction
+     :genetic:maximal-epistasis
+     :genetic:minimal-epistasis
+     :genetic:mutual-enhancement
+     :genetic:mutual-oversuppression
+     :genetic:mutual-suppression
+     :genetic:negative-genetic
+     :genetic:neutral-epistasis
+     :genetic:neutral-genetic
+     :genetic:no-interaction
+     :genetic:opposing-epistasis
+     :genetic:oversuppression
+     :genetic:oversuppression-enhancement
+     :genetic:partial-mutual-suppression
+     :genetic:partial-suppression
+     :genetic:partial-unilateral-suppression
+     :genetic:phenotype-bias
+     :genetic:positive-epistasis
+     :genetic:positive-genetic
+     :genetic:qualitative-epistasis
+     :genetic:quantitative-epistasis
+     :genetic:suppression
+     :genetic:suppression-enhancement
+     :genetic:synthetic
+     :genetic:unilateral-enhancement
+     :genetic:unilateral-oversuppression
+     :genetic:unilateral-suppression
+     :gi-module-one
+     :gi-module-one:a-phenotypic
+     :gi-module-one:cis-phenotypic
+     :gi-module-one:iso-phenotypic
+     :gi-module-one:mono-phenotypic
+     :gi-module-one:trans-phenotypic
+     :gi-module-three
+     :gi-module-three:converging
+     :gi-module-three:diverging
+     :gi-module-three:negative
+     :gi-module-three:neutral
+     :gi-module-three:non-neutral
+     :gi-module-three:positive
+     :gi-module-two
+     :gi-module-two:all-suppressing
+     :gi-module-two:co-suppressing
+     :gi-module-two:enhancing
+     :gi-module-two:inter-suppressing
+     :gi-module-two:masking
+     :gi-module-two:semi-suppressing
+     :gi-module-two:sub-suppressing
+     :gi-module-two:super-suppressing
+     :gi-module-two:suppressing
+     :physical
+     :physical:proteindna
+     :physical:proteinprotein
+     :physical:proteinrna
+     :predicted
+     :regulatory
+     :regulatory:change-of-expression-level
+     :regulatory:change-of-localization]
+    :many]
+   [unaffiliated-antibody :ref :many]
+   [unaffiliated-construct :ref :many]
+   [unaffiliated-expr-pattern :ref :many]
+   [unaffiliated-transgene :ref :many]
+   [unaffiliated-variation :ref :many]
+   [variation-interactor :ref :many :component]))
+ (schema interaction.pcr-interactor (fields [pcr-product :ref]))
+ (schema interaction.sequence-interactor (fields [sequence :ref]))
+ (schema interaction.interactor-overlapping-cds (fields [cds :ref]))
+ (schema interaction.interactor-overlapping-gene (fields [gene :ref]))
+ (schema
+  interaction.interactor-overlapping-protein
+  (fields [protein :ref]))
+ (schema interaction.molecule-interactor (fields [molecule :ref]))
+ (schema interaction.other-interactor (fields [text :string :indexed]))
+ (schema interaction.rearrangement (fields [rearrangement :ref]))
+ (schema interaction.feature-interactor (fields [feature :ref]))
+ (schema interaction.variation-interactor (fields [variation :ref]))
+ (schema
+  interaction.interaction-summary
+  (fields [text :string :indexed]))
+ (schema
+  interaction.detection-method
+  (fields
+   [text :string]
+   [value
+    :enum
+    [:affinity-capture-luminescence
+     :affinity-capture-ms
+     :affinity-capture-rna
+     :affinity-capture-western
+     :antibody
+     :biochemical-activity
+     :chromatin-immunoprecipitation
+     :cocrystal-structure
+     :cofractionation
+     :colocalization
+     :construct
+     :copurification
+     :directed-yeast-one-hybrid
+     :dnase-i-footprinting
+     :electrophoretic-mobility-shift-assay
+     :far-western
+     :fluorescence-resonance-energy-transfer
+     :in-situ
+     :northern
+     :other-method
+     :protein-fragment-complementation-assay
+     :protein-peptide
+     :protein-rna
+     :reconstituted-complex
+     :reporter-gene
+     :rt-pcr
+     :transgene
+     :western
+     :yeast-one-hybrid
+     :yeast-two-hybrid]]))
+ (schema
+  interaction.library-screened
+  (fields [library :string] [version :long]))
+ (schema
+  interaction.regulation-result
+  (fields
+   [value
+    :enum
+    [:does-not-regulate :negative-regulate :positive-regulate]]))
+ (schema
+  interaction.database
+  (fields [accession :string :indexed] [database :ref] [field :ref]))
+ (schema
+  interaction.historical-gene
+  (fields [gene :ref] [text :string]))
+ (schema interaction.remark (fields [text :string :indexed]))
+ (schema
+  interactor-info
+  (fields
+   [antibody :ref :many]
+   [construct :ref :many]
+   [expr-pattern :ref :many]
+   [id :string :unique-identity]
+   [inferred-automatically :string :many]
+   [interactor-type
+    :enum
+    [:affected
+     :bait
+     :cis-regulated
+     :cis-regulator
+     :effector
+     :non-directional
+     :target
+     :trans-regulated
+     :trans-regulator]
+    :many]
+   [transgene :ref :many]))
+ (schema
+  balancer
+  (fields
+   [from-left-end :boolean]
+   [gene :ref :many]
+   [id :string :unique-identity]
+   [locus :ref :many]
+   [to-right-end :boolean]))
+ (schema
+  rearrangement
+  (fields
+   [author :ref :many]
+   [balances :ref :many :component]
+   [date :instant]
+   [evidence :ref :component]
+   [gene-inside :ref :many :component]
+   [gene-outside :ref :many :component]
+   [hide-under :ref]
+   [id :string :unique-identity]
+   [location :ref :many :component]
+   [locus-inside :ref :many :component]
+   [locus-outside :ref :many :component]
+   [map :ref :many :component]
+   [marked-by-other :string :indexed :many]
+   [marked-by-transgene :ref :many]
+   [marked-by-variation :ref :many]
+   [multi-point :ref :many]
+   [mutagen :ref :component]
+   [other-name :string :indexed :many]
+   [person :ref :many]
+   [phenotype :ref :many :component]
+   [phenotype-not-observed :ref :many :component]
+   [pos-neg-data :ref :many]
+   [rearr-inside :ref :many]
+   [rearr-outside :ref :many]
+   [reference :ref :many :component]
+   [reference-strain :ref :many]
+   [remark :ref :many :component]
+   [source-rearrangement :ref]
+   [species :ref]
+   [strain :ref :many]
+   [two-point :ref :many]
+   [type
+    :enum
+    [:compound
+     :deletion
+     :duplication
+     :duplication:free-dup
+     :introgression
+     :inversion
+     :translocation]
+    :many]
+   [url :string :many]
+   [variation :ref :many]))
+ (schema rearrangement.phenotype (fields [phenotype :ref]))
+ (schema
+  rearrangement.phenotype-not-observed
+  (fields [phenotype :ref]))
+ (schema rearrangement.balances (fields [map :ref]))
+ (schema rearrangement.remark (fields [text :string :indexed]))
+ (schema rearrangement.mutagen (fields [dose :string] [name :string]))
+ (schema rearrangement.map (fields [map :ref]))
+ (schema rearrangement.gene-inside (fields [gene :ref]))
+ (schema
+  rearrangement.locus-inside
+  (fields [author :ref] [locus :ref]))
+ (schema rearrangement.gene-outside (fields [gene :ref]))
+ (schema
+  rearrangement.locus-outside
+  (fields [author :ref] [locus :ref]))
+ (schema rearrangement.location (fields [laboratory :ref]))
+ (schema rearrangement.reference (fields [paper :ref]))
+ (schema
+  strain
+  (fields
+   [associated-organisms :ref :many]
+   [cgc-received :instant :many]
+   [contact :ref :many]
+   [database :ref :many :component]
+   [date :instant]
+   [date-first-frozen :instant]
+   [elevation :ref :component]
+   [evidence :ref :component]
+   [genotype :string]
+   [geolocation :ref :component]
+   [id :string :unique-identity]
+   [inbreeding-state :enum [:inbred :isofemale :multifemale :selfed]]
+   [isolated-by :ref :many]
+   [landscape
+    :enum
+    [:agricultural-land
+     :botanical-garden-zoo
+     :dry-shrubland
+     :forest
+     :oasis
+     :rural-garden
+     :urban-garden
+     :wet-shrubland
+     :wild-grassland]]
+   [life-stage :ref :many]
+   [location :ref :many :component]
+   [log-size-of-population :double]
+   [made-by :ref :many]
+   [mutagen :string :many]
+   [ncbi-taxonomy :long]
+   [other-name :ref :many :component]
+   [outcrossed :string]
+   [phenotype :ref :many :component]
+   [phenotype-not-observed :ref :many :component]
+   [picture :ref :many]
+   [place :string :indexed]
+   [public-name :string :indexed]
+   [reference :ref :many :component]
+   [remark :ref :many :component]
+   [sampled-by :string :many]
+   [species :ref]
+   [status :ref :component]
+   [strain-history :string :many]
+   [substrate :string :indexed]
+   [wild-isolate :boolean]))
+ (schema strain.status (fields [status :enum [:dead :live]]))
+ (schema strain.other-name (fields [text :string :indexed]))
+ (schema
+  strain.database
+  (fields [accession :string :indexed] [database :ref] [field :ref]))
+ (schema strain.phenotype (fields [phenotype :ref]))
+ (schema strain.phenotype-not-observed (fields [phenotype :ref]))
+ (schema strain.location (fields [laboratory :ref]))
+ (schema strain.remark (fields [text :string :indexed]))
+ (schema strain.reference (fields [paper :ref]))
+ (schema
+  strain.geolocation
+  (fields [latitude :double] [longitude :double]))
+ (schema strain.elevation (fields [float :double]))
+ (schema
+  position-confidence
+  (fields
+   [approximate :double]
+   [exact :boolean]
+   [id :string :unique-identity]
+   [inferred-from-gps :boolean]))
+ (schema
+  lab-location
+  (fields
+   [freezer :string :many]
+   [id :string :unique-identity]
+   [liquid-n2 :string :many]
+   [minus70 :string :many]
+   [remark :ref :many :component]))
+ (schema lab-location.remark (fields [text :string :indexed]))
+ (schema
+  clone
+  (fields
+   [accession-number :string :indexed]
+   [autopos :boolean]
+   [backbone-length :long]
+   [bands :ref :component]
+   [best-match :string :indexed]
+   [canon-for-cosmid :boolean]
+   [canonical-for :ref :many :component]
+   [chromosome :ref]
+   [contained-in :ref :many]
+   [contains :ref :many :component]
+   [cosmid-grid :boolean]
+   [database :ref :many :component]
+   [derived-from :ref :many]
+   [does-not-hybridize-to :ref :many :component]
+   [evidence :ref :component]
+   [finished :instant]
+   [flag :long]
+   [gel :ref :many :component]
+   [gel-length :double]
+   [gel-number :long]
+   [general-remark :string :indexed :many]
+   [hybridizes-to :ref :many :component]
+   [hybridizes-weak :ref :many :component]
+   [id :string :unique-identity]
+   [in-situ :ref :component]
+   [in-strain :ref :many]
+   [insert-length :long]
+   [inside-rearr :ref :many :component]
+   [ligation :string :indexed :many]
+   [location :ref :many :component]
+   [map :ref :many :component]
+   [mutation :string :indexed :many]
+   [negative-gene :ref :many :component]
+   [negative-locus :ref :many :component]
+   [outside-rearr :ref :many :component]
+   [pattern :string :indexed :many]
+   [pcr-remark :string :indexed :many]
+   [pmap :ref :component]
+   [positive-gene :ref :many :component]
+   [positive-variation :ref :many :component]
+   [primer1 :string :indexed :many]
+   [primer2 :string :indexed :many]
+   [produced-by-author :ref :many]
+   [produced-by-person :ref :many]
+   [reference :ref :many :component]
+   [resistance-marker :string :indexed :many]
+   [seq-length :long]
+   [shotgun :instant]
+   [species :ref]
+   [type :ref :component]
+   [url :string :many]
+   [vaxmap :double]
+   [vector-type :string :indexed :many]
+   [y-remark :string :indexed :many]))
+ (schema clone.reference (fields [paper :ref]))
+ (schema clone.map (fields [map :ref]))
+ (schema clone.pmap (fields [contig :ref] [pos1 :long] [pos2 :long]))
+ (schema clone.positive-gene (fields [gene :ref]))
+ (schema
+  clone.positive-variation
+  (fields [author :ref] [variation :ref]))
+ (schema
+  clone.inside-rearr
+  (fields [author :ref] [rearrangement :ref]))
+ (schema clone.hybridizes-to (fields [clone :ref] [grid :ref]))
+ (schema clone.hybridizes-weak (fields [clone :ref] [grid :ref]))
+ (schema clone.negative-gene (fields [gene :ref]))
+ (schema clone.negative-locus (fields [author :ref] [locus :ref]))
+ (schema
+  clone.outside-rearr
+  (fields [author :ref] [rearrangement :ref]))
+ (schema clone.does-not-hybridize-to (fields [clone :ref] [grid :ref]))
+ (schema clone.location (fields [laboratory :ref]))
+ (schema
+  clone.canonical-for
+  (fields [clone :ref] [start :long] [stop :long]))
+ (schema clone.bands (fields [start :long] [stop :long]))
+ (schema clone.gel (fields [motif :ref]))
+ (schema clone.in-situ (fields [start :long] [stop :long]))
+ (schema clone.contains (fields [clone :ref] [text :string]))
+ (schema
+  clone.database
+  (fields [accession :string :indexed] [database :ref] [field :ref]))
+ (schema
+  clone.type
+  (fields
+   [text :string]
+   [value :enum [:cdna :cosmid :fosmid :other :plasmid :yac]]))
+ (schema
+  lane
+  (fields
+   [band :ref :many :component]
+   [band-lengths :double]
+   [bands :double]
+   [id :string :unique-identity]))
+ (schema lane.band (fields [float :double] [text :string]))
+ (schema
+  grid
+  (fields
+   [a1-labelling :boolean]
+   [columns :long]
+   [id :string :unique-identity]
+   [lines-at :ref :component]
+   [no-stagger :boolean]
+   [row :ref :many :component]
+   [size :ref :component]
+   [space-at :ref :component]
+   [title :string :indexed :many]
+   [xy-labelling :ref :component]))
+ (schema grid.lines-at (fields [x :long] [y :long]))
+ (schema grid.space-at (fields [x :long] [y :long]))
+ (schema grid.size (fields [x :long] [y :long]))
+ (schema grid.xy-labelling (fields [x :string] [y :string]))
+ (schema grid.row (fields [int :long]))
+ (schema
+  grid-data
+  (fields
+   [clone :ref]
+   [date :instant]
+   [default-negative :boolean]
+   [grid :ref]
+   [hybridizes-to :ref :many]
+   [id :string :unique-identity]
+   [laboratory :ref :many]
+   [mapper :ref :many]
+   [positive-product :ref :many]))
+ (schema
+  grid-row
+  (fields
+   [clone :ref]
+   [id :string :unique-identity]
+   [mixed :ref :component]))
+ (schema
+  mixed-grid-row
+  (fields [clone :ref :component] [id :string :unique-identity]))
+ (schema mixed-grid-row.clone (fields [clone :ref]))
+ (schema
+  contig
+  (fields
+   [id :string :unique-identity]
+   [map :ref :many :component]
+   [pmap :ref :component]))
+ (schema contig.map (fields [map :ref]))
+ (schema contig.pmap (fields [start :long] [stop :long]))
+ (schema
+  species
+  (fields
+   [assembly :ref :many]
+   [g-species :string]
+   [id :string :unique-identity]
+   [ncbi-taxonomy :long]
+   [other-name :string :many]
+   [short-name :string]))
+ (schema
+  two-point-data
+  (fields
+   [allele-1 :ref]
+   [allele-2 :ref]
+   [back-one :ref :component]
+   [backcross :ref :component]
+   [calc-distance :double]
+   [calc-lower-conf :double]
+   [calc-upper-conf :double]
+   [complex-mixed :ref :component]
+   [date :instant]
+   [direct :ref :component]
+   [distance :double]
+   [dom-let :ref :component]
+   [dom-one :ref :component]
+   [dom-selected :ref :component]
+   [dom-semi :ref :component]
+   [error :double]
+   [evidence :ref :component]
+   [full :ref :component]
+   [gene-1 :ref :component]
+   [gene-2 :ref :component]
+   [genotype :string]
+   [id :string :unique-identity]
+   [laboratory :ref :many]
+   [linkage :string]
+   [locus-1 :ref :component]
+   [locus-2 :ref :component]
+   [mapper :ref :many]
+   [max :double]
+   [min :double]
+   [one-all :ref :component]
+   [one-let :ref :component]
+   [one-recombinant :ref :component]
+   [rearrangement-1 :ref]
+   [rearrangement-2 :ref]
+   [recs-all :ref :component]
+   [remark :ref :many :component]
+   [results :string]
+   [selected :ref :component]
+   [selected-trans :ref :component]
+   [sex-cis :ref :component]
+   [sex-full :ref :component]
+   [sex-one :ref :component]
+   [temperature :string]
+   [tested :ref :component]))
+ (schema two-point-data.gene-1 (fields [gene :ref] [variation :ref]))
+ (schema two-point-data.locus-1 (fields [locus :ref] [variation :ref]))
+ (schema two-point-data.gene-2 (fields [gene :ref] [variation :ref]))
+ (schema two-point-data.locus-2 (fields [locus :ref] [variation :ref]))
+ (schema
+  two-point-data.full
+  (fields [wt :long] [x :long] [xy :long] [y :long]))
+ (schema two-point-data.one-recombinant (fields [wt :long] [x :long]))
+ (schema two-point-data.selected (fields [x :long] [xy :long]))
+ (schema two-point-data.one-all (fields [all :long] [x :long]))
+ (schema
+  two-point-data.recs-all
+  (fields [all :long] [x :long] [y :long]))
+ (schema two-point-data.one-let (fields [all :long] [x :long]))
+ (schema two-point-data.tested (fields [h :long] [x :long]))
+ (schema two-point-data.selected-trans (fields [x :long] [xy :long]))
+ (schema
+  two-point-data.backcross
+  (fields [wt :long] [x :long] [xy :long] [y :long]))
+ (schema two-point-data.back-one (fields [wt :long] [x :long]))
+ (schema
+  two-point-data.sex-full
+  (fields [wt :long] [x :long] [xy :long] [y :long]))
+ (schema two-point-data.sex-one (fields [wt :long] [x :long]))
+ (schema two-point-data.sex-cis (fields [all :long] [x :long]))
+ (schema two-point-data.dom-one (fields [non-wt :long] [wt :long]))
+ (schema two-point-data.dom-selected (fields [wt :long] [x :long]))
+ (schema two-point-data.dom-semi (fields [all :long] [xd :long]))
+ (schema two-point-data.dom-let (fields [all :long] [wt :long]))
+ (schema two-point-data.direct (fields [r :long] [t :long]))
+ (schema two-point-data.complex-mixed (fields [all :long] [x :long]))
+ (schema two-point-data.remark (fields [text :string :indexed]))
+ (schema
+  pos-neg-data
+  (fields
+   [allele-1 :ref]
+   [allele-2 :ref]
+   [calculation :enum [:negative :positive]]
+   [clone-1 :ref]
+   [clone-2 :ref]
+   [date :instant]
+   [evidence :ref :component]
+   [gene-1 :ref :component]
+   [gene-2 :ref :component]
+   [genotype :string]
+   [id :string :unique-identity]
+   [laboratory :ref :many]
+   [locus-1 :ref :component]
+   [locus-2 :ref :component]
+   [mapper :ref :many]
+   [rearrangement-1 :ref]
+   [rearrangement-2 :ref]
+   [remark :ref :many :component]
+   [results :string]))
+ (schema pos-neg-data.gene-1 (fields [gene :ref] [variation :ref]))
+ (schema pos-neg-data.locus-1 (fields [locus :ref] [variation :ref]))
+ (schema pos-neg-data.gene-2 (fields [gene :ref] [variation :ref]))
+ (schema pos-neg-data.locus-2 (fields [locus :ref] [variation :ref]))
+ (schema pos-neg-data.remark (fields [text :string :indexed]))
+ (schema
+  multi-pt-data
+  (fields
+   [a-non-b :ref :component]
+   [allele-a :ref]
+   [allele-b :ref]
+   [b-non-a :ref :component]
+   [combined :ref :component]
+   [date :instant]
+   [evidence :ref :component]
+   [gene :ref :many :component]
+   [gene-a :ref :component]
+   [gene-b :ref :component]
+   [genotype :string]
+   [id :string :unique-identity]
+   [laboratory :ref :many]
+   [locus :ref :many :component]
+   [locus-a :ref :component]
+   [locus-b :ref :component]
+   [mapper :ref :many]
+   [old-cgc-results :string :many]
+   [rearrangement-a :ref]
+   [rearrangement-b :ref]
+   [remark :ref :many :component]))
+ (schema multi-pt-data.gene-a (fields [gene :ref] [variation :ref]))
+ (schema multi-pt-data.locus-a (fields [locus :ref] [variation :ref]))
+ (schema multi-pt-data.gene-b (fields [gene :ref] [variation :ref]))
+ (schema multi-pt-data.locus-b (fields [locus :ref] [variation :ref]))
+ (schema multi-pt-data.gene (fields [gene :ref] [variation :ref]))
+ (schema multi-pt-data.locus (fields [locus :ref] [variation :ref]))
+ (schema multi-pt-data.remark (fields [text :string :indexed]))
+ (schema
+  multi-counts
+  (fields
+   [allele :ref :component]
+   [gene :ref :component]
+   [id :string :unique-identity]
+   [locus :ref :component]
+   [rearrangement :ref :component]
+   [transgene :ref :component]))
+ (schema multi-counts.gene (fields [gene :ref] [int :long]))
+ (schema multi-counts.locus (fields [int :long] [locus :ref]))
+ (schema multi-counts.allele (fields [int :long] [variation :ref]))
+ (schema
+  multi-counts.rearrangement
+  (fields [int :long] [rearrangement :ref]))
+ (schema multi-counts.transgene (fields [int :long] [transgene :ref]))
+ (schema
+  evidence
+  (fields
+   [accession-evidence :ref :many :component]
+   [author-evidence :ref :many :component]
+   [cgc-data-submission :boolean]
+   [curator-confirmed :ref :many]
+   [date-last-updated :instant]
+   [expr-pattern-evidence :ref :many]
+   [feature-evidence :ref :many]
+   [from-analysis :ref :many]
+   [go-term-evidence :ref :many]
+   [id :string :unique-identity]
+   [inferred-automatically :string :many]
+   [laboratory-evidence :ref :many]
+   [mass-spec-evidence :ref :many]
+   [microarray-results-evidence :ref :many]
+   [paper-evidence :ref :many]
+   [person-evidence :ref :many]
+   [protein-id-evidence :string :indexed :many]
+   [published-as :string :indexed :many]
+   [remark :string :indexed :many]
+   [rnai-evidence :ref :many]
+   [sequence-evidence :ref :many]
+   [variation-evidence :ref :many]))
+ (schema
+  evidence.author-evidence
+  (fields [author :ref] [note :string]))
+ (schema
+  evidence.accession-evidence
+  (fields [accession :string :indexed] [database :ref]))
+ (schema
+  disease-model-annotation
+  (fields
+   [ameliorated-phenotype :ref :many]
+   [association-type
+    :enum
+    [:causes-condition
+     :causes-or-contributes-to-condition
+     :contributes-to-condition
+     :is-implicated-in
+     :is-marker-for
+     :is-model-of]]
+   [curator-confirmed :ref :many]
+   [database :ref :many :component]
+   [date-last-updated :instant]
+   [disease-model-description :string :indexed :many]
+   [disease-of-species :ref :many]
+   [disease-phenotype :ref :many]
+   [disease-term :ref]
+   [evidence-code :ref :many]
+   [exacerbated-phenotype :ref :many]
+   [genetic-sex :enum [:female :hermaphrodite :male]]
+   [id :string :unique-identity]
+   [inducing-agent :string :indexed :many]
+   [inducing-chemical :ref :many]
+   [inferred-gene :ref :many]
+   [interacting-gene :ref :many]
+   [interacting-transgene :ref :many]
+   [interacting-variation :ref :many]
+   [modeled-by-disease-relevant-gene :ref :many :component]
+   [modeled-by-remark :string :indexed]
+   [modeled-by-strain :ref :many :component]
+   [modeled-by-transgene :ref :many :component]
+   [modeled-by-variation :ref :many :component]
+   [modifier-association-type
+    :enum
+    [:condition-ameliorated-by :condition-exacerbated-by]]
+   [modifier-gene :ref :many]
+   [modifier-molecule :ref :many]
+   [modifier-qualifier-not :boolean]
+   [modifier-strain :ref :many]
+   [modifier-transgene :ref :many]
+   [modifier-variation :ref :many]
+   [other-modifier :string :indexed :many]
+   [paper-evidence :ref]
+   [phenotype-comment :string :indexed :many]
+   [qualifier-not :boolean]
+   [rnai-experiment :ref :many]))
+ (schema
+  disease-model-annotation.modeled-by-strain
+  (fields [strain :ref] [text :string :indexed]))
+ (schema
+  disease-model-annotation.modeled-by-variation
+  (fields [text :string :indexed] [variation :ref]))
+ (schema
+  disease-model-annotation.modeled-by-transgene
+  (fields [text :string :indexed] [transgene :ref]))
+ (schema
+  disease-model-annotation.modeled-by-disease-relevant-gene
+  (fields [gene :ref] [text :string :indexed]))
+ (schema
+  disease-model-annotation.database
+  (fields [accession :string :indexed] [database :ref] [field :ref]))
+ (schema
+  go-annotation
+  (fields
+   [anatomy-relation :ref :many :component]
+   [annotation-isoform :ref :many :component]
+   [annotation-relation :ref]
+   [annotation-relation-not :ref]
+   [contributed-by :ref]
+   [database :ref :many :component]
+   [date-last-updated :instant]
+   [gene :ref]
+   [gene-relation :ref :many :component]
+   [go-code :ref]
+   [go-reference :ref :many :component]
+   [go-term :ref]
+   [go-term-relation :ref :many :component]
+   [id :string :unique-identity]
+   [inferred-from-go-term :ref :many]
+   [interacting-gene :ref :many]
+   [interacting-species :ref :many :component]
+   [life-stage-relation :ref :many :component]
+   [molecule-relation :ref :many :component]
+   [motif :ref :many]
+   [phenotype :ref :many]
+   [reference :ref]
+   [rnai-result :ref :many]
+   [variation :ref :many]))
+ (schema
+  go-annotation.database
+  (fields
+   [database :ref]
+   [database-field :ref]
+   [text :string :indexed]))
+ (schema
+  go-annotation.life-stage-relation
+  (fields [life-stage :ref] [text :string :indexed]))
+ (schema
+  go-annotation.gene-relation
+  (fields [gene :ref] [text :string :indexed]))
+ (schema
+  go-annotation.molecule-relation
+  (fields [molecule :ref] [text :string :indexed]))
+ (schema
+  go-annotation.anatomy-relation
+  (fields [anatomy-term :ref] [text :string :indexed]))
+ (schema
+  go-annotation.go-term-relation
+  (fields [go-term :ref] [text :string :indexed]))
+ (schema
+  go-annotation.annotation-isoform
+  (fields [protein :ref] [text :string :indexed]))
+ (schema
+  go-annotation.interacting-species
+  (fields [species :ref] [strain :ref]))
+ (schema
+  go-annotation.go-reference
+  (fields
+   [database :ref]
+   [database-field :ref]
+   [text :string :indexed]))
+ (schema
+  go-term
+  (fields
+   [alt-id :string :indexed :many]
+   [ancestor :ref :many]
+   [component :ref :many]
+   [definition :string :indexed :many]
+   [id :string :unique-identity]
+   [instance :ref :many]
+   [name :string :indexed :many]
+   [status :enum [:obsolete :valid]]
+   [synonym :ref :many :component]
+   [type
+    :enum
+    [:biological-process :cellular-component :molecular-function]]
+   [version :string]))
+ (schema
+  go-term.synonym
+  (fields
+   [scope :enum [:broad :exact :narrow :related]]
+   [text :string :indexed]))
+ (schema
+  go-code
+  (fields
+   [description :string :indexed :many]
+   [id :string :unique-identity]
+   [remark :ref :many :component]))
+ (schema go-code.remark (fields [text :string :indexed]))
+ (schema
+  so-term
+  (fields
+   [ancestor :ref :many]
+   [definition :string :indexed]
+   [derived-from :ref :many]
+   [id :string :unique-identity]
+   [is-a :ref :many]
+   [located-sequence-feature
+    :enum
+    [:junction :region :sequence-alteration]]
+   [member-of :ref :many]
+   [name :string :indexed]
+   [part-of :ref :many]
+   [so-version :string :indexed :many]
+   [synonym :string :indexed :many]))
+ (schema
+  ace2so
+  (fields
+   [coding-region :ref]
+   [description :string]
+   [exons :ref]
+   [id :string :unique-identity]
+   [introns :ref]
+   [no-span :boolean]
+   [so-children :boolean]
+   [so-parent-obj-tag :string]))
+ (schema
+  do-term
+  (fields
+   [alternate-id :string :indexed :many]
+   [comment :string :many]
+   [database :ref :many :component]
+   [definition :string :indexed]
+   [id :string :unique-identity]
+   [is-a :ref :many]
+   [name :string :indexed]
+   [status :enum [:obsolete :valid]]
+   [synonym :ref :many :component]
+   [type
+    :enum
+    [:gold
+     :gram-negative-bacterial-infectious-disease
+     :gram-positive-bacterial-infectious-disease
+     :sexually-transmitted-infectious-disease
+     :tick-borne-infectious-disease
+     :zoonotic-infectious-disease]
+    :many]
+   [version :string]))
+ (schema
+  do-term.synonym
+  (fields
+   [scope :enum [:broad :exact :narrow :related]]
+   [text :string :indexed]))
+ (schema
+  do-term.database
+  (fields [accession :string :indexed] [database :ref] [field :ref]))
+ (schema
+  ro-term
+  (fields
+   [alt-id :string :indexed :many]
+   [ancestor :ref :many]
+   [definition :string :indexed]
+   [descendant :ref :many]
+   [go-annotation :ref :many]
+   [id :string :unique-identity]
+   [instance :ref :many]
+   [instance-of :ref :many]
+   [name :string :indexed]
+   [not-go-annotation :ref :many]
+   [status :enum [:obsolete :valid]]
+   [synonym :ref :many :component]
+   [version :string]))
+ (schema
+  ro-term.synonym
+  (fields
+   [scope :enum [:broad :exact :narrow :related]]
+   [text :string :indexed]))
+ (schema
+  pato-term
+  (fields
+   [alt-id :string :indexed :many]
+   [child :boolean]
+   [definition :string :indexed :many]
+   [id :string :unique-identity]
+   [name :string :indexed :many]
+   [parent :boolean]
+   [status :enum [:obsolete :valid]]
+   [synonym :string :indexed :many]
+   [version :string]))
+ (schema
+  ao-code
+  (fields
+   [description :string :indexed :many]
+   [id :string :unique-identity]
+   [remark :ref :many :component]))
+ (schema ao-code.remark (fields [text :string :indexed]))
+ (schema
+  neurodata
+  (fields
+   [evidence :ref :component]
+   [gap-junction :ref :many :component]
+   [id :string :unique-identity]
+   [receive :ref :many :component]
+   [receive-joint :ref :many :component]
+   [send :ref :many :component]
+   [send-joint :ref :many :component]))
+ (schema neurodata.send (fields [count :long] [series :string]))
+ (schema neurodata.send-joint (fields [count :long] [series :string]))
+ (schema neurodata.receive (fields [count :long] [series :string]))
+ (schema
+  neurodata.receive-joint
+  (fields [count :long] [series :string]))
+ (schema
+  neurodata.gap-junction
+  (fields [count :long] [series :string]))
+ (schema
+  neuro-location
+  (fields
+   [id :string :unique-identity]
+   [section :ref :many :component]))
+ (schema
+  neuro-location.section
+  (fields [first-section :long] [last-section :long] [remark :string]))
+ (schema
+  reconstruction
+  (fields
+   [anatomy-term :ref :many]
+   [author :ref :many]
+   [date :instant]
+   [description :ref :many]
+   [id :string :unique-identity]
+   [remark :ref :many :component]))
+ (schema reconstruction.remark (fields [text :string :indexed]))
+ (schema
+  reconcellinfo
+  (fields
+   [birth :double]
+   [id :string :unique-identity]
+   [timepoint :ref :many :component]))
+ (schema reconcellinfo.timepoint (fields [float :double]))
+ (schema
+  timepoint
+  (fields [id :string :unique-identity] [xyz :ref :component]))
+ (schema timepoint.xyz (fields [x :double] [y :double] [z :double]))
+ (schema
+  sequence
+  (fields
+   [analysis :ref]
+   [anatomy-term :ref :many]
+   [annotated :instant]
+   [archived :ref :component]
+   [assembly-tags :ref :many :component]
+   [briggsae-canonical :boolean]
+   [cdna :enum [:capped-5 :cdna-est :est-3 :est-5 :tsl-tag] :many]
+   [clone :ref :many]
+   [clone-end-seq-read :ref :many]
+   [clone-left-end :ref :many :component]
+   [clone-right-end :ref :many :component]
+   [confidential-remark :string :indexed :many]
+   [contains-reads :ref :many]
+   [contiguous :instant]
+   [crc64 :string]
+   [database :ref :many :component]
+   [date :ref :many :component]
+   [date-directory :string]
+   [db-annotation :ref :many :component]
+   [db-remark :ref :many :component]
+   [dna :ref :component]
+   [embl-dump-info :ref :component]
+   [est-consensus :boolean]
+   [finished :instant]
+   [flipped :boolean]
+   [from-author :ref :many]
+   [from-database :ref :component]
+   [from-laboratory :ref]
+   [gap-right :ref :many :component]
+   [genetic-code :ref]
+   [genomic :boolean]
+   [genomic-canonical :boolean]
+   [go-term :ref :many :component]
+   [id :string :unique-identity]
+   [ignore :ref :component]
+   [interpolated-map-position :ref :component]
+   [keyword :ref :many]
+   [library :ref]
+   [library-construction :instant]
+   [life-stage :ref]
+   [link :boolean]
+   [map :ref :many :component]
+   [match-type :enum [:match-with-function :match-without-function]]
+   [md5 :string]
+   [mirna :boolean]
+   [mrna :enum [:processed-mrna :unprocessed-mrna]]
+   [ncrna :boolean]
+   [oligo :ref :many :component]
+   [overlap-left :ref]
+   [overlap-right :ref :component]
+   [paired-read :ref :many]
+   [protein-id :ref :many :component]
+   [read-coverage :double]
+   [received :instant]
+   [reference :ref :many :component]
+   [remark :ref :many :component]
+   [rrna :boolean]
+   [scrna :boolean]
+   [secondary-accession :string :indexed :many]
+   [shotgun :instant]
+   [shotgun-complete :instant]
+   [show-in-reverse-orientation :boolean]
+   [snorna :boolean]
+   [snrna :boolean]
+   [source-exons :ref :many :component]
+   [species :ref]
+   [strain :ref]
+   [submitted :instant]
+   [title :string :indexed]
+   [trna :boolean]))
+ (schema sequence.dna (fields [dna :ref] [length :long]))
+ (schema sequence.source-exons (fields [end :long] [start :long]))
+ (schema sequence.overlap-right (fields [int :long] [sequence :ref]))
+ (schema sequence.gap-right (fields [size :long] [text :string]))
+ (schema sequence.clone-left-end (fields [clone :ref] [int :long]))
+ (schema sequence.clone-right-end (fields [clone :ref] [int :long]))
+ (schema
+  sequence.database
+  (fields [accession :string :indexed] [database :ref] [field :ref]))
+ (schema
+  sequence.protein-id
+  (fields [accession :string] [sequence :ref] [version :long]))
+ (schema sequence.db-remark (fields [text :string :indexed]))
+ (schema
+  sequence.db-annotation
+  (fields [database :ref] [longtext :ref]))
+ (schema
+  sequence.from-database
+  (fields [database :ref] [version :long]))
+ (schema sequence.date (fields [comment :string] [datetype :instant]))
+ (schema sequence.go-term (fields [go-code :ref] [go-term :ref]))
+ (schema sequence.reference (fields [paper :ref]))
+ (schema sequence.remark (fields [text :string :indexed]))
+ (schema sequence.archived (fields [datetype :instant] [disk :string]))
+ (schema sequence.map (fields [map :ref]))
+ (schema
+  sequence.interpolated-map-position
+  (fields [float :double] [map :ref]))
+ (schema
+  sequence.oligo
+  (fields [int-b :long] [int-c :long] [method :ref] [oligo :ref]))
+ (schema
+  sequence.assembly-tags
+  (fields [comment :string] [start :long] [stop :long] [type :string]))
+ (schema
+  embl-info
+  (fields
+   [id :string :unique-identity]
+   [location :string]
+   [note :string :many]
+   [product :string :many]))
+ (schema
+  embl-dump-info
+  (fields
+   [cc-line :string :many]
+   [de-format :string]
+   [embl-dump-method :ref]
+   [embl-reference :ref :many]
+   [gene-from-name :boolean]
+   [id :string :unique-identity]
+   [id-division :string]
+   [id-template :string]
+   [oc-line :string :many]
+   [os-line :string]
+   [rl-submission :string :many]
+   [source-organism :string]))
+ (schema
+  sequence-collection
+  (fields
+   [database :ref :many :component]
+   [evidence :ref :component]
+   [first-ws-release :long :many]
+   [id :string :unique-identity]
+   [laboratory :ref :many]
+   [latest-ws-release :long :many]
+   [name :string :indexed :many]
+   [remark :string :indexed :many]
+   [sequences :ref :many]
+   [species :ref :many]
+   [status :ref :component]
+   [strain :ref :many]
+   [supercedes :ref]))
+ (schema
+  sequence-collection.database
+  (fields [accession :string :indexed] [database :ref] [field :ref]))
+ (schema
+  sequence-collection.status
+  (fields [status :enum [:dead :live :suppressed]]))
+ (schema
+  cds
+  (fields
+   [artificial-intron
+    :enum
+    [:low-quality-sequence :ribosomal-slippage]]
+   [brief-identification :ref :component]
+   [cds :ref :component]
+   [cds-predicted-by :ref :many :component]
+   [concise-description :ref :many :component]
+   [confidential-remark :string :indexed :many]
+   [corresponding-pcr-product :ref :many]
+   [corresponding-protein :ref :component]
+   [database :ref :many :component]
+   [db-remark :ref :many :component]
+   [detailed-description :ref :many :component]
+   [end-not-found :boolean]
+   [evidence :ref :component]
+   [from-laboratory :ref]
+   [genetic-code :ref]
+   [go-term :ref :many :component]
+   [id :string :unique-identity]
+   [isoform :ref :component]
+   [last-reviewed :ref :component]
+   [matching-cdna :ref :many :component]
+   [prediction-status
+    :enum
+    [:confirmed :partially-confirmed :predicted]]
+   [protein-id :ref :many :component]
+   [provisional-description :ref :many :component]
+   [reference :ref :many :component]
+   [remark :ref :many :component]
+   [rnaseq :ref :many :component]
+   [source-exons :ref :many :component]
+   [species :ref]
+   [start-not-found :long]))
+ (schema cds.source-exons (fields [end :long] [start :long]))
+ (schema
+  cds.database
+  (fields [accession :string :indexed] [database :ref] [field :ref]))
+ (schema
+  cds.protein-id
+  (fields [accession :string] [sequence :ref] [version :long]))
+ (schema cds.db-remark (fields [text :string :indexed]))
+ (schema cds.cds (fields [end :long] [start :long]))
+ (schema cds.cds-predicted-by (fields [method :ref] [score :double]))
+ (schema cds.corresponding-protein (fields [protein :ref]))
+ (schema cds.matching-cdna (fields [sequence :ref]))
+ (schema cds.go-term (fields [go-code :ref] [go-term :ref]))
+ (schema cds.reference (fields [paper :ref]))
+ (schema cds.provisional-description (fields [text :string :indexed]))
+ (schema cds.detailed-description (fields [text :string :indexed]))
+ (schema cds.concise-description (fields [text :string :indexed]))
+ (schema cds.brief-identification (fields [text :string :indexed]))
+ (schema cds.rnaseq (fields [fpkm :double] [stage :ref]))
+ (schema cds.last-reviewed (fields [datetype :instant] [person :ref]))
+ (schema cds.remark (fields [text :string :indexed]))
+ (schema
+  transcript
+  (fields
+   [anticodon :string]
+   [asrna :string]
+   [brief-identification :string :indexed]
+   [concise-description :ref :many :component]
+   [confidential-remark :string :indexed :many]
+   [corresponding-cds :ref :component]
+   [corresponding-pcr-product :ref :many]
+   [database :ref :many :component]
+   [db-remark :ref :many :component]
+   [detailed-description :ref :many :component]
+   [end-not-found :boolean]
+   [evidence :ref :component]
+   [from-laboratory :ref]
+   [go-term :ref :many :component]
+   [id :string :unique-identity]
+   [ignore :ref :component]
+   [isoform :ref :component]
+   [lincrna :string]
+   [matching-cdna :ref :many :component]
+   [mirna :string]
+   [mrna :enum [:processed-mrna :unprocessed-mrna]]
+   [ncrna :string]
+   [pirna :string]
+   [provisional-description :ref :many :component]
+   [reference :ref :many :component]
+   [remark :ref :many :component]
+   [rnaseq :ref :many :component]
+   [rrna :string]
+   [scrna :string]
+   [snlrna :string]
+   [snorna :string]
+   [snrna :string]
+   [source-exons :ref :many :component]
+   [species :ref]
+   [start-not-found :boolean]
+   [type :string]))
+ (schema transcript.source-exons (fields [max :long] [min :long]))
+ (schema transcript.db-remark (fields [text :string :indexed]))
+ (schema
+  transcript.database
+  (fields [accession :string :indexed] [database :ref] [field :ref]))
+ (schema transcript.matching-cdna (fields [sequence :ref]))
+ (schema transcript.corresponding-cds (fields [cds :ref]))
+ (schema transcript.reference (fields [paper :ref]))
+ (schema transcript.go-term (fields [go-code :ref] [go-term :ref]))
+ (schema
+  transcript.provisional-description
+  (fields [text :string :indexed]))
+ (schema
+  transcript.detailed-description
+  (fields [text :string :indexed]))
+ (schema
+  transcript.concise-description
+  (fields [text :string :indexed]))
+ (schema transcript.rnaseq (fields [fpkm :double] [stage :ref]))
+ (schema transcript.remark (fields [text :string :indexed]))
+ (schema
+  pseudogene
+  (fields
+   [brief-identification :ref :component]
+   [concise-description :ref :many :component]
+   [confidential-remark :string :indexed :many]
+   [corresponding-pcr-product :ref :many]
+   [database :ref :many :component]
+   [db-remark :ref :many :component]
+   [detailed-description :ref :many :component]
+   [evidence :ref :component]
+   [fragment :ref :component]
+   [frameshifts :long]
+   [from-laboratory :ref]
+   [id :string :unique-identity]
+   [isoform :ref :component]
+   [last-reviewed :ref :component]
+   [matching-cdna :ref :many :component]
+   [processed-pseudogene :ref :component]
+   [provisional-description :ref :many :component]
+   [remark :ref :many :component]
+   [rnaseq :ref :many :component]
+   [source-exons :ref :many :component]
+   [species :ref]
+   [transcribed :ref :component]
+   [truncated-3 :ref :component]
+   [truncated-5 :ref :component]
+   [type :ref :component]
+   [unprocessed-pseudogene :ref :component]))
+ (schema pseudogene.source-exons (fields [end :long] [start :long]))
+ (schema pseudogene.db-remark (fields [text :string :indexed]))
+ (schema
+  pseudogene.database
+  (fields [database :ref] [field :ref] [version :string :indexed]))
+ (schema
+  pseudogene.type
+  (fields [type :enum [:coding :rna :transposon]]))
+ (schema pseudogene.matching-cdna (fields [sequence :ref]))
+ (schema
+  pseudogene.brief-identification
+  (fields [text :string :indexed]))
+ (schema
+  pseudogene.provisional-description
+  (fields [text :string :indexed]))
+ (schema
+  pseudogene.detailed-description
+  (fields [text :string :indexed]))
+ (schema
+  pseudogene.concise-description
+  (fields [text :string :indexed]))
+ (schema pseudogene.rnaseq (fields [fpkm :double] [stage :ref]))
+ (schema
+  pseudogene.last-reviewed
+  (fields [datetype :instant] [person :ref]))
+ (schema pseudogene.remark (fields [text :string :indexed]))
+ (schema
+  transposon
+  (fields
+   [copy-status :ref :component]
+   [corresponding-cds :ref :many :component]
+   [corresponding-pseudogene :ref :many :component]
+   [evidence :ref :component]
+   [from-laboratory :ref]
+   [id :string :unique-identity]
+   [ltr-region :ref :many :component]
+   [member-of :ref :many]
+   [old-name :ref :many :component]
+   [remark :ref :many :component]
+   [species :ref]))
+ (schema transposon.ltr-region (fields [end :long] [start :long]))
+ (schema transposon.old-name (fields [text :string :indexed]))
+ (schema
+  transposon.copy-status
+  (fields [status :enum [:full :partial]]))
+ (schema transposon.corresponding-cds (fields [cds :ref]))
+ (schema
+  transposon.corresponding-pseudogene
+  (fields [pseudogene :ref]))
+ (schema transposon.remark (fields [text :string :indexed]))
+ (schema
+  transposon-family
+  (fields
+   [associated-motif :ref :many]
+   [db-annotation :ref :many :component]
+   [description :string :indexed :many]
+   [evidence :ref :component]
+   [id :string :unique-identity]
+   [remark :ref :many :component]
+   [title :string :indexed]))
+ (schema transposon-family.remark (fields [text :string]))
+ (schema
+  transposon-family.db-annotation
+  (fields [database :ref] [longtext :ref]))
+ (schema
+  library
+  (fields
+   [database :ref :many :component]
+   [description :string :indexed :many]
+   [id :string :unique-identity]
+   [life-stage :ref]
+   [species :ref]
+   [strain :ref]
+   [tissue :string :indexed :many]
+   [vector :ref :many]))
+ (schema
+  library.database
+  (fields [accession :string :indexed] [database :ref] [field :ref]))
+ (schema
+  homology-group
+  (fields
+   [cog-code :ref :component]
+   [cog-type :ref :component]
+   [database :ref :many :component]
+   [eggnog-code :ref :component]
+   [eggnog-type :ref :component]
+   [evidence :ref :component]
+   [go-term :ref :many]
+   [id :string :unique-identity]
+   [inparanoid-group :boolean]
+   [orthomcl-group :boolean]
+   [protein :ref :many]
+   [remark :ref :many :component]
+   [title :string :indexed :many]))
+ (schema
+  homology-group.database
+  (fields [accession :string :indexed] [database :ref] [field :ref]))
+ (schema homology-group.remark (fields [text :string :indexed]))
+ (schema
+  cog-codes
+  (fields
+   [code-a :boolean]
+   [code-b :boolean]
+   [code-c :boolean]
+   [code-d :boolean]
+   [code-e :boolean]
+   [code-f :boolean]
+   [code-g :boolean]
+   [code-h :boolean]
+   [code-i :boolean]
+   [code-j :boolean]
+   [code-k :boolean]
+   [code-l :boolean]
+   [code-m :boolean]
+   [code-n :boolean]
+   [code-o :boolean]
+   [code-p :boolean]
+   [code-q :boolean]
+   [code-r :boolean]
+   [code-s :boolean]
+   [code-t :boolean]
+   [code-u :boolean]
+   [code-v :boolean]
+   [code-w :boolean]
+   [code-y :boolean]
+   [code-z :boolean]
+   [id :string :unique-identity]))
+ (schema
+  homology-type
+  (fields
+   [cog :boolean]
+   [eunog :boolean]
+   [fog :boolean]
+   [id :string :unique-identity]
+   [kog :boolean]
+   [lse :boolean]
+   [menog :boolean]
+   [nemnog :boolean]
+   [nog :boolean]
+   [twog :boolean]))
+ (schema
+  feature
+  (fields
+   [associated-with-cds :ref :many :component]
+   [associated-with-feature :ref :many :component]
+   [associated-with-gene :ref :many :component]
+   [associated-with-operon :ref :many :component]
+   [associated-with-position-matrix :ref :many :component]
+   [associated-with-pseudogene :ref :many :component]
+   [associated-with-transcript :ref :many :component]
+   [associated-with-transcription-factor :ref :many :component]
+   [associated-with-transposon :ref :many :component]
+   [associated-with-variation :ref :many :component]
+   [bound-by-product-of :ref :many :component]
+   [confidential-remark :string :indexed :many]
+   [defined-by-analysis :ref :many :component]
+   [defined-by-paper :ref :many :component]
+   [defined-by-person :ref :many]
+   [defined-by-sequence :ref :many :component]
+   [deprecated :ref :many :component]
+   [description :string :indexed :many]
+   [dna-text :string :indexed]
+   [flanking-sequences :ref :component]
+   [id :string :unique-identity]
+   [mapping-target :ref]
+   [merged-into :ref :component]
+   [other-name :string :indexed :many]
+   [public-name :string :indexed]
+   [remark :ref :many :component]
+   [score :ref :many :component]
+   [so-term :ref :many]
+   [source-location :ref :component]
+   [species :ref]
+   [status :ref :component]
+   [strain :ref]))
+ (schema
+  feature.status
+  (fields [status :enum [:dead :live :suppressed]]))
+ (schema
+  feature.flanking-sequences
+  (fields [five-prime :string] [three-prime :string]))
+ (schema
+  feature.source-location
+  (fields [end :long] [sequence :ref] [start :long] [version :long]))
+ (schema feature.merged-into (fields [feature :ref]))
+ (schema feature.deprecated (fields [text :string]))
+ (schema feature.defined-by-sequence (fields [sequence :ref]))
+ (schema feature.defined-by-paper (fields [paper :ref]))
+ (schema
+  feature.defined-by-analysis
+  (fields [analysis :ref] [version :long]))
+ (schema feature.score (fields [float :double] [text :string]))
+ (schema feature.associated-with-gene (fields [gene :ref]))
+ (schema feature.associated-with-cds (fields [cds :ref]))
+ (schema feature.associated-with-transcript (fields [transcript :ref]))
+ (schema feature.associated-with-pseudogene (fields [pseudogene :ref]))
+ (schema feature.associated-with-transposon (fields [transposon :ref]))
+ (schema feature.associated-with-variation (fields [variation :ref]))
+ (schema
+  feature.associated-with-position-matrix
+  (fields [position-matrix :ref]))
+ (schema feature.associated-with-operon (fields [operon :ref]))
+ (schema feature.associated-with-feature (fields [feature :ref]))
+ (schema
+  feature.associated-with-transcription-factor
+  (fields [transcription-factor :ref]))
+ (schema feature.bound-by-product-of (fields [gene :ref]))
+ (schema feature.remark (fields [text :string :indexed]))
+ (schema
+  transcription-factor
+  (fields
+   [associated-with-gene :ref :many :component]
+   [id :string :unique-identity]
+   [name :string]
+   [product-of :ref :many]
+   [remark :ref :many :component]
+   [species :ref]
+   [type :ref :many :component]))
+ (schema
+  transcription-factor.associated-with-gene
+  (fields [gene :ref]))
+ (schema transcription-factor.type (fields [text :string]))
+ (schema transcription-factor.remark (fields [text :string]))
+ (schema position-matrix.description (fields [text :string :indexed]))
+ (schema position-matrix.consensus (fields [text :string]))
+ (schema position-matrix.bound-by-gene-product (fields [gene :ref]))
+ (schema
+  position-matrix.transcription-factor
+  (fields [transcription-factor :ref]))
+ (schema position-matrix.remark (fields [text :string :indexed]))
+ (schema
+  oligo
+  (fields
+   [gc :double]
+   [id :string :unique-identity]
+   [length :long]
+   [pairwise-scores :ref :many :component]
+   [score :double]
+   [sequence :string]
+   [tm :double]))
+ (schema
+  oligo.pairwise-scores
+  (fields [melting-temperature :double] [oligo :ref] [score :double]))
+ (schema
+  genetic-code
+  (fields
+   [base1 :string]
+   [base2 :string]
+   [base3 :string]
+   [id :string :unique-identity]
+   [ncbi-id :long]
+   [other-name :string :indexed :many]
+   [remark :string :indexed :many]
+   [start :string]
+   [stop :string]
+   [translation :string]))
+ (schema
+  protein
+  (fields
+   [brigpep :boolean]
+   [database :ref :many :component]
+   [description :string :indexed]
+   [gene-name :string :indexed :many]
+   [history :ref :many :component]
+   [id :string :unique-identity]
+   [live :boolean]
+   [molecular-weight :ref :many :component]
+   [peptide :ref :component]
+   [remark :ref :many :component]
+   [species :ref]
+   [wormpep :boolean]))
+ (schema
+  protein.peptide
+  (fields [checksum :long] [length :long] [peptide :ref]))
+ (schema
+  protein.database
+  (fields [accession :string :indexed] [database :ref] [field :ref]))
+ (schema protein.molecular-weight (fields [float :double]))
+ (schema
+  protein.history
+  (fields [int :long] [text-b :string] [text-c :string :indexed]))
+ (schema protein.remark (fields [text :string :indexed]))
+ (schema
+  database-field
+  (fields [id :string :unique-identity] [remark :string :many]))
+ (schema
+  motif
+  (fields
+   [cleavage :string]
+   [company :string]
+   [database :ref :many :component]
+   [db-remark :ref :many :component]
+   [db-text :ref :many]
+   [go-term :ref :many :component]
+   [id :string :unique-identity]
+   [isoschizomer :ref :many]
+   [match-sequence :string]
+   [num-mismatch :long]
+   [offset :long]
+   [overhang :long]
+   [redundant :boolean]
+   [remark :ref :many :component]
+   [substrate :enum [:dna :peptide]]
+   [title :string :indexed :many]))
+ (schema motif.remark (fields [text :string :indexed]))
+ (schema
+  motif.database
+  (fields [accession :string :indexed] [database :ref] [field :ref]))
+ (schema motif.db-remark (fields [text :string :indexed]))
+ (schema motif.go-term (fields [go-code :ref] [go-term :ref]))
+ (schema
+  database
+  (fields
+   [description :string]
+   [email :string :many]
+   [id :string :unique-identity]
+   [name :string :indexed]
+   [url :string]
+   [url-constructor :string]))
+ (schema
+  method
+  (fields
+   [align-mapping
+    :enum
+    [:allow-clipping :allow-misalign :map-gaps]
+    :many]
+   [belvu :boolean]
+   [blastn :boolean]
+   [blixem :enum [:blixem-n :blixem-p :blixem-x] :many]
+   [display-gaps :boolean]
+   [embl-dump-info :ref :component]
+   [embl-feature :string]
+   [embl-qualifier :ref :many :component]
+   [embl-threshold :double]
+   [exon-min :long]
+   [frame-sensitive :boolean]
+   [gapped :boolean]
+   [gene-assemble-method :ref :many :component]
+   [gf-3-cutoff :double]
+   [gf-5-cutoff :double]
+   [gf-atg-cutoff :double]
+   [gf-range :long]
+   [gff-feature :string]
+   [gff-so :ref :component]
+   [gff-source :string]
+   [id :string :unique-identity]
+   [inter-gene-cost :double]
+   [intron-cost :ref :component]
+   [intron-min :long]
+   [join-blocks :boolean]
+   [max-mag :double]
+   [min-mag :double]
+   [no-display :boolean]
+   [overlap-mode :enum [:bumpable :cluster :overlap]]
+   [percent :boolean]
+   [remark :ref :many :component]
+   [right-priority :double]
+   [score-bounds :ref :component]
+   [score-by-histogram :double]
+   [score-by-offset :boolean]
+   [score-by-width :boolean]
+   [show-text :boolean]
+   [show-up-strand :ref :component]
+   [symbol :string]
+   [width :double]))
+ (schema method.remark (fields [text :string :indexed]))
+ (schema method.score-bounds (fields [max :double] [min :double]))
+ (schema
+  method.embl-qualifier
+  (fields [text-a :string] [text-b :string]))
+ (schema
+  method.gene-assemble-method
+  (fields [float :double] [method :ref]))
+ (schema
+  method.intron-cost
+  (fields [bp-cost :double] [log-bp-cost :double] [min :long]))
+ (schema method.gff-so (fields [ace2so :ref] [so-term :ref]))
+ (schema
+  reference
+  (fields
+   [description :string :indexed :many]
+   [id :string :unique-identity]
+   [reference :ref :many]
+   [remark :ref :many :component]
+   [species :ref :many]))
+ (schema reference.remark (fields [text :string :indexed]))
+ (schema
+  expr-pattern
+  (fields
+   [anatomy-term :ref :many :component]
+   [antibody :string :indexed :many]
+   [antibody-info :ref :many]
+   [associated-feature :ref :many :component]
+   [author :ref :many]
+   [cis-regulatory-element :string :many]
+   [clone :ref :many]
+   [construct :ref :many]
+   [curated-by :string]
+   [date :instant]
+   [db-info :ref :many :component]
+   [epic :string :indexed :many]
+   [gene :ref :many :component]
+   [genome-editing :string :indexed :many]
+   [go-term :ref :many :component]
+   [historical-gene :ref :many :component]
+   [id :string :unique-identity]
+   [in-situ :string :many]
+   [laboratory :ref :many]
+   [life-stage :ref :many :component]
+   [localizome :string :indexed :many]
+   [microarray :ref :many]
+   [movieurl :string :many]
+   [northern :string :many]
+   [not-in-anatomy-term :ref :many :component]
+   [not-in-go-term :ref :many :component]
+   [not-in-life-stage :ref :many :component]
+   [pattern :string :indexed :many]
+   [protein :ref :many]
+   [protein-description :string :many]
+   [reference :ref :many :component]
+   [reflects-endogenous-expression-of :ref :many]
+   [remark :ref :many :component]
+   [reporter-gene :string :indexed :many]
+   [rnaseq :ref :many]
+   [rt-pcr :string :many]
+   [sequence :ref :many]
+   [species :ref]
+   [strain :ref]
+   [subcellular-localization :string :indexed :many]
+   [tiling-array :ref :many]
+   [transgene :ref :many]
+   [western :string :many]))
+ (schema expr-pattern.gene (fields [gene :ref]))
+ (schema expr-pattern.life-stage (fields [life-stage :ref]))
+ (schema expr-pattern.anatomy-term (fields [anatomy-term :ref]))
+ (schema expr-pattern.go-term (fields [go-term :ref]))
+ (schema expr-pattern.not-in-life-stage (fields [life-stage :ref]))
+ (schema expr-pattern.not-in-anatomy-term (fields [anatomy-term :ref]))
+ (schema expr-pattern.not-in-go-term (fields [go-term :ref]))
+ (schema expr-pattern.remark (fields [text :string :indexed]))
+ (schema
+  expr-pattern.db-info
+  (fields [accession :string] [database :ref] [field :ref]))
+ (schema expr-pattern.reference (fields [paper :ref]))
+ (schema expr-pattern.associated-feature (fields [feature :ref]))
+ (schema
+  expr-pattern.historical-gene
+  (fields [gene :ref] [text :string]))
+ (schema
+  qualifier
+  (fields
+   [anatomy-term :ref :many]
+   [certain :boolean]
+   [id :string :unique-identity]
+   [life-stage :ref :many]
+   [partial :boolean]
+   [remark :string :many]
+   [uncertain :boolean]))
+ (schema
+  expr-profile
+  (fields
+   [expr-map :ref :many]
+   [id :string :unique-identity]
+   [reference :ref :many :component]
+   [remark :ref :many :component]
+   [rnai-result :ref :many]
+   [species :ref]))
+ (schema expr-profile.reference (fields [paper :ref]))
+ (schema expr-profile.remark (fields [text :string :indexed]))
+ (schema
+  sk-map
+  (fields
+   [date :instant]
+   [id :string :unique-identity]
+   [mountain :long]
+   [remark :ref :many :component]
+   [x-coord :double]
+   [y-coord :double]))
+ (schema sk-map.remark (fields [text :string :indexed]))
+ (schema
+  antibody
+  (fields
+   [animal :ref :component]
+   [antibody-for-disease :ref :many :component]
+   [antigen :ref :component]
+   [clonality :enum [:monoclonal :polyclonal]]
+   [gene :ref :many :component]
+   [historical-gene :ref :many :component]
+   [id :string :unique-identity]
+   [location :ref :many]
+   [no-original-reference :boolean]
+   [original-publication :ref]
+   [other-name :string :many]
+   [person :ref :many]
+   [possible-pseudonym-of :ref :many]
+   [reference :ref :many :component]
+   [remark :ref :many :component]
+   [summary :ref :component]))
+ (schema antibody.summary (fields [text :string :indexed]))
+ (schema antibody.gene (fields [gene :ref]))
+ (schema
+  antibody.antigen
+  (fields
+   [text :string]
+   [value :enum [:other-antigen :peptide :protein]]))
+ (schema
+  antibody.animal
+  (fields
+   [text :string]
+   [value
+    :enum
+    [:chicken :goat :guinea-pig :mouse :other-animal :rabbit :rat]]))
+ (schema antibody.historical-gene (fields [gene :ref] [text :string]))
+ (schema antibody.antibody-for-disease (fields [do-term :ref]))
+ (schema antibody.reference (fields [paper :ref]))
+ (schema antibody.remark (fields [text :string :indexed]))
+ (schema
+  picture
+  (fields
+   [acknowledgement-template :string]
+   [anatomy :ref :many]
+   [article-url :ref :component]
+   [cellular-component :ref :many]
+   [contact :ref :many]
+   [cropped-from :ref :many]
+   [description :string :indexed :many]
+   [expr-pattern :ref :many]
+   [gene :ref :many]
+   [id :string :unique-identity]
+   [journal-url :ref]
+   [life-stage :ref :many]
+   [name :string]
+   [person-name :string]
+   [publication-year :string]
+   [publisher-url :ref]
+   [reference :ref :many]
+   [remark :ref :many :component]
+   [species :ref]
+   [wbprocess :ref :many :component]))
+ (schema picture.remark (fields [text :string :indexed]))
+ (schema picture.wbprocess (fields [wbprocess :ref]))
+ (schema
+  picture.article-url
+  (fields [accession :string :indexed] [database :ref] [field :ref]))
+ (schema
+  anatomy-term
+  (fields
+   [ancestor :ref :many]
+   [cell-p :ref :many]
+   [cell-type :string :indexed :many]
+   [contained-in :ref :many]
+   [database :ref :many :component]
+   [definition :ref :component]
+   [desc-in-herm-p :ref :many]
+   [desc-in-male-p :ref :many]
+   [descendent-of-p :ref :many]
+   [develops-from-p :ref :many]
+   [embryo-division-time :string :many]
+   [equivalence-origin :ref :many]
+   [expr-ancestor :ref :many]
+   [expr-descendent :ref :many]
+   [go-ancestor :ref :many]
+   [go-descendent :ref :many]
+   [go-term :ref :many :component]
+   [herm-origin :ref :many]
+   [id :string :unique-identity]
+   [is-a-p :ref :many]
+   [life-stage :ref :many]
+   [lineage-name :string :many]
+   [link-diagram :string :many]
+   [male-origin :ref :many]
+   [neurodata :ref :many :component]
+   [nucleus :ref :many]
+   [parent-term :ref]
+   [part-of-p :ref :many]
+   [program :string :indexed :many]
+   [reconstruction :ref :many :component]
+   [remark :ref :many :component]
+   [synonym :ref :many :component]
+   [term :ref :component]
+   [xunion-of-p :ref :many]))
+ (schema anatomy-term.definition (fields [text :string :indexed]))
+ (schema anatomy-term.term (fields [text :string :indexed]))
+ (schema anatomy-term.synonym (fields [text :string :indexed]))
+ (schema anatomy-term.reconstruction (fields [reconstruction :ref]))
+ (schema anatomy-term.neurodata (fields [anatomy-term :ref]))
+ (schema
+  anatomy-term.database
+  (fields [accession :string :indexed] [database :ref] [field :ref]))
+ (schema anatomy-term.go-term (fields [ao-code :ref] [go-term :ref]))
+ (schema anatomy-term.remark (fields [text :string :indexed]))
+ (schema
+  anatomy-function
+  (fields
+   [assay :ref :many :component]
+   [gene :ref :component]
+   [id :string :unique-identity]
+   [involved :ref :many :component]
+   [not-involved :ref :many :component]
+   [phenotype :ref :component]
+   [reference :ref]
+   [remark :ref :many :component]))
+ (schema
+  anatomy-function.assay
+  (fields [ao-code :ref] [condition :ref]))
+ (schema anatomy-function.phenotype (fields [phenotype :ref]))
+ (schema anatomy-function.gene (fields [gene :ref]))
+ (schema anatomy-function.involved (fields [anatomy-term :ref]))
+ (schema anatomy-function.not-involved (fields [anatomy-term :ref]))
+ (schema anatomy-function.remark (fields [text :string]))
+ (schema
+  anatomy-function-info
+  (fields
+   [autonomous :boolean]
+   [autonomous-remark :string]
+   [id :string :unique-identity]
+   [insufficient :boolean]
+   [necessary :boolean]
+   [necessary-remark :string]
+   [nonautonomous :boolean]
+   [remark :string :many]
+   [sufficient :boolean]
+   [sufficient-remark :string]
+   [unnecessary :boolean]))
+ (schema
+  life-stage
+  (fields
+   [anatomy-term :ref :many]
+   [contained-in :ref :many]
+   [curated-by :string]
+   [definition :ref :component]
+   [id :string :unique-identity]
+   [other-name :string :indexed :many]
+   [preceded-by :ref :many]
+   [public-name :string :indexed]
+   [reference :ref :many :component]
+   [remark :ref :many :component]))
+ (schema life-stage.remark (fields [text :string :indexed]))
+ (schema life-stage.definition (fields [text :string :indexed]))
+ (schema life-stage.reference (fields [paper :ref]))
+ (schema
+  tree
+  (fields
+   [alignment :enum [:bottom :middle :top :unrooted]]
+   [bootstrap-factor :double]
+   [colour :boolean]
+   [description :string :indexed]
+   [descriptive-labels :boolean]
+   [embedded-tree :ref :many]
+   [hide-bootstraps :boolean]
+   [id :string :unique-identity]
+   [no-header :boolean]
+   [normalization :double]
+   [root :ref]
+   [type :enum [:cell-lineage :dna :protein :taxonomy]]))
+ (schema
+  treenode
+  (fields
+   [anatomy-term :ref]
+   [bootstrap :double]
+   [colour :ref :component]
+   [description :string :indexed :many]
+   [distance :double]
+   [embedded-tree :ref :many]
+   [hide :boolean]
+   [hide-bootstraps :boolean]
+   [id :string :unique-identity]
+   [label :string :indexed]
+   [parent :ref]
+   [show-bootstrap :boolean]
+   [taxon :boolean]
+   [tree :ref]
+   [type :enum [:interior :leaf :root]]
+   [xid :long]))
+ (schema
+  transgene
+  (fields
+   [author :ref :many]
+   [coinjection-other :string :indexed :many]
+   [construction-summary :string :indexed :many]
+   [evidence :ref :component]
+   [extrachromosomal :boolean]
+   [id :string :unique-identity]
+   [integrated :boolean]
+   [integrated-from :ref :many]
+   [integration-method :string :indexed]
+   [laboratory :ref :many :component]
+   [map :ref :many :component]
+   [map-evidence :ref :component]
+   [mapping-data :enum [:multi-point] :many]
+   [marker-for :ref :many :component]
+   [phenotype :ref :many :component]
+   [phenotype-not-observed :ref :many :component]
+   [public-name :string :indexed]
+   [reference :ref :many :component]
+   [remark :ref :many :component]
+   [species :ref]
+   [strain :ref :many]
+   [summary :ref :component]
+   [synonym :string :indexed :many]
+   [transgene-for-disease :ref :many :component]))
+ (schema transgene.summary (fields [text :string :indexed]))
+ (schema transgene.laboratory (fields [laboratory :ref]))
+ (schema transgene.map (fields [map :ref]))
+ (schema transgene.phenotype (fields [phenotype :ref]))
+ (schema transgene.phenotype-not-observed (fields [phenotype :ref]))
+ (schema transgene.marker-for (fields [text :string :indexed]))
+ (schema transgene.transgene-for-disease (fields [do-term :ref]))
+ (schema transgene.reference (fields [paper :ref]))
+ (schema transgene.remark (fields [text :string :indexed]))
+ (schema
+  construct
+  (fields
+   [clone :ref :many]
+   [construct-for-disease :ref :many :component]
+   [construction-summary :string :indexed :many]
+   [database :ref :many :component]
+   [dna-text :string :many]
+   [driven-by-gene :ref :many :component]
+   [evidence :ref :component]
+   [fusion-reporter :string :indexed :many]
+   [gene :ref :many :component]
+   [historical-gene :ref :many :component]
+   [id :string :unique-identity]
+   [laboratory :ref :many :component]
+   [other-name :string :indexed :many]
+   [other-reporter :string :indexed :many]
+   [person :ref :many]
+   [public-name :string :indexed :many]
+   [purification-tag :string :indexed :many]
+   [recombinant-site :string :indexed :many]
+   [reference :ref :many]
+   [remark :ref :many :component]
+   [selection-marker :string :indexed :many]
+   [sequence-feature :ref :many]
+   [summary :ref :component]
+   [three-prime-utr :ref :many :component]
+   [transgene-coinjection :ref :many]
+   [transgene-construct :ref :many]
+   [type-of-construct :string :indexed :many]))
+ (schema construct.summary (fields [text :string :indexed]))
+ (schema
+  construct.database
+  (fields [accession :string :indexed] [database :ref] [field :ref]))
+ (schema construct.driven-by-gene (fields [gene :ref]))
+ (schema construct.gene (fields [gene :ref]))
+ (schema construct.three-prime-utr (fields [gene :ref]))
+ (schema construct.construct-for-disease (fields [do-term :ref]))
+ (schema construct.laboratory (fields [laboratory :ref]))
+ (schema construct.historical-gene (fields [gene :ref] [text :string]))
+ (schema construct.remark (fields [text :string :indexed]))
+ (schema
+  rnai
+  (fields
+   [clone :ref :many]
+   [database :ref :many :component]
+   [date :instant]
+   [delivered-by
+    :enum
+    [:bacterial-feeding :injection :soaking :transgene-expression]]
+   [dna-text :ref :many :component]
+   [evidence :ref :component]
+   [gene :ref :many :component]
+   [genotype :string :indexed]
+   [history-name :string :indexed]
+   [id :string :unique-identity]
+   [laboratory :ref :many]
+   [life-stage :ref]
+   [pcr-product :ref :many]
+   [phenotype :ref :many :component]
+   [phenotype-not-observed :ref :many :component]
+   [predicted-gene :ref :many :component]
+   [pseudogene :ref :many :component]
+   [reference :ref :component]
+   [remark :ref :many :component]
+   [sequence :ref :many]
+   [species :ref]
+   [strain :ref]
+   [temperature :long]
+   [transcript :ref :many :component]
+   [treatment :string :indexed]
+   [uniquely-mapped :boolean]))
+ (schema rnai.dna-text (fields [name :string] [sequence :string]))
+ (schema rnai.predicted-gene (fields [cds :ref]))
+ (schema rnai.gene (fields [gene :ref]))
+ (schema rnai.transcript (fields [transcript :ref]))
+ (schema rnai.pseudogene (fields [pseudogene :ref]))
+ (schema
+  rnai.database
+  (fields [accession :string :indexed] [database :ref] [field :ref]))
+ (schema rnai.reference (fields [paper :ref]))
+ (schema rnai.phenotype (fields [phenotype :ref]))
+ (schema rnai.phenotype-not-observed (fields [phenotype :ref]))
+ (schema rnai.remark (fields [text :string :indexed]))
+ (schema
+  phenotype-info
+  (fields
+   [anatomy-term :ref :many :component]
+   [caused-by-gene :ref :many :component]
+   [caused-by-other :ref :many :component]
+   [cold-sensitive :ref :many :component]
+   [complete :ref :many :component]
+   [control-strain :ref :many :component]
+   [curator-confirmed :ref :many]
+   [dominant :ref :component]
+   [ease-of-scoring :ref :component]
+   [genotype :ref :many :component]
+   [go-term :ref :many :component]
+   [haplo-insufficient :ref :component]
+   [heat-sensitive :ref :many :component]
+   [high :ref :many :component]
+   [id :string :unique-identity]
+   [image :ref :many :component]
+   [incomplete :ref :many :component]
+   [life-stage :ref :many :component]
+   [low :ref :many :component]
+   [maternal :ref :component]
+   [molecule :ref :many :component]
+   [molecule-affected :ref :many :component]
+   [paper-evidence :ref :many]
+   [paternal :ref :component]
+   [pathogen :ref :many :component]
+   [person-evidence :ref :many]
+   [quantity :ref :component]
+   [quantity-description :ref :many :component]
+   [range :ref :component]
+   [recessive :ref :component]
+   [remark :ref :many :component]
+   [rescued-by-transgene :ref :many]
+   [semi-dominant :ref :component]
+   [strain :ref :many :component]
+   [temperature :ref :many :component]
+   [treatment :ref :many :component]
+   [variation-effect :ref :many :component]))
+ (schema phenotype-info.remark (fields [text :string :indexed]))
+ (schema
+  phenotype-info.quantity-description
+  (fields [text :string :indexed]))
+ (schema phenotype-info.quantity (fields [int-a :long] [int-b :long]))
+ (schema phenotype-info.image (fields [picture :ref]))
+ (schema phenotype-info.incomplete (fields [text :string]))
+ (schema phenotype-info.low (fields [text :string]))
+ (schema phenotype-info.high (fields [text :string]))
+ (schema phenotype-info.complete (fields [text :string]))
+ (schema phenotype-info.range (fields [int-a :long] [int-b :long]))
+ (schema phenotype-info.caused-by-gene (fields [gene :ref]))
+ (schema
+  phenotype-info.caused-by-other
+  (fields [text :string :indexed]))
+ (schema
+  phenotype-info.variation-effect
+  (fields
+   [value
+    :enum
+    [:antimorph-gain-of-function
+     :dominant-negative-gain-of-function
+     :gain-of-function-undetermined-type
+     :hypermorph-gain-of-function
+     :hypomorph-reduction-of-function
+     :loss-of-function-undetermined-extent
+     :neomorph-gain-of-function
+     :null
+     :predicted-hypomorph-via-sequence
+     :predicted-null-via-sequence
+     :probable-hypomorph-via-phenotype
+     :probable-null-via-phenotype
+     :wild-allele]]))
+ (schema phenotype-info.molecule (fields [molecule :ref]))
+ (schema phenotype-info.pathogen (fields [species :ref]))
+ (schema
+  phenotype-info.anatomy-term
+  (fields [anatomy-term :ref] [pato-term :ref]))
+ (schema
+  phenotype-info.life-stage
+  (fields [life-stage :ref] [pato-term :ref]))
+ (schema
+  phenotype-info.go-term
+  (fields [go-term :ref] [pato-term :ref]))
+ (schema
+  phenotype-info.molecule-affected
+  (fields [molecule :ref] [pato-term :ref]))
+ (schema phenotype-info.heat-sensitive (fields [text :string]))
+ (schema phenotype-info.cold-sensitive (fields [text :string]))
+ (schema
+  phenotype-info.maternal
+  (fields [value :enum [:strictly-maternal :with-maternal-effect]]))
+ (schema phenotype-info.strain (fields [strain :ref]))
+ (schema phenotype-info.control-strain (fields [strain :ref]))
+ (schema phenotype-info.treatment (fields [text :string :indexed]))
+ (schema phenotype-info.temperature (fields [text :string :indexed]))
+ (schema phenotype-info.genotype (fields [text :string :indexed]))
+ (schema
+  phenotype-info.ease-of-scoring
+  (fields
+   [value
+    :enum
+    [:es0-impossible-to-score
+     :es1-very-hard-to-score
+     :es2-difficult-to-score
+     :es3-easy-to-score]]))
+ (schema
+  pcr-product
+  (fields
+   [amplified :long :many]
+   [assay-conditions :ref :many]
+   [clone :ref :many]
+   [from-laboratory :ref]
+   [id :string :unique-identity]
+   [left-mapping-primer :string]
+   [oligo :ref :many :component]
+   [remark :ref :many :component]
+   [right-mapping-primer :string]
+   [species :ref]))
+ (schema
+  pcr-product.oligo
+  (fields [int-b :long] [int-c :long] [oligo :ref]))
+ (schema pcr-product.remark (fields [text :string :indexed]))
+ (schema
+  phenotype
+  (fields
+   [alternate-phenotype :ref :many]
+   [assay :ref :component]
+   [description :ref :component]
+   [do-term :ref :many :component]
+   [go-term :ref :many :component]
+   [id :string :unique-identity]
+   [primary-name :ref :component]
+   [remark :ref :many :component]
+   [replaced-by :ref :many]
+   [replaces :ref :many]
+   [short-name :ref :many :component]
+   [specialisation-of :ref :many]
+   [synonym :ref :many :component]))
+ (schema phenotype.description (fields [text :string :indexed]))
+ (schema phenotype.primary-name (fields [text :string :indexed]))
+ (schema phenotype.synonym (fields [text :string :indexed]))
+ (schema phenotype.short-name (fields [text :string :indexed]))
+ (schema phenotype.assay (fields [text :string :indexed]))
+ (schema phenotype.remark (fields [text :string :indexed]))
+ (schema phenotype.go-term (fields [go-code :ref] [go-term :ref]))
+ (schema phenotype.do-term (fields [do-term :ref]))
+ (schema
+  operon
+  (fields
+   [contains-gene :ref :many :component]
+   [deprecated :ref :many :component]
+   [description :ref :component]
+   [id :string :unique-identity]
+   [merged-into :ref :component]
+   [public-name :string :indexed]
+   [reference :ref :many :component]
+   [remark :ref :many :component]
+   [species :ref]
+   [split-into :ref :many :component]))
+ (schema operon.contains-gene (fields [gene :ref]))
+ (schema operon.reference (fields [paper :ref]))
+ (schema operon.description (fields [text :string :indexed]))
+ (schema operon.merged-into (fields [operon :ref]))
+ (schema operon.split-into (fields [operon :ref]))
+ (schema operon.deprecated (fields [text :string]))
+ (schema operon.remark (fields [text :string]))
+ (schema
+  trans-splice-leader
+  (fields
+   [id :string :unique-identity]
+   [inferred :ref :component]
+   [microarray :ref :component]
+   [sl1 :ref :component]
+   [sl2 :ref :component]))
+ (schema
+  movie
+  (fields
+   [db-info :ref :many :component]
+   [description :string :indexed :many]
+   [expr-pattern :ref :many]
+   [id :string :unique-identity]
+   [public-name :string]
+   [reference :ref :many]
+   [remark :ref :many :component]
+   [rnai :ref :many]
+   [variation :ref :many :component]))
+ (schema
+  movie.db-info
+  (fields [accession :string] [database :ref] [field :ref]))
+ (schema movie.variation (fields [variation :ref]))
+ (schema movie.remark (fields [text :string :indexed]))
+ (schema
+  microarray
+  (fields
+   [chip-info :string :indexed :many]
+   [chip-type :string :indexed]
+   [id :string :unique-identity]
+   [reference :ref :many]
+   [remark :ref :many :component]
+   [url :string :many]))
+ (schema microarray.remark (fields [text :string :indexed]))
+ (schema
+  microarray-results
+  (fields
+   [cds :ref :many :component]
+   [expr-pattern :ref :many]
+   [gene :ref :many :component]
+   [id :string :unique-identity]
+   [max :ref :component]
+   [microarray :ref :many]
+   [min :ref :component]
+   [oligo-set :ref]
+   [pcr-product :ref]
+   [pseudogene :ref :many :component]
+   [remark :ref :many :component]
+   [results :ref :many :component]
+   [species :ref]
+   [transcript :ref :many :component]))
+ (schema microarray-results.gene (fields [gene :ref]))
+ (schema microarray-results.cds (fields [cds :ref]))
+ (schema microarray-results.transcript (fields [transcript :ref]))
+ (schema microarray-results.pseudogene (fields [pseudogene :ref]))
+ (schema
+  microarray-results.results
+  (fields [microarray-experiment :ref]))
+ (schema
+  microarray-results.min
+  (fields [experiment :ref] [value :double]))
+ (schema
+  microarray-results.max
+  (fields [experiment :ref] [value :double]))
+ (schema microarray-results.remark (fields [text :string :indexed]))
+ (schema
+  microarray-data
+  (fields
+   [a-vs-b-log-ratio :double]
+   [a-vs-b-sd :double]
+   [confidence-level :double]
+   [frequency :double]
+   [id :string :unique-identity]
+   [number-of-experiments :long]
+   [p-value :double]
+   [presence :enum [:np :pa :ps]]
+   [range-within-paper :ref :component]
+   [remark :ref :many :component]))
+ (schema
+  microarray-data.range-within-paper
+  (fields [max :double] [min :double]))
+ (schema microarray-data.remark (fields [text :string]))
+ (schema
+  microarray-experiment
+  (fields
+   [id :string :unique-identity]
+   [microarray :ref :many]
+   [microarray-sample :ref]
+   [reference :ref :many]
+   [remark :ref :many :component]
+   [sample-a :ref]
+   [sample-b :ref]
+   [species :ref]))
+ (schema microarray-experiment.remark (fields [text :string]))
+ (schema
+  oligo-set
+  (fields
+   [id :string :unique-identity]
+   [oligo :ref :many]
+   [overlaps-cds :ref :many :component]
+   [overlaps-pseudogene :ref :many :component]
+   [overlaps-transcript :ref :many :component]
+   [remark :ref :many :component]
+   [species :ref]
+   [target-exons :ref :many :component]
+   [type
+    :enum
+    [:affymetrix-microarray-probe
+     :affymetrix-tiling-array-probe
+     :agilent-microarray-probe
+     :washu-gsc-microarray-probe]
+    :many]))
+ (schema oligo-set.target-exons (fields [end :long] [start :long]))
+ (schema oligo-set.overlaps-cds (fields [cds :ref]))
+ (schema oligo-set.overlaps-transcript (fields [transcript :ref]))
+ (schema oligo-set.overlaps-pseudogene (fields [pseudogene :ref]))
+ (schema oligo-set.remark (fields [text :string]))
+ (schema
+  expression-cluster
+  (fields
+   [algorithm :string :many]
+   [anatomy-term :ref :many :component]
+   [based-on-wb-release :long :many]
+   [description :string :indexed :many]
+   [expr-pattern :ref :many :component]
+   [gene :ref :many :component]
+   [go-term :ref :many]
+   [id :string :unique-identity]
+   [life-stage :ref :many]
+   [mass-spectrometry :ref :many]
+   [microarray-experiment :ref :many]
+   [microarray-results :ref :many :component]
+   [qpcr :ref :many]
+   [reference :ref :many :component]
+   [regulated-by-gene :ref :many]
+   [regulated-by-molecule :ref :many]
+   [regulated-by-treatment :string :many]
+   [remark :ref :many :component]
+   [rnaseq :ref :many]
+   [sage-tag :ref :many :component]
+   [species :ref]
+   [tiling-array :ref :many]))
+ (schema expression-cluster.reference (fields [paper :ref]))
+ (schema
+  expression-cluster.microarray-results
+  (fields [microarray-results :ref] [text :string]))
+ (schema
+  expression-cluster.sage-tag
+  (fields [sage-tag :ref] [text :string]))
+ (schema expression-cluster.gene (fields [gene :ref] [text :string]))
+ (schema expression-cluster.expr-pattern (fields [expr-pattern :ref]))
+ (schema expression-cluster.anatomy-term (fields [anatomy-term :ref]))
+ (schema expression-cluster.remark (fields [text :string :indexed]))
+ (schema
+  expression-cluster-info
+  (fields
+   [depleted :boolean]
+   [dissection :boolean]
+   [enriched :boolean]
+   [expressed :boolean]
+   [facs :boolean]
+   [id :string :unique-identity]
+   [mrna-tagging :boolean]))
+ (schema
+  sage-tag
+  (fields
+   [anchoring-enzyme :ref]
+   [evidence :ref :component]
+   [gene :ref :many :component]
+   [id :string :unique-identity]
+   [most-three-prime :boolean]
+   [predicted-cds :ref :many :component]
+   [pseudogene :ref :many :component]
+   [remark :ref :many :component]
+   [results :ref :many :component]
+   [tag-length :long]
+   [tag-sequence :string]
+   [transcript :ref :many :component]
+   [unambiguously-mapped :boolean]))
+ (schema sage-tag.predicted-cds (fields [cds :ref]))
+ (schema sage-tag.gene (fields [gene :ref]))
+ (schema sage-tag.transcript (fields [transcript :ref]))
+ (schema sage-tag.pseudogene (fields [pseudogene :ref]))
+ (schema sage-tag.results (fields [sage-experiment :ref]))
+ (schema sage-tag.remark (fields [text :string :indexed]))
+ (schema
+  sage-mapping-info
+  (fields
+   [id :string :unique-identity]
+   [most-three-prime :boolean]
+   [position :long]
+   [strand :enum [:antisense :sense]]
+   [transcript-source :string :indexed]
+   [unambiguously-mapped :boolean]))
+ (schema
+  sage-data
+  (fields
+   [confidence-level :double]
+   [frequency :long]
+   [id :string :unique-identity]
+   [number-of-experiments :long]
+   [relative-abundance :double]
+   [sequence-quality :double]
+   [significance :double]
+   [standard-deviation :double]
+   [total-tag-count :long]))
+ (schema
+  sage-experiment
+  (fields
+   [id :string :unique-identity]
+   [reference :ref :many]
+   [remark :ref :many :component]
+   [sample :ref]
+   [species :ref]))
+ (schema sage-experiment.remark (fields [text :string :indexed]))
+ (schema
+  person
+  (fields
+   [address :ref :component]
+   [affiliation :string :many]
+   [also-known-as :string :indexed :many]
+   [comment :string :many]
+   [database :ref :many :component]
+   [first-name :string :indexed]
+   [full-name :string :indexed]
+   [id :string :unique-identity]
+   [last-attempt-to-contact :ref :component]
+   [last-name :string :indexed]
+   [last-verified :instant]
+   [left-the-field :string :many]
+   [merged-into :ref]
+   [middle-name :string :indexed :many]
+   [old-address :ref :many :component]
+   [possibly-publishes-as :ref :many]
+   [postgresql-id :string]
+   [principal-investigator :boolean]
+   [publishes-as :ref :many]
+   [standard-name :string :indexed]
+   [status :enum [:invalid :valid] :many]
+   [supervised-by :ref :many :component]
+   [worked-with :ref :many :component]))
+ (schema
+  person.database
+  (fields [accession :string :indexed] [database :ref] [field :ref]))
+ (schema
+  person.last-attempt-to-contact
+  (fields [date :instant] [note :string]))
+ (schema person.old-address (fields [datetype :instant]))
+ (schema person.supervised-by (fields [person :ref]))
+ (schema person.worked-with (fields [person :ref]))
+ (schema
+  address
+  (fields
+   [country :string]
+   [email :string :many]
+   [fax :string :many]
+   [id :string :unique-identity]
+   [institution :string :many]
+   [lab-phone :string :many]
+   [main-phone :string :many]
+   [office-phone :string :many]
+   [other-phone :string :many]
+   [street-address :ref :many :component]
+   [web-page :string :many]))
+ (schema address.street-address (fields [text :string]))
+ (schema
+  role
+  (fields
+   [assistant-professor :ref :many :component]
+   [coauthor :ref :many :component]
+   [collaborated :ref :many :component]
+   [highschool :ref :many :component]
+   [id :string :unique-identity]
+   [lab-visitor :ref :many :component]
+   [masters :ref :many :component]
+   [phd :ref :many :component]
+   [postdoc :ref :many :component]
+   [research-staff :ref :many :component]
+   [sabbatical :ref :many :component]
+   [undergrad :ref :many :component]
+   [unknown :ref :many :component]))
+ (schema
+  role.assistant-professor
+  (fields [from :instant] [to :instant]))
+ (schema role.phd (fields [from :instant] [to :instant]))
+ (schema role.postdoc (fields [from :instant] [to :instant]))
+ (schema role.masters (fields [from :instant] [to :instant]))
+ (schema role.undergrad (fields [from :instant] [to :instant]))
+ (schema role.highschool (fields [from :instant] [to :instant]))
+ (schema role.sabbatical (fields [from :instant] [to :instant]))
+ (schema role.lab-visitor (fields [from :instant] [to :instant]))
+ (schema role.collaborated (fields [from :instant] [to :instant]))
+ (schema role.research-staff (fields [from :instant] [to :instant]))
+ (schema role.coauthor (fields [from :instant] [to :instant]))
+ (schema role.unknown (fields [from :instant] [to :instant]))
+ (schema
+  author
+  (fields
+   [also-known-as :string :many]
+   [e-mail :string :many]
+   [fax :string :many]
+   [full-name :string :many]
+   [id :string :unique-identity]
+   [keyword :ref :many]
+   [mail :string :many]
+   [old-lab :ref :many]
+   [paper :ref :many]
+   [phone :string :many]))
+ (schema
+  paper
+  (fields
+   [abstract :ref :many]
+   [affiliation :string :many]
+   [author :ref :many :component]
+   [brief-citation :string]
+   [contained-in :ref :many]
+   [curation-pipeline :enum [:phenotype2go] :many]
+   [database :ref :many :component]
+   [editor :string :indexed :many]
+   [erratum-for :ref :many]
+   [go-term :ref :many]
+   [id :string :unique-identity]
+   [journal :string :indexed]
+   [keyword :string :indexed :many]
+   [merged-into :ref]
+   [name :string :indexed :many]
+   [not-person :ref :many :component]
+   [page :string]
+   [person :ref :many :component]
+   [publication-date :string :indexed]
+   [publisher :string]
+   [remark :ref :many :component]
+   [species :ref :many :component]
+   [status :enum [:invalid :valid] :many]
+   [title :string :indexed]
+   [type :ref :many :component]
+   [url :string :many]
+   [volume :string]))
+ (schema
+  paper.database
+  (fields [accession :string :indexed] [database :ref] [field :ref]))
+ (schema paper.author (fields [author :ref]))
+ (schema paper.person (fields [person :ref]))
+ (schema paper.not-person (fields [person :ref]))
+ (schema
+  paper.type
+  (fields
+   [type
+    :enum
+    [:biography
+     :book
+     :book-chapter
+     :comment
+     :congresses
+     :editorial
+     :email
+     :gazette-article
+     :historical-article
+     :interactive-tutorial
+     :interview
+     :journal-article
+     :lectures
+     :letter
+     :meeting-abstract
+     :method
+     :micropublication
+     :monograph
+     :news
+     :other
+     :published-erratum
+     :retracted-publication
+     :retraction-of-publication
+     :review
+     :technical-report
+     :wormbook]]))
+ (schema paper.species (fields [species :ref]))
+ (schema paper.remark (fields [text :string :indexed]))
+ (schema
+  affiliation
+  (fields
+   [affiliation-address :string]
+   [id :string :unique-identity]
+   [person :ref :many]))
+ (schema
+  laboratory
+  (fields
+   [allele-designation :string]
+   [alleles :ref :many]
+   [clean-address :ref :component]
+   [e-mail :string :many]
+   [fax :string :many]
+   [id :string :unique-identity]
+   [mail :string :many]
+   [past-lab-members :ref :many]
+   [phone :string :many]
+   [registered-lab-members :ref :many]
+   [remark :ref :many :component]
+   [representative :ref :many]
+   [strain-designation :string]
+   [url :string :many]))
+ (schema laboratory.remark (fields [text :string :indexed]))
+ (schema
+  gr-condition
+  (fields
+   [anatomy-term :ref :many]
+   [id :string :unique-identity]
+   [life-stage :ref :many]
+   [subcellular-localization :string :indexed :many]))
+ (schema
+  variation
+  (fields
+   [allele :boolean]
+   [analysis :ref :many]
+   [author :ref :many]
+   [cgh-deleted-probes :ref :component]
+   [cgh-flanking-probes :ref :component]
+   [confirmed-snp :boolean]
+   [corresponding-transgene :ref]
+   [database :ref :many :component]
+   [date :instant :many]
+   [deletion :ref :component]
+   [deletion-verification :ref :many :component]
+   [derived-from-construct :ref :many]
+   [derived-from-variation :ref :many]
+   [detection-method :string :many]
+   [engineered-allele :boolean]
+   [evidence :ref :component]
+   [expr-pattern :ref :many :component]
+   [flanking-sequences :ref :component]
+   [forward-genetics :ref :many :component]
+   [gene :ref :many :component]
+   [gene-class :ref :many]
+   [hermaphrodite-mating-efficiency :ref :component]
+   [id :string :unique-identity]
+   [insertion :ref :component]
+   [interpolated-map-position :ref :component]
+   [ko-consortium-allele :boolean]
+   [laboratory :ref :many]
+   [linked-to :ref :many]
+   [male-mating-efficiency :ref :component]
+   [map :ref :many :component]
+   [mapping-target :ref]
+   [merged-into :ref]
+   [mutagen :ref :component]
+   [natural-variant :boolean]
+   [nature-of-variation :enum [:polymorphic :synthetic]]
+   [nbp-allele :boolean]
+   [nemagenetag-consortium-allele :boolean]
+   [other-name :string :indexed :many]
+   [pcr-product :ref :many]
+   [person :ref :many]
+   [phenotype :ref :many :component]
+   [phenotype-not-observed :ref :many :component]
+   [phenotype-remark :ref :many :component]
+   [polymorphic-strain-digest :ref :many :component]
+   [possibly-affects :ref :many :component]
+   [predicted-cds :ref :many :component]
+   [predicted-snp :boolean]
+   [production-method
+    :enum
+    [:crispr-cas9
+     :homologous-recombination
+     :mosdel
+     :mossci
+     :nhej
+     :talens
+     :zfnhr-repair
+     :zfnnhej-repair]
+    :many]
+   [pseudogene :ref :many :component]
+   [public-name :string :indexed]
+   [reference :ref :many :component]
+   [reference-strain-digest :ref :many :component]
+   [remark :ref :many :component]
+   [reverse-genetics :ref :many :component]
+   [seqstatus :enum [:not-sequenced :pending-curation :sequenced]]
+   [snp :boolean]
+   [source-location :ref :component]
+   [species :ref]
+   [split-into :ref :many]
+   [status :ref :component]
+   [strain :ref :many :component]
+   [substitution :ref :component]
+   [tandem-duplication :ref :component]
+   [transcript :ref :many :component]
+   [transposon-excision :ref :many]
+   [transposon-insertion :ref :many]))
+ (schema
+  variation.flanking-sequences
+  (fields [five-prime :string] [three-prime :string]))
+ (schema
+  variation.source-location
+  (fields [end :long] [sequence :ref] [start :long] [version :long]))
+ (schema
+  variation.cgh-deleted-probes
+  (fields [text-a :string] [text-b :string]))
+ (schema
+  variation.cgh-flanking-probes
+  (fields [text-a :string] [text-b :string]))
+ (schema variation.substitution (fields [alt :string] [ref :string]))
+ (schema variation.insertion (fields [text :string]))
+ (schema variation.deletion (fields [text :string]))
+ (schema variation.deletion-verification (fields [text :string]))
+ (schema
+  variation.reference-strain-digest
+  (fields [band-size :string] [enzyme :string] [site :string]))
+ (schema
+  variation.polymorphic-strain-digest
+  (fields [band-size :string] [enzyme :string] [site :string]))
+ (schema variation.strain (fields [strain :ref]))
+ (schema variation.expr-pattern (fields [expr-pattern :ref]))
+ (schema
+  variation.database
+  (fields [accession :string :indexed] [database :ref] [field :ref]))
+ (schema
+  variation.status
+  (fields [value :enum [:dead :live :suppressed]]))
+ (schema variation.gene (fields [gene :ref]))
+ (schema variation.predicted-cds (fields [cds :ref]))
+ (schema variation.transcript (fields [transcript :ref]))
+ (schema variation.pseudogene (fields [pseudogene :ref]))
+ (schema variation.possibly-affects (fields [gene :ref]))
+ (schema variation.mutagen (fields [text :string]))
+ (schema variation.forward-genetics (fields [text :string]))
+ (schema variation.reverse-genetics (fields [text :string]))
+ (schema
+  variation.male-mating-efficiency
+  (fields
+   [value
+    :enum
+    [:me0-mating-not-successful
+     :me1-mating-rarely-successful
+     :me2-mating-usually-successful
+     :me3-mating-always-successful]]))
+ (schema
+  variation.hermaphrodite-mating-efficiency
+  (fields
+   [value
+    :enum
+    [:hme0-mating-not-successful
+     :hme1-mating-rarely-successful
+     :hme2-mating-usually-successful
+     :hme3-mating-always-successful]]))
+ (schema variation.map (fields [map :ref]))
+ (schema
+  variation.interpolated-map-position
+  (fields [map :ref] [position :double]))
+ (schema variation.phenotype (fields [phenotype :ref]))
+ (schema variation.phenotype-remark (fields [text :string :indexed]))
+ (schema variation.phenotype-not-observed (fields [phenotype :ref]))
+ (schema variation.reference (fields [paper :ref]))
+ (schema variation.remark (fields [text :string :indexed]))
+ (schema
+  molecular-change
+  (fields
+   [coding-exon :ref :component]
+   [five-prime-utr :ref :component]
+   [frameshift :ref :many :component]
+   [genomic-neighbourhood :ref :component]
+   [id :string :unique-identity]
+   [intron :ref :component]
+   [missense :ref :many :component]
+   [noncoding-exon :ref :component]
+   [nonsense :ref :component]
+   [promoter :ref :component]
+   [readthrough :ref :many :component]
+   [regulatory-feature :ref :component]
+   [silent :ref :many :component]
+   [splice-site :ref :component]
+   [three-prime-utr :ref :component]))
+ (schema molecular-change.missense (fields [int :long] [text :string]))
+ (schema molecular-change.silent (fields [text :string]))
+ (schema
+  molecular-change.nonsense
+  (fields
+   [text :string]
+   [value
+    :enum
+    [:amber-uag
+     :amber-uag-or-ochre-uaa
+     :amber-uag-or-opal-uga
+     :ochre-uaa
+     :ochre-uaa-or-opal-uga
+     :opal-uga]]))
+ (schema
+  molecular-change.splice-site
+  (fields [text :string] [value :enum [:acceptor :donor]]))
+ (schema molecular-change.frameshift (fields [text :string]))
+ (schema molecular-change.readthrough (fields [text :string]))
+ (schema
+  structure-data
+  (fields
+   [cloned :instant]
+   [crystal-structure :instant]
+   [crystallized :instant]
+   [database :ref :many :component]
+   [diffraction :instant]
+   [diffraction-quality-crystals :instant]
+   [evidence :ref :component]
+   [expressed :instant]
+   [hsqc :instant]
+   [id :string :unique-identity]
+   [in-bmrb :instant]
+   [in-pdb :instant]
+   [native-diffraction-data :instant]
+   [nmr-assigned :instant]
+   [nmr-structure :instant]
+   [other :instant]
+   [phasing-diffraction-data :instant]
+   [protein :ref]
+   [purified :instant]
+   [remark :ref :many :component]
+   [selected :instant]
+   [soluble :instant]
+   [status-updated :instant]
+   [test-target :instant]
+   [work-stopped :instant]
+   [wormpep-release :long]))
+ (schema
+  structure-data.database
+  (fields [accession :string :indexed] [database :ref] [field :ref]))
+ (schema structure-data.remark (fields [text :string :indexed]))
+ (schema
+  mass-spec-experiment
+  (fields
+   [anatomy-term :ref :many]
+   [author :ref :many]
+   [database :string :many]
+   [digestion :enum [:red-alk :trypsin]]
+   [false-discovery-rate :double]
+   [genotype :string :indexed :many]
+   [id :string :unique-identity]
+   [instrumentation :enum [:ft :iontrap :qtof]]
+   [ionisation-source :enum [:esi :maldi]]
+   [laboratory :ref :many]
+   [life-stage :ref :many]
+   [minimum-ion-proportion :double]
+   [minimum-peptide-length :long]
+   [multiple-ambiguous-ids-allowed :boolean]
+   [person :ref :many]
+   [program :string :many]
+   [reference :ref :many]
+   [remark :ref :many :component]
+   [species :ref]
+   [strain :ref]
+   [sub-cellular-localization :string :many]))
+ (schema mass-spec-experiment.remark (fields [text :string]))
+ (schema
+  mass-spec-peptide
+  (fields
+   [id :string :unique-identity]
+   [mass-spec-experiments :ref :many :component]
+   [peptide :string]
+   [petide-is-natural :boolean]
+   [protein-seq :ref]))
+ (schema
+  mass-spec-peptide.mass-spec-experiments
+  (fields [mass-spec-experiment :ref]))
+ (schema
+  mass-spec-data
+  (fields
+   [charge-state :long]
+   [deltacn :double]
+   [id :string :unique-identity]
+   [matches-database-uniquely :boolean]
+   [peptide-probability :double]
+   [protein :ref :many]
+   [protein-probability :double]
+   [sp-rank :long]
+   [sp-score :double]
+   [xcorr :double]))
+ (schema
+  analysis
+  (fields
+   [based-on-db-release :string :many]
+   [based-on-wb-release :long :many]
+   [concentration :string :indexed :many]
+   [conducted-by :ref :many]
+   [database :ref :many :component]
+   [description :string :indexed :many]
+   [id :string :unique-identity]
+   [independent-variable
+    :enum
+    [:exposure-time
+     :food
+     :genotype
+     :life-stage
+     :preparation
+     :sex
+     :species
+     :strain
+     :temperature
+     :tissue
+     :treatment]
+    :many]
+   [molecule :ref :many]
+   [project :ref :many]
+   [reference :ref :many]
+   [sample :ref :many]
+   [species-in-analysis :ref :many]
+   [title :string :many]
+   [url :string :many]))
+ (schema
+  analysis.database
+  (fields [accession :string :indexed] [database :ref] [field :ref]))
+ (schema
+  condition
+  (fields
+   [contained-in :ref :many]
+   [detection-method :ref :many :component]
+   [exposure-time :string :many]
+   [extraction-method :ref :many :component]
+   [follows :ref :many]
+   [food :string :many]
+   [genotype :string :indexed :many]
+   [id :string :unique-identity]
+   [life-stage :ref :many]
+   [other :string :indexed :many]
+   [preparation :string :indexed :many]
+   [reference :ref :many]
+   [remark :ref :many :component]
+   [sex :enum [:female :hermaphrodite :male :unknown]]
+   [species :ref]
+   [strain :ref :many]
+   [temperature :double :many]
+   [tissue :ref :many]
+   [treatment :string :indexed :many]))
+ (schema condition.detection-method (fields [text :string :indexed]))
+ (schema condition.extraction-method (fields [text :string :indexed]))
+ (schema condition.remark (fields [text :string :indexed]))
+ (schema
+  molecule
+  (fields
+   [affects-phenotype-of-rearrangement :ref :many :component]
+   [affects-phenotype-of-rnai :ref :many :component]
+   [affects-phenotype-of-strain :ref :many :component]
+   [affects-phenotype-of-transgene :ref :many :component]
+   [affects-phenotype-of-variation :ref :many :component]
+   [analysis :ref :many]
+   [biofunction-role :ref :many :component]
+   [chemical-synthesis :ref :component]
+   [database :ref :many :component]
+   [detection-method :ref :many :component]
+   [endogenous-in :ref :many :component]
+   [essential-for :ref :many :component]
+   [extraction-method :ref :many :component]
+   [formula :string :indexed :many]
+   [id :string :unique-identity]
+   [inchi :string :indexed :many]
+   [inchikey :string :indexed :many]
+   [iupac :string :indexed :many]
+   [monoisotopic-mass :double :many]
+   [nonspecies-source :string :indexed :many]
+   [public-name :string :indexed :many]
+   [reference :ref :many]
+   [remark :ref :many :component]
+   [smiles :string :indexed :many]
+   [status :ref :many :component]
+   [synonym :string :indexed :many]
+   [use :ref :many :component]))
+ (schema
+  molecule.database
+  (fields [accession :string :indexed] [database :ref] [field :ref]))
+ (schema molecule.status (fields [value :enum [:detected :predicted]]))
+ (schema molecule.detection-method (fields [text :string :indexed]))
+ (schema molecule.extraction-method (fields [text :string :indexed]))
+ (schema molecule.endogenous-in (fields [species :ref]))
+ (schema
+  molecule.biofunction-role
+  (fields
+   [value
+    :enum
+    [:activator
+     :cofactor
+     :inhibitor
+     :ligand
+     :metabolite
+     :product
+     :receptor
+     :regulator
+     :structural-component
+     :substrate]]))
+ (schema molecule.essential-for (fields [species :ref]))
+ (schema
+  molecule.affects-phenotype-of-variation
+  (fields [phenotype :ref] [variation :ref]))
+ (schema
+  molecule.affects-phenotype-of-strain
+  (fields [phenotype :ref] [strain :ref]))
+ (schema
+  molecule.affects-phenotype-of-transgene
+  (fields [phenotype :ref] [transgene :ref]))
+ (schema
+  molecule.affects-phenotype-of-rnai
+  (fields [phenotype :ref] [rnai :ref]))
+ (schema
+  molecule.affects-phenotype-of-rearrangement
+  (fields [phenotype :ref] [rearrangement :ref]))
+ (schema molecule.use (fields [text :string :indexed]))
+ (schema molecule.remark (fields [text :string :indexed]))
+ (schema
+  wbprocess
+  (fields
+   [anatomy-term :ref :many :component]
+   [database :ref :many :component]
+   [do-term :ref :many :component]
+   [expression-cluster :ref :many :component]
+   [gene :ref :many :component]
+   [gene-cluster :ref :many :component]
+   [go-term :ref :many :component]
+   [historical-gene :ref :many :component]
+   [id :string :unique-identity]
+   [interaction :ref :many :component]
+   [life-stage :ref :many :component]
+   [marker-construct :ref :many]
+   [molecule :ref :many :component]
+   [movie :ref :many :component]
+   [ncbi-taxonomy :string :indexed :many]
+   [other-name :string :indexed :many]
+   [phenotype :ref :many :component]
+   [public-name :string :indexed]
+   [reference :ref :many]
+   [remark :ref :many :component]
+   [specialisation-of :ref :many]
+   [summary :ref :component]))
+ (schema wbprocess.summary (fields [text :string :indexed]))
+ (schema wbprocess.gene (fields [gene :ref]))
+ (schema
+  wbprocess.expression-cluster
+  (fields [expression-cluster :ref]))
+ (schema wbprocess.interaction (fields [interaction :ref]))
+ (schema wbprocess.anatomy-term (fields [anatomy-term :ref]))
+ (schema wbprocess.life-stage (fields [life-stage :ref]))
+ (schema wbprocess.molecule (fields [molecule :ref]))
+ (schema wbprocess.gene-cluster (fields [gene-cluster :ref]))
+ (schema wbprocess.phenotype (fields [phenotype :ref]))
+ (schema wbprocess.go-term (fields [go-term :ref]))
+ (schema wbprocess.do-term (fields [do-term :ref]))
+ (schema wbprocess.movie (fields [movie :ref]))
+ (schema
+  wbprocess.database
+  (fields [accession :string :indexed] [database :ref] [field :ref]))
+ (schema wbprocess.remark (fields [text :string :indexed]))
+ (schema wbprocess.historical-gene (fields [gene :ref] [text :string]))
+ (schema homol-data (fields [id :string :unique-identity]))
+ (schema feature-data (fields [id :string :unique-identity]))
+ (schema
+  keyword
+  (fields [id :string :unique-identity "Built-in ?Keyword type."]))]
