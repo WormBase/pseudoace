@@ -1,7 +1,7 @@
 (ns pseudoace.aceparser
   "Parsing routines for ACeDB 'dump' files."
   (:require
-   [clojure.java.io :refer (reader)]
+   [clojure.java.io :refer [reader]]
    [clojure.string :as str]))
 
 (defrecord AceReader [reader]
