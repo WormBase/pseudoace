@@ -2,7 +2,7 @@
   (:require
    [clj-time.coerce :refer [from-date to-date]]
    [clojure.instant :refer [read-instant-date]]
-   [clojure.java.io :refer [file reader writer]]
+   [clojure.java.io :as io]
    [clojure.string :as str]
    [datomic.api :as d]
    [pseudoace.aceparser :as ace]
@@ -818,9 +818,11 @@
          datoms))
        :done))
 
-(defn- txmeta [stamp]
+(defn- txmeta [stamp default-time]
   (let [[_ ds ts name] (re-matches timestamp-pattern stamp)
-        time           (if ds (read-instant-date (str ds "T" ts)))]
+        time           (if ds
+                         (read-instant-date (str ds "T" ts))
+                         default-time)]
     (vmap
      :db/id (d/tempid :db.part/tx)
      :importer/ts-name name
@@ -838,12 +840,11 @@
 (defn logs-to-dir
   [logs dir]
   (doseq [[stamp logs] (clean-log-keys logs)
-          :let  [[_ date time name]
-                 (re-matches timestamp-pattern stamp)]]
-    (with-open [w (-> (file dir (str (or date stamp) ".edn.gz"))
+          :let [[_ date time name] (re-matches timestamp-pattern stamp)]]
+    (with-open [w (-> (io/file dir (str (or date stamp) ".edn.gz"))
                       (FileOutputStream. true)
                       (GZIPOutputStream.)
-                      (writer))]
+                      (io/writer))]
       (binding [*out* w]
         (doseq [l logs]
           (println stamp (pr-str l)))))))
@@ -895,14 +896,14 @@
 
 (defn play-logfile
   [con logfile max-count max-text]
-   (with-open [r (reader logfile)]
+   (with-open [r (io/reader logfile)]
      (doseq [rblk (partition-log max-count max-text (logfile-seq r))]
        (doseq [sblk (partition-by first rblk)]
          (let [stamp (ffirst sblk)
                blk (map second sblk)
                db (d/db con)
                fdatoms (filter (fn [[_ _ _ v]] (not (map? v))) blk)
-               tx-meta (txmeta stamp)
+               tx-meta (txmeta stamp nil)
                datoms (fixup-datoms db fdatoms)
                ms->s #(/ 1000 %)
                imp-tx-secs (ms->s (-> tx-meta :db/txInstant (.getTime)))

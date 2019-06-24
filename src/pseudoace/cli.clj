@@ -2,6 +2,7 @@
   (:require
    [clj-time.core :as ct]
    [clj-time.coerce :refer [to-date]]
+   [clj-time.format :as tf]
    [clojure.java.io :as io]
    [clojure.pprint :as pp :refer [pprint]]
    [clojure.set :refer [difference]]
