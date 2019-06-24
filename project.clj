@@ -16,9 +16,11 @@
   :javac-options ["-target" "1.8" "-source" "1.8"]
   :jvm-opts
   [
+   "-XX:-OmitStackTraceInFastThrow"
    ;; Uncomment to prevent missing trace (HotSpot optimisation)
    ;; "-XX:-OmitStackTraceInFastThrow"
-   "-XX:+UseG1GC" "-XX:MaxGCPauseMillis=50"
+   "-XX:+UseG1GC"
+   "-XX:MaxGCPauseMillis=50"
    ;; should minimize long pauses.
    "-Ddatomic.objectCacheMax=2500000000"
    "-Ddatomic.txTimeoutMsec=1000000"]
