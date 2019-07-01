@@ -160,9 +160,9 @@
 (defn ace-seq
   "Return a sequence of objects from a .ace file."
   ([ace]
-     (ace-seq ace false))
+   (ace-seq ace false))
   ([ace keep-comments?]
-     (aceobj-seq (ace-line-seq (:reader ace)) keep-comments?)))
+   (aceobj-seq (ace-line-seq (:reader ace)) keep-comments?)))
 
 (defn- pmatch
   "Test whether `path` is a prefix of `line`."
