@@ -184,7 +184,7 @@
         nss (:pace/use-ns ti)
         ordered? (get nss "ordered")
         hashes (for [ns nss]
-                 (d/entity (:db imp) (keyword ns "id")))] ; performance?
+                 (d/entity (:db imp) (keyword ns "id")))]
     (reduce
      (fn [log [index lines]]
        (if (and (pos? index) single?)
