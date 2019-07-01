@@ -492,13 +492,13 @@
 (def cli-action-metas (map meta cli-actions))
 
 (def cli-action-map (zipmap
-                     (map (comp str :name) cli-action-metas)
+                     (map #(str (:name %)) cli-action-metas)
                      cli-actions))
 
 (def cli-doc-map (into
                   {}
                   (for [m cli-action-metas]
-                    {((comp str :name) m) (:doc m)})))
+                    {(#(str (:name %)) m) (:doc m)})))
 
 (def ^:private space-join (partial str/join "  "))
 
