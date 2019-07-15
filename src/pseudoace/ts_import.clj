@@ -171,8 +171,6 @@
 
 (defn- log-components
   [[_ _ part :as this] current-db current ti imp values]
-  ;; TODO
-  ;; #dbg ^{:break/when (= (:gene/id this) "WBGene00000312")}
   (let [single? (not= (:db/cardinality ti) :db.cardinality/many)
         current ((:db/ident ti) current)
         current (or (and current single? [current])
@@ -268,19 +266,6 @@
      {}
      (indexed
       (partition-by (partial take (count concs)) values)))))
-
-;; (defn log-components
-;;   [[_ _ part :as this] current-db current ti imp values]
-;;   (try
-;;     (log-components* this current-db current ti imp values)
-;;     (catch Exception ex
-;;       (throw (ex-info "Failed to log components"
-;;                       {:this this
-;;                        :current current
-;;                        :orig-exc-type (.getClass ex)
-;;                        :ti ti
-;;                        :values values})))))
-
 
 (defn- find-keys
   "Helper to group `lines` according to a set of tags.  `tags` should be a
@@ -726,52 +711,18 @@
      (log-coreprops obj this imp)
      (log-custom obj this imp)))))
 
-;; TBD: probably no longer required.
-;;
-;; (defn resolve-merge-conflicts
-;;   "Resolves conflicts in merged logs.
-
-;;   Merged logs may contain conflicting add/retract statements when
-;;   parsed naively from ACe data.
-;;   Resolve by preferring adds over deletes when the first 3 elements of
-;;   the deduced datom match."
-;;   [merged-logs]
-;;   (let [action-match? (fn [action fact]
-;;                            (= action (first fact)))
-;;         eav-to-act (fn [action]
-;;                       (->> merged-logs
-;;                            (filter #(action-match? action %))
-;;                            (map (fn [fact]
-;;                                   [(rest fact) (first fact)]))
-;;                            (into {})))
-;;         dels (eav-to-act :db/retract)
-;;         adds (eav-to-act :db/add)]
-;;     (map (fn [[eav op]]
-;;            (vec (conj eav op)))
-;;          (merge dels adds))))
-
-
-(defn patch->log* [imp db {:keys [id] :as obj}]
+(defn patch->log [imp db {:keys [id] :as obj}]
   (let [ci ((:classes imp) (:class obj))
         this (if ci  ;; No partition hint, so we can use this as a plain lookup ref.
                [(:db/ident ci) (:id obj)])]
-
     (if-let [orig (d/entity db this)]
       (cond
        (:delete obj)
        {"patch"
         [[:db.fn/retractEntity this]]}
-
        (:rename obj)
-       (let [txes [[:db/retract (:db/ident ci) (second this)]
-                   [:db/add (:db/ident ci) (:rename obj)]]]
-         (println "TXES:")
-         (prn txes)
-         {"patch" txes})
-
+       [[:db/add this (:db/ident ci) (:rename obj)]]
        :default
-       ;; ;; TODO: For deletes and renames, :lines is always unset so all inputs to merge-logs are empty
-       ;; ;;
        (merge-logs
          (if-let [dels (seq (filter #(= (first %) "-D") (:lines obj)))]
            (log-deletes
@@ -798,13 +749,6 @@
       ;; Patch for a non-existant object is equivalent to import.
       (obj->log imp db obj))))
 
-(defn patch->log [imp db {:keys [id] :as obj}]
-  (try
-    (patch->log* imp db obj)
-    (catch IllegalArgumentException ex
-      (throw (ex-info "Failed to convert patch to log"
-                      {:id id})))))
-
 (defn objs->log [imp objs]
   (reduce
    (fn [log obj]
@@ -822,10 +766,6 @@
    {} objs))
 
 (defn- temp-datom [db datom temps index]
-  (when (not (ifn? datom))
-    (throw (ex-info "ABOUT TO CALL `datom` but it's not callable!"
-                    {:dtype (type datom)
-                     :datom datom})))
   (let [aref (get datom index)]
     (if (vector? aref)
       (let [[k v part] aref
@@ -890,7 +830,9 @@
 
 (defn clean-log-keys [log]
   (into {} (for [[k v] log]
-             [(if-let [f (log-fixups k)] (f) k) v])))
+             [(if-let [f (log-fixups k)]
+                (f) k)
+              v])))
 
 (defn logs-to-dir
   [logs dir]
@@ -913,16 +855,8 @@
 (defn logfile-seq [r]
   (for [l (line-seq r)
         :let [i (.indexOf l " ")]]
-    (try
-      [(.substring l 0 i)
-       (read-string (.substring l (inc i)))]
-      (catch Exception e
-        #_(println l "--- substring ---" i (inc i))
-        #_(flush)
-        (throw e)))))
-     ;; (do
-     ;;   (println "IIII:" i)
-     ;;   (read-string (.substring l (inc i))))]))
+    [(.substring l 0 i)
+     (read-string (.substring l (inc i)))]))
 
 (defn partition-log
   "Similar to partition-all but understands the log format, and will cut
