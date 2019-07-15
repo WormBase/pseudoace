@@ -76,6 +76,9 @@
    [nil
     "--patches-ftp-url URL"
     "URL to the PATCHES directory on an ftp server."]
+   [nil
+    "--verify-patch"
+    "Verify ACe patch is valid (convertable to EDN AND transactable against the current DB URL."]
    ["-v" "--verbose"]
    ["-f" "--force"]
    ["-h" "--help"]])
@@ -250,17 +253,25 @@
   (for [filename filenames]
     (edn-file-map filename))))
 
-(def fdatoms (filter (fn [[_ _ _ v]] (not (map? v)))))
-
 (defn apply-patch
   "Apply an ACe patch to the Datomic database specified by url or connection from a local file path."
-  [& {:keys [url patch-path patches-dir verbose conn]}]
+  [& {:keys [url patch-path verbose verify-patch conn]}]
   (let [[conn* db imp] (from-datomic-conn :url url :conn conn)
-        edn-patch-file (patching/convert-patch imp db (fs/path patch-path) patches-dir)]
+        patches-dir (fs/parent patch-path)
+        edn-patch-file (do
+                         (when verbose
+                           (print "Converting ACe patch" (fs/name patch-path) "to EDN ... ")
+                           (let [x (patching/convert-patch imp db patch-path patches-dir)]
+                             (println "done.")
+                             x)))]
+    (when verbose
+      (print "Applying patch:" (-> edn-patch-file str fs/name) "... "))
     (ts-import/play-logfile conn*
                             edn-patch-file
                             *partition-max-count*
-                            *partition-max-text*)))
+                            *partition-max-text*
+                            :use-with? verify-patch))
+    (println "done."))
 
 (defn apply-patches
   "Fetch and apply ACeDB patches to the datomic database from a given FTP release URL."
@@ -270,18 +281,14 @@
   (let [[conn db imp] (from-datomic-conn :url url)
         rc (patching/find-release-code patches-ftp-url)]
     (if-let [patches-path (patching/fetch-ace-patches patches-ftp-url verbose)]
-      (do (println "PATCHES PATH:" patches-path)
-          (doseq [patch-file (some->> (fs/list-dir patches-path)
-                                      (remove nil?)
-                                      (sequence patching/list-ace-files))]
-            (when verbose
-              (println "PATCH FILE:" patch-file)
-              (println "Converting patch: " (fs/path patch-file)))
-            (apply-patch :url url
-                         :conn conn
-                         :patch-path patch-file
-                         :patches-dir patches-path
-                         :verbose verbose)))
+      (do
+        (doseq [patch-file (some->> (fs/list-dir patches-path)
+                                    (remove nil?)
+                                    (sequence patching/list-ace-files))]
+          (apply-patch :url url
+                       :conn conn
+                       :patch-path patch-file
+                       :verbose verbose)))
       (println (str "No patches detected for " rc " from " patches-ftp-url)))))
 
 (defn acedump-file-to-datalog
