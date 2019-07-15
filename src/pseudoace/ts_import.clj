@@ -958,7 +958,8 @@
         from-date)))
 
 (defn play-logfile
-  [con logfile max-count max-text]
+  [con logfile max-count max-text & {:keys [use-with?]
+                                     :or {use-with? false}}]
   (with-open [r (io/reader logfile)]
     (doseq [rblk (partition-log max-count max-text (logfile-seq r))]
       (doseq [sblk (partition-by first rblk)]
@@ -975,5 +976,9 @@
                                          to-date
                                          (.getTime)))]
           (if (<= imp-tx-secs last-db-tx-secs)
-            @(d/transact-async con (conj datoms tx-meta))
+            (let [transact (if use-with?
+                             (partial d/with db)
+                             (fn [txes]
+                               @(d/transact-async con txes)))]
+              (transact (conj datoms tx-meta)))
             (println "Skipping transaction with past-date:" stamp)))))))
