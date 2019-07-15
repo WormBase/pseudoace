@@ -265,6 +265,8 @@
                              (println "done.")
                              x)))]
     (when verbose
+      (if verify-patch
+        (println "Verify patch mode is *ON* (no writes will be performed)"))
       (print "Applying patch:" (-> edn-patch-file str fs/name) "... "))
     (ts-import/play-logfile conn*
                             edn-patch-file
