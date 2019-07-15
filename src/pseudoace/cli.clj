@@ -5,31 +5,37 @@
    [clj-time.format :as tf]
    [clojure.java.io :as io]
    [clojure.pprint :as pp :refer [pprint]]
-   [clojure.set :refer [difference]]
+   [clojure.set :as set]
    [clojure.string :as str]
    [clojure.test :as t]
    [clojure.tools.cli :refer [parse-opts]]
+   [clojure.walk :as w]
+   [datoteka.core :as fs]
    [datomic.api :as d]
    [pseudoace.aceparser :as ace]
    [pseudoace.import :refer [importer]]
+   [pseudoace.liberal-txns :refer [resolve-liberal-tx]]
    [pseudoace.locatable-import :as loc-import]
    [pseudoace.model :as model]
    [pseudoace.model2schema :as model2schema]
+   [pseudoace.patching :as patching]
    [pseudoace.qa :as qa]
    [pseudoace.schema-datomic :as schema-datomic]
    [pseudoace.schemata :as schemata]
    [pseudoace.ts-import :as ts-import]
    [pseudoace.utils :as utils])
   (:import
-   (java.net InetAddress)
-   (java.io File FileInputStream)
-   (java.util.zip GZIPInputStream GZIPOutputStream))
-  (:gen-class))
+   (java.util.zip GZIPInputStream GZIPOutputStream)))
+
+(def ^{:dynamic true} *partition-max-count* 1000)
+
+(def ^{:dynamic true} *partition-max-text* 5000)
 
 ;; First three strings describe a short-option, long-option with optional
 ;; example argument description, and a description. All three are optional
 ;; and positional.
 (def cli-options
+  ;; [[ short-opt, long-opt, example], ...]
   [[nil
     "--url URL"
     (str "Datomic database URL; "
@@ -67,6 +73,9 @@
    [nil
     "--no-fixups"
     "Supress schema \"fixups\" (smallace)"]
+   [nil
+    "--patches-ftp-url URL"
+    "URL to the PATCHES directory on an ftp server."]
    ["-v" "--verbose"]
    ["-f" "--force"]
    ["-h" "--help"]])
@@ -93,6 +102,13 @@
    url
    " [y/n]")
   (= (.toLowerCase (read-line)) "y"))
+
+(defn- from-datomic-conn
+  [& {:keys [url conn]}]
+  (let [conn (or conn (d/connect url))
+        db (d/db conn)
+        imp (importer conn)]
+    [conn db imp]))
 
 (defn delete-database
   "Delete the database at the given URL."
@@ -199,14 +215,11 @@
     (load-schema helper-uri models-filename verbose)))
 
 (defn directory-walk [directory pattern]
-  (doall (filter #(re-matches pattern (.getName %))
-                 (file-seq (io/file directory)))))
+  (doall (filter #(re-matches pattern (fs/name %))
+                 (fs/list-dir directory))))
 
 (defn get-ace-files [directory]
-  (map #(.getPath %) (directory-walk directory #".*\.ace.gz")))
-
-(defn get-edn-log-files [directory]
-  (map #(.getName %) (directory-walk directory #".*\.edn.gz")))
+  (map fs/file (directory-walk directory #".*\.ace.gz")))
 
 (defn get-sorted-edn-log-files
   "Sort EDN log files for import.
@@ -223,12 +236,11 @@
                  ct/date-time
                  (map #(% latest-tx-dt) [ct/year ct/month ct/day]))
         day-before-tx-dt (ct/minus tx-date (ct/days 1))
-        edn-files (filter
-                   #(.endsWith (.getName %) ".edn.sort.gz")
-                   (.listFiles (io/file log-dir)))
+        edn-files (filter #(str/ends-with? (fs/name %) ".edn.sort.gz")
+                          (fs/list-dir log-dir))
         edn-file-map (reduce
                       (fn [m f]
-                        (assoc m (.getName f) f))
+                        (assoc m (fs/name f) f))
                       {}
                       edn-files)
         filenames (utils/filter-by-date
@@ -238,6 +250,40 @@
   (for [filename filenames]
     (edn-file-map filename))))
 
+(def fdatoms (filter (fn [[_ _ _ v]] (not (map? v)))))
+
+(defn apply-patch
+  "Apply an ACe patch to the Datomic database specified by url or connection from a local file path."
+  [& {:keys [url patch-path patches-dir verbose conn]}]
+  (let [[conn* db imp] (from-datomic-conn :url url :conn conn)
+        edn-patch-file (patching/convert-patch imp db (fs/path patch-path) patches-dir)]
+    (ts-import/play-logfile conn*
+                            edn-patch-file
+                            *partition-max-count*
+                            *partition-max-text*)))
+
+(defn apply-patches
+  "Fetch and apply ACeDB patches to the datomic database from a given FTP release URL."
+  [& {:keys [url patches-ftp-url verbose]
+      :or {verbose false}}]
+  (println url patches-ftp-url verbose)
+  (let [[conn db imp] (from-datomic-conn :url url)
+        rc (patching/find-release-code patches-ftp-url)]
+    (if-let [patches-path (patching/fetch-ace-patches patches-ftp-url verbose)]
+      (do (println "PATCHES PATH:" patches-path)
+          (doseq [patch-file (some->> (fs/list-dir patches-path)
+                                      (remove nil?)
+                                      (sequence patching/list-ace-files))]
+            (when verbose
+              (println "PATCH FILE:" patch-file)
+              (println "Converting patch: " (fs/path patch-file)))
+            (apply-patch :url url
+                         :conn conn
+                         :patch-path patch-file
+                         :patches-dir patches-path
+                         :verbose verbose)))
+      (println (str "No patches detected for " rc " from " patches-ftp-url)))))
+
 (defn acedump-file-to-datalog
   ([imp file log-dir]
    (acedump-file-to-datalog imp file log-dir false))
@@ -246,11 +292,7 @@
      (println \tab "Converting" file))
    ;; then pull out objects from the pipeline in chunks of 20 objects.
    ;; Larger block size may be faster if you have plenty of memory
-   (doseq [blk (->> (FileInputStream. file)
-                    (GZIPInputStream.)
-                    (ace/ace-reader)
-                    (ace/ace-seq)
-                    (partition-all 20))]
+   (doseq [blk (partition-all 20 (patching/read-ace-patch))]
      (ts-import/split-logs-to-dir imp blk log-dir))))
 
 (def helper-filename "helper.edn.gz")
@@ -294,8 +336,8 @@
   "Import the sorted EDN log files."
   [& {:keys [url log-dir partition-max-count partition-max-text verbose]
       :or {verbose false
-           partition-max-count 1000
-           partition-max-text 5000}}]
+           partition-max-count *partition-max-count*
+           partition-max-text *partition-max-text*}}]
   (if verbose
     (println "Importing logs into datomic database"
              url
@@ -357,8 +399,8 @@
   "Import the helper log files."
   [& {:keys
       [url log-dir partition-max-count partition-max-text verbose]
-      :or {partition-max-count 1000
-           partition-max-text 5000
+      :or {partition-max-count *partition-max-count*
+           partition-max-text *partition-max-text*
            verbose false}}]
   (if verbose
     (println "Importing helper log into helper database"))
@@ -379,12 +421,9 @@
   (if (utils/not-nil? verbose)
     (println \tab "Adding extra data from: " file))
   ;; then pull out objects from the pipeline in chunks of 20 objects.
-  (doseq [blk (->> (FileInputStream. file)
-                   (GZIPInputStream.)
-                   (ace/ace-reader)
-                   (ace/ace-seq)
-                   (partition-all 20))] ; Larger block size may be faster if
-                                        ; you have plenty of memory.
+  ;; Larger block size may be faster if
+  ;; you have plenty of memory.
+  (doseq [blk (partition-all 20 (patching/read-ace-patch file))]
     (loc-import/split-locatables-to-dir helper-db blk log-dir)))
 
 (defn run-locatables-importer-for-helper
@@ -477,6 +516,7 @@
     nil))
 
 (def cli-actions [#'acedump-to-edn-logs
+                  #'apply-patches
                   #'create-database
                   #'create-helper-database
                   #'delete-database
@@ -517,16 +557,19 @@
         kwds (last arglist)
         opt (apply sorted-set (-> kwds :or keys))
         req (apply sorted-set (:keys kwds))]
-    (map keyword (difference req opt))))
+    (map keyword (set/difference req opt))))
 
 (defn invoke-action
   "Invoke `action-name` with the options supplied."
-  [action options]
+  [action options args]
   (let [supplied-opts (set (keys options))
         required-opts (set (required-kwds action))
-        missing (difference required-opts supplied-opts)]
+        missing (set/difference required-opts supplied-opts)]
     (if (empty? missing)
-      (apply action (flatten (into '() options)))
+      (do
+        (println "OPTS:" (pr-str options))
+        (println "ARGS:" (pr-str args))
+        (apply action (flatten (into '() options))))
       (println
        "Missing required options:"
        (str/join " --" (conj (map name missing) nil))))))
@@ -558,10 +601,10 @@
             "are provided in square brackets)")]
       (for [action-name (sort action-names)
             :let [doc-string (cli-doc-map action-name)]]
-        (let [usage-doc (-> doc-string
-                            str/split-lines
-                            space-join
-                            collapse-space)]
+        (let [usage-doc (some-> doc-string
+                                str/split-lines
+                                space-join
+                                collapse-space)]
           (format line-template action-name usage-doc)))))))
 
 (defn -main [& args]
@@ -573,9 +616,10 @@
       (exit 1 (error-msg errors)))
     (if (:help options)
       (exit 0 (usage summary)))
-    (let [action-name (last arguments)]
+    (if-let [action-name (first arguments)]
       (if-let [action (get cli-action-map action-name)]
-        (invoke-action action options)
         (do
-          (println "Unknown action" action-name)
-          (exit 1 (usage summary)))))))
+          (invoke-action action options (rest arguments))
+          (exit 0 "OK"))
+        (exit 1 (str "Unknown argument(s): " action-name)))
+      (exit 0 (usage summary)))))
