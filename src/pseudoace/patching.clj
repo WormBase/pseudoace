@@ -50,7 +50,6 @@
          (ts-import/patches->log imp db)
          (mapcat val)
          (map santise-lookup-ref)
-         (ts-import/fixup-datoms db)
          (vec))
     (catch Exception ex
       (throw (ex-info (.getMessage ex)
@@ -66,7 +65,6 @@
   (let [ftp-url (-> (uri patches-ftp-url)
                     (assoc :user "anonymous" :password "wormbase-at-EBI")
                     (str))
-        _ (println "FTP URL:" ftp-url)
         ftp-files (ftp/list-files ftp-url)
         patch-filenames (sequence list-ace-files ftp-files)
         release-code (some->> (str/split ftp-url #"/")
