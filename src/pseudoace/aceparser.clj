@@ -1,7 +1,7 @@
 (ns pseudoace.aceparser
   "Parsing routines for ACeDB 'dump' files."
   (:require
-   [clojure.java.io :refer [reader]]
+   [clojure.java.io :as io]
    [clojure.string :as str]))
 
 (defrecord AceReader [reader]
@@ -24,7 +24,7 @@
 (defn ace-reader
   "Open a .ace file for reading."
   [ace]
-  (AceReader. (reader ace)))
+  (AceReader. (io/reader ace)))
 
 (defn- null-line?
   [^String line]
@@ -39,8 +39,7 @@
 (def ^:private header-re
   #"(?m)^(\w+) *: *(?:\"([^\"]+)\"|(\w+))(?: -O (.*))?")
 
-(def delete-re
-  #"(?m)^-D\s+(\w+)\s+(\"\"|\"(?:[^\\\"]*|\\.)*\"|\w+)$")
+(def delete-re #"^-D\s+(.+)\s+:\s+(.+)$")
 
 (def rename-re
   #"(?m)^-R\s+(\w+)\s+(\"\"|\"(?:[^\\\"]*|\\.)*\"|\w+)\s(\"\"|\"(?:[^\\\"]*|\\.)*\"|\w+)$")
@@ -75,7 +74,8 @@
     (cond
       (nil? t)
       (if (some identity ts)
-        (with-meta out {:timestamps ts})
+        (with-meta out
+          {:timestamps ts})
         out)
       (= t "-C") ; The -C node doesn't have a timestamp
       (if keep-comments?
@@ -87,27 +87,32 @@
        (conj out (unquote-str t))
        (conj ts (take-timestamp toks))))))
 
-(defn- parse-aceobj
-  [[header-line & lines] keep-comments?]
-  (if-let [[_ clazz id] (re-find delete-re header-line)]
-    {:class clazz
-     :id (unquote-str id)
-     :delete true}
-    (if-let [[_ clazz id1 id2] (re-find rename-re header-line)]
-      {:class clazz
-       :id (unquote-str id1)
-       :rename (unquote-str id2)}
-      (if-let [[_ clazz idq idb obj-stamp] (re-find header-re header-line)]
-        {:class clazz
-         :id (or idq idb)
-         :timestamp (if obj-stamp
-                      (unquote-str obj-stamp))
-         :lines (vec (for [line lines]
-                       (parse-aceline
-                        (re-seq line-re line)
-                        keep-comments?)))}
-        (throw (Exception. (str "Bad header line: " header-line)))))))
+(defn- parse-acelines [lines keep-comments?]
+  (->> lines
+       (map (fn [line]
+              (parse-aceline
+               (re-seq line-re line)
+               keep-comments?)))
+       (vec)))
 
+(defn- parse-aceobj
+  ([[header-line & lines] keep-comments?]
+   (if-let [[_ clazz id] (re-find delete-re header-line)]
+     {:class clazz
+      :id (unquote-str id)
+      :delete true}
+     (if-let [[_ clazz id1 id2] (re-find rename-re
+                                         (str/replace header-line " : " " "))]
+       {:class clazz
+        :id (unquote-str id1)
+        :rename (unquote-str id2)}
+       (if-let [[_ clazz idq idb obj-stamp] (re-find header-re header-line)]
+         {:class clazz
+          :id (or idq idb)
+          :timestamp (if obj-stamp
+                       (unquote-str obj-stamp))
+          :lines (parse-acelines lines keep-comments?)}
+         (throw (Exception. (str "Bad header line: " header-line))))))))
 
 (defn- aceobj-seq
   [lines keep-comments?]
@@ -127,15 +132,16 @@
                       (unquote-str obj-stamp))
          :text (->> (rest lines)
                     (take-while (complement long-text-end?))
-                    (str/join "\n")
-                    (.trim))}
+                    (str/join \newline)
+                    (str/trim))}
         (aceobj-seq
          (rest (drop-while (complement long-text-end?) lines))
          keep-comments?))
 
        :default
-       (let [obj-lines   (take-while (complement null-line?) lines)
-             rest-lines  (drop-while (complement null-line?) lines)]
+       (let [line-not-empty? (complement null-line?)
+             obj-lines (take-while line-not-empty? lines)
+             rest-lines (drop-while line-not-empty? lines)]
          (when (seq obj-lines)
            (let [obj (parse-aceobj obj-lines keep-comments?)]
              (case (:class obj)
