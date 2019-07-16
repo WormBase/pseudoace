@@ -17,7 +17,7 @@ Features include:
   * Utility functions and macros for querying WormBase data.
 
   * A command line interface for utilities described above
-	(via `lein run`)
+	(via the `clojure -A:datomic-pro -m clojure.main pseudoace.cli` command)
 
 ## Installation
 
@@ -51,7 +51,7 @@ Follow the [GitFlow][6] mechanism for branching and committing changes:
 This project attempts to adhere to the [Clojure coding-style][7]
 conventions.
 
-### Testing & code QA
+### Testing
 Run all tests regularly, but in particular:
 
   * before issuing a new pull request
@@ -59,8 +59,7 @@ Run all tests regularly, but in particular:
   * after checking out a feature-branch
 
 ```bash
-# runs eastwood and test via an alias
-lein code-qa
+clojure -A:datomic-pro:test
 ```
 
 ## Releases
@@ -179,9 +178,8 @@ A command line utility has been developed for ease of usage:
 ```bash
 
 URL_OF_TRANSACTOR="datomic:dev://localhost:4334/*"
-
-lein run --url "${URL_OF_TRANSACTOR}" <command>
-
+alias run-pace "clj -A:datomic-pro:aws-java-sdk-dynamodb -m pseudoace.cli"
+run-pace --url "${URL_OF_TRANSACTOR}" <command>
 ```
 
 `--url` is a required option for most sub-commands, it should be of
@@ -194,13 +192,13 @@ from a repl session:
 
 ```bash
 # start the repl (Read Eval Print Loop)
-lein repl
+clj -A:datomic-pro:aws-java-sdk-dynamodb
 ```
 
 Example of invoking a sub-command:
 
 ```clojure
-(require '[environ.core :as env])
+(require '[environ.core :refer [env]])
 (list-databases {:url (env :url-of-transactor)})
 ```
 
@@ -243,10 +241,11 @@ specified by `--schema-filename`.
 
 The format of the generated files is:
 
-<ace-db-style_timestamp> <Parsed ACE data to be transacted in EDN format>
+<ace-db-style_timestamp> <Transactable EDN forms>
 
 The EDN data is *required* to sorted by timestamp in order to
-preserve the time invariant of Datomic:
+preserve the initial design decision to using Datomic's internal transaction
+timestamp to model curation event times:
 
 ```bash
 find $LOG_DIR \

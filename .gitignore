@@ -1,6 +1,7 @@
 !Build/
 *.bak
 .build/
+.cpcache/
 .last_cover_stats
 .lein-*
 .nrepl-port

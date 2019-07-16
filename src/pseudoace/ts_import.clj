@@ -1,8 +1,9 @@
 (ns pseudoace.ts-import
   (:require
    [clj-time.coerce :refer [from-date to-date]]
+   [clj-time.core :as ctc]
    [clojure.instant :refer [read-instant-date]]
-   [clojure.java.io :refer [file reader writer]]
+   [clojure.java.io :as io]
    [clojure.string :as str]
    [datomic.api :as d]
    [pseudoace.aceparser :as ace]
@@ -184,7 +185,7 @@
         nss (:pace/use-ns ti)
         ordered? (get nss "ordered")
         hashes (for [ns nss]
-                 (d/entity (:db imp) (keyword ns "id")))] ; performance?
+                 (d/entity (:db imp) (keyword ns "id")))]
     (reduce
      (fn [log [index lines]]
        (if (and (pos? index) single?)
@@ -197,9 +198,8 @@
          (let [cvals (take-ts (count concs) (first lines))
                cdata (map
                       (fn [conc val stamp]
-                        [conc
-                         (log-datomize-value conc current-db imp [val])
-                         stamp])
+                        (log-datomize-value conc current-db imp [val])
+                        stamp)
                       concs cvals (lazy-cat
                                    (:timestamps (meta cvals))
                                    (repeat nil)))]
@@ -266,7 +266,6 @@
      {}
      (indexed
       (partition-by (partial take (count concs)) values)))))
-
 
 (defn- find-keys
   "Helper to group `lines` according to a set of tags.  `tags` should be a
@@ -714,45 +713,40 @@
 
 (defn patch->log [imp db {:keys [id] :as obj}]
   (let [ci ((:classes imp) (:class obj))
-        this (if ci
-               ;; No partition hint, so we can use this as a plain
-               ;; Lookup ref.
+        this (if ci  ;; No partition hint, so we can use this as a plain lookup ref.
                [(:db/ident ci) (:id obj)])]
     (if-let [orig (d/entity db this)]
       (cond
        (:delete obj)
-       {nil
+       {"patch"
         [[:db.fn/retractEntity this]]}
-
        (:rename obj)
-       {nil
+       {"patch"
         [[:db/add this (:db/ident ci) (:rename obj)]]}
-
        :default
        (merge-logs
-        (log-nodes
-         this
-         db
-         orig
-         (:lines obj)
-         imp
-         #{(namespace (:db/ident ci))})
+         (if-let [dels (seq (filter #(= (first %) "-D") (:lines obj)))]
+           (log-deletes
+            this
+            db
+            (map (partial drop-ts 1) dels) ; Remove the leading "-D"
+            imp
+            #{(namespace (:db/ident ci))}))
+         (log-nodes
+          this
+          db
+          orig
+          (:lines obj)
+          imp
+          #{(namespace (:db/ident ci))})
 
-        (log-xref-nodes
+         (log-xref-nodes
           this
           db
           orig
           (:lines obj)
           ci
-          imp)
-
-        (if-let [dels (seq (filter #(= (first %) "-D") (:lines obj)))]
-          (log-deletes
-           this
-           db
-           (map (partial drop-ts 1) dels)  ; Remove the leading "-D"
-           imp
-           #{(namespace (:db/ident ci))}))))
+          imp)))
       ;; Patch for a non-existant object is equivalent to import.
       (obj->log imp db obj))))
 
@@ -773,24 +767,23 @@
    {} objs))
 
 (defn- temp-datom [db datom temps index]
-  (let [ref (datom index)]
-    (if (vector? ref)
-      (let [[k v part] ref
+  (let [aref (get datom index)]
+    (if (vector? aref)
+      (let [[k v part] aref
             lref [k v]]
         (if v
           (if (d/entity db lref)
             ;; turn 3-element refs into normal lookup-refs
             [(assoc datom index lref) temps]
-            (if-let [tid (temps ref)]
+            (if-let [tid (temps aref)]
               [(assoc datom index tid) temps]
               (let [tid (d/tempid (or part :db.part/user))]
                 [(assoc datom index tid)
-                 (assoc temps ref tid)
+                 (assoc temps aref tid)
                  [:db/add tid k v]])))
-          (println "Nil in " datom)))
-      (if ref
-        [datom temps]
-        (println "Nil in " datom)))))
+          (println "Nil in " datom "Lookup ref was :" lref "ref was:" aref)))
+      (if aref
+        [datom temps]))))
 
 (defn fixup-datoms
   "Replace any lookup refs in `datoms` which can't be resolved in `db`
@@ -800,13 +793,16 @@
     `[:db/add [:importer/temp tmpid part] ...]`."
   [db datoms]
   (->> (reduce
-        (fn [{:keys [done temps] :as last} datom]
-          (if-let [[datom temps ex1] (temp-datom db datom temps 1)]
-            (if-let [[datom temps ex2] (temp-datom db datom temps 3)]
-              {:done  (conj-if done datom ex1 ex2)
-               :temps temps}
-              last)
-            last))
+        (fn [{:keys [done temps] :as last-d} datom]
+          (let [eid (second datom)]
+            (if (and (vector? eid) (= (count eid) 3))
+              (if-let [[datom temps ex1] (temp-datom db datom temps 1)]
+                (if-let [[datom temps ex2] (temp-datom db datom temps 3)]
+                  {:done  (conj-if done datom ex1 ex2)
+                   :temps temps}
+                  last-d)
+                last-d)
+              {:done [datom] :temps {}})))
         {:done [] :temps {}}
         (mapcat
          (fn [[op e a v :as datom]]
@@ -820,7 +816,8 @@
 
 (defn- txmeta [stamp]
   (let [[_ ds ts name] (re-matches timestamp-pattern stamp)
-        time           (if ds (read-instant-date (str ds "T" ts)))]
+        time           (if ds
+                         (read-instant-date (str ds "T" ts)))]
     (vmap
      :db/id (d/tempid :db.part/tx)
      :importer/ts-name name
@@ -828,22 +825,24 @@
                      time))))
 
 (def log-fixups
-  {nil "1977-01-01_01:01:01_nil"
-   "original" "1970-01-02_01:01:01_original"})
+  {nil (constantly "1977-01-01_01:01:01_nil")
+   "original" (constantly "1970-01-02_01:01:01_original")
+   "patch" (partial ctc/now)})
 
 (defn clean-log-keys [log]
   (into {} (for [[k v] log]
-             [(or (log-fixups k) k) v])))
+             [(if-let [f (log-fixups k)]
+                (f) k)
+              v])))
 
 (defn logs-to-dir
   [logs dir]
   (doseq [[stamp logs] (clean-log-keys logs)
-          :let  [[_ date time name]
-                 (re-matches timestamp-pattern stamp)]]
-    (with-open [w (-> (file dir (str (or date stamp) ".edn.gz"))
+          :let [[_ date time name] (re-matches timestamp-pattern stamp)]]
+    (with-open [w (-> (io/file dir (str (or date stamp) ".edn.gz"))
                       (FileOutputStream. true)
                       (GZIPOutputStream.)
-                      (writer))]
+                      (io/writer))]
       (binding [*out* w]
         (doseq [l logs]
           (println stamp (pr-str l)))))))
@@ -894,22 +893,27 @@
         from-date)))
 
 (defn play-logfile
-  [con logfile max-count max-text]
-   (with-open [r (reader logfile)]
-     (doseq [rblk (partition-log max-count max-text (logfile-seq r))]
-       (doseq [sblk (partition-by first rblk)]
-         (let [stamp (ffirst sblk)
-               blk (map second sblk)
-               db (d/db con)
-               fdatoms (filter (fn [[_ _ _ v]] (not (map? v))) blk)
-               tx-meta (txmeta stamp)
-               datoms (fixup-datoms db fdatoms)
-               ms->s #(/ 1000 %)
-               imp-tx-secs (ms->s (-> tx-meta :db/txInstant (.getTime)))
-               last-db-tx-secs (ms->s (-> db
-                                          latest-transaction-date
-                                          to-date
-                                          (.getTime)))]
-           (if (<= imp-tx-secs last-db-tx-secs)
-             @(d/transact-async con (conj datoms tx-meta))
-             (println "Skipping transaction with past-date:" stamp)))))))
+  [con logfile max-count max-text & {:keys [use-with?]
+                                     :or {use-with? false}}]
+  (with-open [r (io/reader logfile)]
+    (doseq [rblk (partition-log max-count max-text (logfile-seq r))]
+      (doseq [sblk (partition-by first rblk)]
+        (let [stamp (ffirst sblk)
+              blk (map second sblk)
+              db (d/db con)
+              fdatoms (filter (fn [[_ _ _ v]] (not (map? v))) blk)
+              tx-meta (txmeta stamp)
+              datoms (fixup-datoms db fdatoms)
+              ms->s #(/ 1000 %)
+              imp-tx-secs (ms->s (-> tx-meta :db/txInstant (.getTime)))
+              last-db-tx-secs (ms->s (-> db
+                                         latest-transaction-date
+                                         to-date
+                                         (.getTime)))]
+          (if (<= imp-tx-secs last-db-tx-secs)
+            (let [transact (if use-with?
+                             (partial d/with db)
+                             (fn [txes]
+                               @(d/transact-async con txes)))]
+              (transact (conj datoms tx-meta)))
+            (println "Skipping transaction with past-date:" stamp)))))))

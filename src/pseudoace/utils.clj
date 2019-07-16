@@ -7,7 +7,9 @@
    [clojure.string :as str]
    [clojure.walk :as walk])
   (:import
-   (java.util Properties)))
+   (java.util Properties)
+   (java.io FileInputStream)
+   (java.util.zip GZIPInputStream)))
 
 (def not-nil? (complement nil?))
 
@@ -229,4 +231,13 @@
                   xs seen)))]
      (step coll #{}))))
 
+(defn gunzip
+  "Helper to decompress a gzip'ed file."
+  [f]
+  (->> f
+       str
+       (FileInputStream.)
+       (GZIPInputStream.)))
+
 (load "utils_wbdb")
+
