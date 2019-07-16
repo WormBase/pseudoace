@@ -287,20 +287,24 @@
 
 (defn apply-patches
   "Fetch and apply ACeDB patches to the datomic database from a given FTP release URL."
-  [& {:keys [url patches-ftp-url verbose]
-      :or {verbose false}}]
-  (println url patches-ftp-url verbose)
+  [& {:keys [url patches-ftp-url verify-patch verbose]
+      :or {verbose false
+           verify-patch false}}]
   (let [[conn db imp] (from-datomic-conn :url url)
-        rc (patching/find-release-code patches-ftp-url)]
-    (if-let [patches-path (patching/fetch-ace-patches patches-ftp-url verbose)]
-      (do
-        (doseq [patch-file (some->> (fs/list-dir patches-path)
-                                    (remove nil?)
-                                    (sequence patching/list-ace-files))]
-          (apply-patch :url url
-                       :conn conn
-                       :patch-path patch-file
-                       :verbose verbose)))
+        rc (patching/find-release-code patches-ftp-url)
+        patches-path (patching/fetch-ace-patches patches-ftp-url verbose)]
+    (if patches-path
+      (let [patch-files (some->> (fs/list-dir patches-path)
+                                 (remove nil?)
+                                 (sequence patching/list-ace-files))]
+        (if (seq patch-files)
+          (doseq [patch-file patch-files]
+            (apply-patch :url url
+                         :conn conn
+                         :patch-path patch-file
+                         :verbose verbose
+                         :verify-patch verify-patch))
+          (println "NO patch files found in PATCHES directory for" rc)))
       (println (str "No patches detected for " rc " from " patches-ftp-url)))))
 
 (defn acedump-file-to-datalog
