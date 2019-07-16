@@ -1,0 +1,44 @@
+(require '[clojure.spec.alpha :as s])
+(require '[clojure.string :as str])
+(require '[cognitect.transcriptor :as xr])
+(require '[pseudoace.aceparser :as ace])
+
+(s/def ::class string?)
+(s/def ::id string?)
+(s/def ::delete boolean?)
+(s/def ::reanme string?)
+(s/def ::timestamp (s/nilable inst?))
+
+(s/def ::ace-deletion (s/keys :req-un [::class ::id ::delete]))
+(s/def ::ace-deletions (s/coll-of ::ace-deletion :min-count 1))
+
+(s/def ::ace-rename (s/keys :req-un [::class ::id ::rename]))
+(s/def ::ace-renames (s/coll-of ::ace-rename :min-count 1))
+
+
+(s/def ::del-line (s/and string? #(str/starts-with? % "-D")))
+(s/def ::ren-line (s/and string? #(str/starts-with? % "-R")))
+(s/def ::ass-line (s/and string?))
+
+(s/def ::lines  (s/coll-of (s/coll-of (s/or :delete-line ::del-line
+                                            :rename-line ::ren-line
+                                            :assign-line ::ass-line)
+                                      :min-count 1)
+                           :kind vector?))
+(s/def ::obj (s/keys :req-un [::class ::id ::timestamp ::lines]))
+
+(->> (.getBytes "-D Gene : \"WBGene00000001\"")
+     (ace/ace-reader)
+     (ace/ace-seq))
+(xr/check! ::ace-deletions)
+
+(->> (.getBytes "-R Gene : \"X\" \"Y\"")
+     (ace/ace-reader)
+     (ace/ace-seq))
+(xr/check! ::ace-renames)
+
+(def res (->> (.getBytes "Gene : \"WBGene1\"\nName : \"Foo\"\nBar : \"Baz\"\n")
+              (ace/ace-reader)
+              (ace/ace-seq)))
+(xr/check! (s/coll-of ::obj :min-count 1) res)
+(assert (count (:lines res)) 2)
