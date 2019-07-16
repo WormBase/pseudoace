@@ -51,7 +51,7 @@ Follow the [GitFlow][6] mechanism for branching and committing changes:
 This project attempts to adhere to the [Clojure coding-style][7]
 conventions.
 
-### Testing & code QA
+### Testing
 Run all tests regularly, but in particular:
 
   * before issuing a new pull request
@@ -59,8 +59,7 @@ Run all tests regularly, but in particular:
   * after checking out a feature-branch
 
 ```bash
-# runs eastwood and test via an alias
-lein code-qa
+clojure -A:datomic-pro:test
 ```
 
 ## Releases
