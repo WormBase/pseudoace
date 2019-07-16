@@ -38,15 +38,10 @@
    {com.datomic/datomic-pro
     {:mvn/version "0.9.5703"
      :exclusions [org.slf4j/slf4j-nop
-                  org.slf4j/slf4j-log4j12]}}}
-  :aws-java-sdk-dynamodb
-  {:extra-deps
-   {com.amazonaws/aws-java-sdk-dynamodb {:mvn/version "1.11.82"
+                  org.slf4j/slf4j-log4j12]}
+    com.amazonaws/aws-java-sdk-dynamodb {:mvn/version "1.11.82"
                                          :exclusions [joda-time]}}}
-  :uberjar {:extra-deps {seancorfield/depstar {:mvn/version "RELEASE"}}
-            :main-opts ["-m" "hf.depstar.uberjar"]}
-  :jar {:extra-deps {seancorfield/depstar {:mvn/version "RELEASE"}}
-        :main-opts ["-m" "hf.depstar.jar"]}}}
+  :depstar {:extra-deps {seancorfield/depstar {:mvn/version "0.2.4"}}}}}
 
 
 
