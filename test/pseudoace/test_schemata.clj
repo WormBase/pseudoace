@@ -60,8 +60,8 @@
 
 (defn- do-install
   [& {:keys [no-locatables no-fixups]
-      :or {:no-locatables false
-           :no-fixups false}}]
+      :or {no-locatables false
+           no-fixups false}}]
   (let [main-schema (cli/generate-schema
                      :models-filename annotated-models-path)
         con (d/connect db-uri)]
