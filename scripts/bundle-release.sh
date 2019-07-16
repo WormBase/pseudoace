@@ -28,13 +28,18 @@ pre_release_checks() {
          does not exist for ${PROJ_FQNAME}" \
 	git rev-parse --verify --quiet "${PROJ_VERSION}"
     pre_release_check \
-    	"Code quality tests must pass!" lein code-qa
+    	"All tests must pass!" clojure -A:datomic-pro:test
     return 0;
 }
 
 make_release_jar () {
+    local proj_dir=$1
+    local jar_name=$2
+    local jar_dir="${proj_dir}/target"
+    mkdir -p "${jar_dir}"
     run_step "Preparing release jar" \
-	     lein do clean, uberjar &> "${LOGFILE}"
+	     clj -A:datomic-pro:depstar -m hf.depstar.jar "${jar_dir}/${jar_name}" \
+	     &> "${LOGFILE}"
 }
 
 PROJ_ROOT="$(git rev-parse --show-toplevel)"
@@ -53,26 +58,29 @@ if [ -z "$PROJ_NAME" ] || [ -z "$PROJ_VERSION" ]; then
     exit 2
 fi
 
-BUILD_DIR="${PROJ_NAME}-$$"
+BUILD_DIR="target"
 PROJ_FQNAME="${PROJ_NAME}-${RELEASE_TAG}"
 LOG_SORT_SCRIPT="scripts/sort-edn-log.sh"
+JAR_NAME="${PROJ_NAME}-${RELEASE_TAG}-standalone.jar"
 DEPLOY_JAR="${BUILD_DIR}/${PROJ_FQNAME}/${PROJ_NAME}-${RELEASE_TAG}.jar"
 RELEASE_DIR="${PROJ_ROOT}/release-archives"
 RELEASE_ARCHIVE="${RELEASE_DIR}/${PROJ_NAME}-${RELEASE_TAG}.tar.gz"
-ANNOT_MODELS_FILE="models/models.wrm.annot"
+
+EXEC_CMD=$(cat <<EOF
+clojure -Sdeps \
+'{:deps {com.datomic/datomic-pro {:mvn/version "0.9.5703"}
+         pseudoace {:local/root "target/pseudoace-0.6.0-SNAPSHOT/pseudoace-0.6.0-SNAPSHOT.jar"}}}' \
+-m pseudoace.cli
+EOF
+)
 
 cd "${PROJ_ROOT}"
-lein clean
 pre_release_checks
 mkdir -p "${BUILD_DIR}/${PROJ_FQNAME}"
 mkdir -p "${RELEASE_DIR}"
-release_file "${RELEASE_TAG}" \
-	 "${LOG_SORT_SCRIPT}" \
-	 "${BUILD_DIR}/${PROJ_FQNAME}/$(basename ${LOG_SORT_SCRIPT})"
-make_release_jar
-
-mv "$(find ./target -name ${PROJ_NAME}-${RELEASE_TAG}-standalone.jar)" \
-   "${DEPLOY_JAR}"
+release_file "${RELEASE_TAG}" "${LOG_SORT_SCRIPT}" "${BUILD_DIR}/${PROJ_FQNAME}/$(basename ${LOG_SORT_SCRIPT})"
+make_release_jar "${PWD}" "${JAR_NAME}"
+mv "$(find ./target -name ${PROJ_NAME}-${RELEASE_TAG}-standalone.jar)" "${DEPLOY_JAR}"
 cd "${BUILD_DIR}"
 run_step "Creating release archive: ${RELEASE_ARCHIVE}" \
 	 tar jcpf "${RELEASE_ARCHIVE}" "${PROJ_FQNAME}"
@@ -83,12 +91,9 @@ if [ $? -eq 0 ]; then
     inform "Release archive usage:"
     echo "	-> Copy ${RELEASE_ARCHIVE} to the target machine"
     echo "	-> unpack with: tar xf <path-to-archive>"
-    echo "	-> Run using: java -jar ${DEPLOY_JAR}"
-    echo -n " -> Ensure you are using latest version of java!"
-    echo "(check  with: java -version)"
+    echo "	-> Run using:"
+    echo -n "${EXEC_CMD}"
 else
     echo "Darn, Something went wrong. please run with $SHELL -x --debug"
     exit 999
 fi
-# "lein test" will fail unless one cleans after uberjar'ing
-run_step "Cleaning up" lein clean
