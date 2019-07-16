@@ -680,7 +680,7 @@
 
         (:rename obj)
         {nil
-         [[:db/add this (:db/ident ci) (second this) (:rename obj)]]}
+         [[:db/add this (:db/ident ci) (:rename obj)]]}
 
         :default
         (merge-logs
@@ -721,7 +721,8 @@
        {"patch"
         [[:db.fn/retractEntity this]]}
        (:rename obj)
-       [[:db/add this (:db/ident ci) (:rename obj)]]
+       {"patch"
+        [[:db/add this (:db/ident ci) (:rename obj)]]}
        :default
        (merge-logs
          (if-let [dels (seq (filter #(= (first %) "-D") (:lines obj)))]

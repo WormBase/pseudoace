@@ -77,6 +77,9 @@
     "--patches-ftp-url URL"
     "URL to the PATCHES directory on an ftp server."]
    [nil
+    "--patch-path PATH"
+    "Filesystem path to a local ACe patch file."]
+   [nil
     "--verify-patch"
     "Verify ACe patch is valid (convertable to EDN AND transactable against the current DB URL."]
    ["-v" "--verbose"]
@@ -255,25 +258,32 @@
 
 (defn apply-patch
   "Apply an ACe patch to the Datomic database specified by url or connection from a local file path."
-  [& {:keys [url patch-path verbose verify-patch conn]}]
+  [& {:keys [url patch-path verbose verify-patch conn] :as foo
+      :or {verbose false
+           verify-patch false
+           conn nil}}]
+  (when verbose
+    (print "Converting ACe patch" (fs/name patch-path) "to EDN ... "))
   (let [[conn* db imp] (from-datomic-conn :url url :conn conn)
         patches-dir (fs/parent patch-path)
-        edn-patch-file (do
-                         (when verbose
-                           (print "Converting ACe patch" (fs/name patch-path) "to EDN ... ")
-                           (let [x (patching/convert-patch imp db patch-path patches-dir)]
-                             (println "done.")
-                             x)))]
+        edn-patch-file (patching/convert-patch imp db patch-path patches-dir)]
     (when verbose
+      (println "done.")
       (if verify-patch
-        (println "Verify patch mode is *ON* (no writes will be performed)"))
-      (print "Applying patch:" (-> edn-patch-file str fs/name) "... "))
-    (ts-import/play-logfile conn*
-                            edn-patch-file
-                            *partition-max-count*
-                            *partition-max-text*
-                            :use-with? verify-patch))
-    (println "done."))
+        (println "Verify patch mode is *ON* (no writes will be performed)")
+        (print "Applying patch:" (-> edn-patch-file str fs/name) "... ")))
+    (try
+      (ts-import/play-logfile conn*
+                              edn-patch-file
+                              *partition-max-count*
+                              *partition-max-text*
+                              :use-with? verify-patch)
+      (catch Exception ex
+        (when verify-patch
+          (println "ERROR:" patch-path "will fail to be apply due to:"))
+        (throw ex))))
+    (when verbose
+      (println "done.")))
 
 (defn apply-patches
   "Fetch and apply ACeDB patches to the datomic database from a given FTP release URL."
@@ -525,6 +535,7 @@
     nil))
 
 (def cli-actions [#'acedump-to-edn-logs
+                  #'apply-patch
                   #'apply-patches
                   #'create-database
                   #'create-helper-database
@@ -575,10 +586,7 @@
         required-opts (set (required-kwds action))
         missing (set/difference required-opts supplied-opts)]
     (if (empty? missing)
-      (do
-        (println "OPTS:" (pr-str options))
-        (println "ARGS:" (pr-str args))
-        (apply action (flatten (into '() options))))
+      (apply action (flatten (into '() options)))
       (println
        "Missing required options:"
        (str/join " --" (conj (map name missing) nil))))))
