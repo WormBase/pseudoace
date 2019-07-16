@@ -26,21 +26,6 @@
              :provided
              {:lein-tools-deps/config {:resolve-aliases [:datomic-pro
                                                          :aws-java-sdk-dynamodb]}}
-             ;; :dev
-             ;; {:aliases
-             ;;  {"code-qa"
-             ;;   ["do"
-             ;;    ["eastwood" "{:exclude-linters [:no-ns-form-found]}"]
-             ;;    "test"]}
-             ;;  :dependencies [[datomic-schema-grapher "0.0.1"]]
-             ;;  :plugins [[com.jakemccrary/lein-test-refresh "0.17.0"]
-             ;;            [jonase/eastwood "0.2.3"
-             ;;             :exclusions [org.clojure/clojure]]
-             ;;            [lein-ancient "0.6.8"]]
-             ;;  :resource-paths ["test/resources"]}
-             ;; :uberjar [:datomic-free {:aot :all}]
-             ;; :test
-             ;; [{:resource-paths ["test/resources"]
-             ;;   :env {:wb-db-uri "datomic:dev://localhost:4334/WS260"}}]
-             }
+             :test
+             {:lein-tools-deps/config {:resolve-aliases [:datomic-pro :test]}}}
   :deploy-repositories [["releases" :clojars]])
