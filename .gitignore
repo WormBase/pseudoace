@@ -1,7 +1,7 @@
 !Build/
 *.bak
 .build/
-.cpcache/ # clojure cli tools cache
+.cpcache/
 .last_cover_stats
 .lein-*
 .nrepl-port
