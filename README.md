@@ -17,7 +17,7 @@ Features include:
   * Utility functions and macros for querying WormBase data.
 
   * A command line interface for utilities described above
-	(via `lein run`)
+	(via the `clojure -A:datomic-pro -m clojure.main pseudoace.cli` command)
 
 ## Installation
 
