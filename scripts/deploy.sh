@@ -12,7 +12,7 @@ fi
 
 tar xf "${RELEASE_ARCHIVE}" "${RELEASE_NAME}/$DEPLOY_JAR"
 clj -Spom
-echo mvn deploy:deploy-file \
+mvn deploy:deploy-file \
      -Dfile="${DEPLOY_JAR}" \
      -Drepository=clojars \
      -Durl=https://clojars.org/repo \
