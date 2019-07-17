@@ -19,8 +19,6 @@ cover_db/
 inc/
 nytprof.out
 pm_to_blib
-pom.xml
-pom.xml.asc
 release-archives/
 target/
 /bundle-release.log
