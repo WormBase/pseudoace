@@ -21,31 +21,20 @@ Features include:
 
 ## Installation
 
- * Java 1.8 (Prefer official oracle version)
+ * Java 1.8 (OpenJDK or Oracle versions)
 
- * [leiningen][3]
-
-   * You will also need to specify which flavour and version of
-     datomic you want use in your [lein peer project configuration][13].
-
-     Example:
-
-     ```clojure
-     (defproject myproject-0.1-SNAPSHOT
-        :dependencies [[com.datomic/datomic-free "0.9.5359"
-                        :exclusions [joda-time]]
-                       [wormbase/pseudoace "0.4.4"]])
-     ```
+ * [Clojure installer and CLI tools][15]
 
  * [Install datomic][14]
+
+ * [leiningen][3]
 
 
 ## Development
 
-Follow the [GitFlow][6] mechanism for branching and committing changes:
+  * Feature branches should be derived from the `master` branch.
 
-  * Feature branches should be derived from the `develop` branch:
-    i.e:. git checkout -b feature-x develop
+  * Code review is preferred before merging back into `master`.
 
 ### Coding style
 This project attempts to adhere to the [Clojure coding-style][7]
@@ -91,7 +80,7 @@ Clojars is a public repository for packaged clojure libraries.
 
 This release process re-uses the [leiningen deployment tools][12]:
 
-  * Checkout the `develop` branch if not already checked-out.
+  * Checkout the `master` branch if not already checked-out.
 
 	* Update changes entries in the `CHANGELOG.md` file
 
@@ -103,14 +92,7 @@ This release process re-uses the [leiningen deployment tools][12]:
 
 	* Commit and push all changes.
 
-  * Checkout the `master` branch.
-
-	* Merge the `develop` branch into to `master` (via a github pull
-      request or directly using git)
-
-	* Run:
-
-		`lein deploy clojars`
+	* Run: `make deploy`
 
   * Checkout the `develop` branch.
 
@@ -283,3 +265,4 @@ dependent on the platform you run it on.
 [12]: https://github.com/technomancy/leiningen/blob/master/doc/DEPLOY.md#deployment
 [13]: http://docs.datomic.com/integrating-peer-lib.html
 [14]: http://docs.datomic.com/getting-started.html
+[15]: https://clojure.org/guides/getting_started

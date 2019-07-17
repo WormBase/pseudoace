@@ -19,6 +19,16 @@
    "-Ddatomic.txTimeoutMsec=1000000"]
   :main ^:skip-aot pseudoace.cli
   :target-path "target/%s"
+  :aliases {"bundle-release" ["shell" "./scripts/bundle-release.sh"]
+            "deploy" ["shell" "./scripts/deploy.sh"]}
+  :release-tasks [["vcs" "assert-committed"]
+                  ["change" "version" "leiningen.release/bump-version" "release"]
+                  ["vcs" "tag"]
+                  ["bundle-release"]
+                  ["deploy"]
+                  ["change" "version" "leiningen.release/bump-version"]
+                  ["vcs" "commit"]
+                  ["vcs" "push"]]
   :profiles {:datomic-free
              {:lein-tools-deps/config {:resolve-aliases [:datomic-free]}}
              :datomic-pro

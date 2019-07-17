@@ -16,3 +16,4 @@ cat <<-EOF > ~/.m2/settings.xml
   </servers>
 </settings>
 EOF
+echo

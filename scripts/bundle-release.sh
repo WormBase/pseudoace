@@ -1,6 +1,5 @@
-#!env bash
+#!/bin/bash
 # -*- coding: utf-8 -*-
-
 # Script for creating an archive of all the necessary artefact's
 # for a given (git) tagged version.
 
@@ -44,9 +43,9 @@ make_release_jar () {
 
 PROJ_ROOT="$(git rev-parse --show-toplevel)"
 LOGFILE="${PROJ_ROOT}/bundle-release.log"
-RELEASE_TAG="$1"
+RELEASE_TAG="$(git describe --abbrev=0)"
 if [ -z "${RELEASE_TAG}" ]; then
-    echo "USAGE: $0 <RELEASE_TAG>"
+    echo "ERROR: No git tag could be found!"
     exit 1
 fi
 
@@ -64,9 +63,9 @@ LOG_SORT_SCRIPT="scripts/sort-edn-log.sh"
 JAR_NAME="${PROJ_NAME}-${RELEASE_TAG}-standalone.jar"
 DEPLOY_JAR="${BUILD_DIR}/${PROJ_FQNAME}/${PROJ_NAME}-${RELEASE_TAG}.jar"
 RELEASE_DIR="${PROJ_ROOT}/release-archives"
-RELEASE_ARCHIVE="${RELEASE_DIR}/${PROJ_NAME}-${RELEASE_TAG}.tar.gz"
+RELEASE_ARCHIVE="${RELEASE_DIR}/${PROJ_NAME}-${RELEASE_TAG}.tar.xz"
 
-EXEC_CMD=$(cat <<EOF
+EXEC_CMD=$(cat <<-EOF
 clojure -Sdeps \
 '{:deps {com.datomic/datomic-pro {:mvn/version "0.9.5703"}
          pseudoace {:local/root "target/pseudoace-0.6.0-SNAPSHOT/pseudoace-0.6.0-SNAPSHOT.jar"}}}' \
@@ -83,7 +82,7 @@ make_release_jar "${PWD}" "${JAR_NAME}"
 mv "$(find ./target -name ${PROJ_NAME}-${RELEASE_TAG}-standalone.jar)" "${DEPLOY_JAR}"
 cd "${BUILD_DIR}"
 run_step "Creating release archive: ${RELEASE_ARCHIVE}" \
-	 tar jcpf "${RELEASE_ARCHIVE}" "${PROJ_FQNAME}"
+	 tar cpJf "${RELEASE_ARCHIVE}" "${PROJ_FQNAME}"
 cd "${PROJ_DIR}"
 rm -rf "${BUILD_DIR}"
 
@@ -92,7 +91,7 @@ if [ $? -eq 0 ]; then
     echo "	-> Copy ${RELEASE_ARCHIVE} to the target machine"
     echo "	-> unpack with: tar xf <path-to-archive>"
     echo "	-> Run using:"
-    echo -n "${EXEC_CMD}"
+    echo "         ${EXEC_CMD}"
 else
     echo "Darn, Something went wrong. please run with $SHELL -x --debug"
     exit 999
