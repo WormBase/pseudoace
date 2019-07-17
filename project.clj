@@ -32,12 +32,15 @@
                   ["vcs" "commit"]
                   ["vcs" "push"]]
   :profiles {:datomic-free
-             {:lein-tools-deps/config {:resolve-aliases [:datomic-free]}}
+             {:lein-tools-deps/config {:resolve-aliases [:1.9 :datomic-free]}}
              :datomic-pro
-             {:lein-tools-deps/config {:resolve-aliases [:datomic-pro]}}
+             {:lein-tools-deps/config {:resolve-aliases [:1.9 :datomic-pro]}}
              :provided
-             {:lein-tools-deps/config {:resolve-aliases [:datomic-pro
+             {:lein-tools-deps/config {:resolve-aliases [:1.9
+                                                         :datomic-pro
                                                          :aws-java-sdk-dynamodb]}}
              :test
-             {:lein-tools-deps/config {:resolve-aliases [:datomic-pro :test]}}}
+             {:lein-tools-deps/config {:resolve-aliases [:1.9
+                                                         :datomic-pro
+                                                         :test]}}}
   :deploy-repositories [["releases" :clojars]])
