@@ -10,6 +10,7 @@
   funcool/datoteka {:mvn/version "1.1.0"}
   lambdaisland/uri {:mvn/version "1.1.0"}
   com.velisco/clj-ftp {:mvn/version "0.3.12"}
+  org.clojure/clojure {:mvn/version "1.9.0"}
   org.clojure/tools.cli {:mvn/version "0.4.2"}}
  :aliases
  {:dev
