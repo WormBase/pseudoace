@@ -3,6 +3,7 @@
   :source-paths ["src"]
   :resource-paths ["models"]
   :lein-tools-deps/config {:config-files [:install :user :project]}
+  :middleware [lein-tools-deps.plugin/resolve-dependencies-with-deps-edn]
   :plugins
   [[lein-pprint "1.1.1"]
    [lein-tools-deps "0.4.1"]
@@ -39,4 +40,4 @@
                                                          :aws-java-sdk-dynamodb]}}
              :test
              {:lein-tools-deps/config {:resolve-aliases [:datomic-pro :test]}}}
-  :deploy-repositories) [["releases" :clojars]]
+  :deploy-repositories [["releases" :clojars]])
