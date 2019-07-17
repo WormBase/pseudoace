@@ -23,11 +23,9 @@ Features include:
 
  * Java 1.8 (OpenJDK or Oracle versions)
 
- * [Clojure installer and CLI tools][15]
+ * [Clojure installer and CLI tools][3]
 
  * [Install datomic][14]
-
- * [leiningen][3]
 
 
 ## Development
@@ -55,30 +53,14 @@ clojure -A:datomic-pro:test
 
 ### Initial setup
 
-[Configure leiningen credentials][9] for [clojars][8].
-
-Test your setup by running:
-```bash
-# Ensure you are Using `gpg2`, and the `gpg-agent` is running.
-# Here, gpg is a symbolic link to gpg2
-gpg --quiet --batch --decrypt ~/.lein/credentials.clj.gpg
-```
-
-The output should look like (credentials elided):
-
-```
-;; my.datomic.com and clojars credentials
-{#"my\.datomic\.com" {:username ...
-                      :password ...}
- #"clojars" {:username ...
-             :password ...}}
-```
+Run `./scripts/dev-setup.sh` to configure Maven credentials.
+(Creates the file `~/.m2/settings.xml`)
 
 ### Releasing to Clojars
 
 Clojars is a public repository for packaged clojure libraries.
 
-This release process re-uses the [leiningen deployment tools][12]:
+This release process re-uses the [clojure CLI tools][3]:
 
   * Checkout the `master` branch if not already checked-out.
 
@@ -92,7 +74,7 @@ This release process re-uses the [leiningen deployment tools][12]:
 
 	* Commit and push all changes.
 
-	* Run: `make deploy`
+	* Run: `clj -A:deploy`
 
   * Checkout the `develop` branch.
 
@@ -115,21 +97,11 @@ This release process re-uses the [leiningen deployment tools][12]:
 
 #### As a standalone jar file for running the import peer on a server
 
+Will create a release archive based on the latest git TAG.
+To override, pass TAG as first argument.
+
 ```bash
-# GIT_RELEASE_TAG should be the annotated git release tag, e.g:
-#   GIT_RELEASE_TAG="0.3.2"
-#
-# If you want to use a local git tag, ensure it matches the version in
-# projet.clj, e.g:
-#  GIT_RELEASE_TAG="0.3.2-SNAPSHOT"
-#
-# LEIN_PROFILE
-# should be:
-#   - "prod" (for datomic-pro, ddb release)
-#   - "dev" (for open-source release)
-# e.g:
-git checkout "${GIT_RELEASE_TAG}" "dev"
-./scripts/bundle-release.sh $GIT_RELEASE_TAG $LEIN_PROFILE
+./scripts/bundle-release.sh [TAG]
 ```
 
 An archive named `pseudoace-$GIT_RELEASE_TAG.tar.gz` will be created
@@ -253,7 +225,7 @@ dependent on the platform you run it on.
 
 [1]: http://www.wormbase.org/
 [2]: http://www.datomic.com/
-[3]: http://leiningen.org/
+[3]: https://clojure.org/guides/getting_started
 [4]: https://github.com/edn-format/edn/
 [5]: http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html
 [6]: https://datasift.github.io/gitflow/IntroducingGitFlow.html
@@ -265,4 +237,3 @@ dependent on the platform you run it on.
 [12]: https://github.com/technomancy/leiningen/blob/master/doc/DEPLOY.md#deployment
 [13]: http://docs.datomic.com/integrating-peer-lib.html
 [14]: http://docs.datomic.com/getting-started.html
-[15]: https://clojure.org/guides/getting_started
