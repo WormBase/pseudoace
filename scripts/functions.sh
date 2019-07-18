@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
 
-proj_meta() {
-    local proj_root="$1"
-    local grp="$2"
-    local sin="$(head -n1 ${proj_root}/project.clj)"
-    read -r -d '' regexp  <<'EOF'
-^\(defproject\s+(?P<clojars_group>\w+)/(?P<name>\w+)\s+\"(?P<version>.+)\"
-EOF
-    read -r -d '' src <<EOF
-import re;
-import sys;
-print re.sub(*sys.argv[1:])
-EOF
-    python2 -c "${src}" "${regexp}" "\g<${grp}>" "$sin"
+value_from_pom() {
+    local key=$1
+    xml2 < pom.xml  | grep "/project/${key}=" | cut -d= -f2
+}
+
+proj_version() {
+    value_from_pom "version"
+}
+
+proj_name() {
+    value_from_pom "artifactId"
 }
 
 run_step() {
