@@ -1,5 +1,8 @@
 # Change-log
-## [0.6.0] - (2019-06-26)
+## [0.6.1] - (2019-07-18)
+  - Redeploy of 0.6.0 due to script error.
+
+## [0.6.0] - (2019-07-18)
   - Used clojure dev tools (clj)
   - Removed AOT compilation
   - Used leiningen 2.9.1+
