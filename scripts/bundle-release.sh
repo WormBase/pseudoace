@@ -49,8 +49,8 @@ if [ -z "${RELEASE_TAG}" ]; then
     exit 1
 fi
 
-PROJ_NAME="$(proj_meta ${PROJ_ROOT} name)"
-PROJ_VERSION="$(proj_meta ${PROJ_ROOT} version)"
+PROJ_NAME="$(proj_name)"
+PROJ_VERSION="$(proj_version)"
 
 if [ -z "$PROJ_NAME" ] || [ -z "$PROJ_VERSION" ]; then
     echo "[ ❌ ] Could not determine Clojure project name and version."
