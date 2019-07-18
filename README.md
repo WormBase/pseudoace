@@ -17,7 +17,7 @@ Features include:
   * Utility functions and macros for querying WormBase data.
 
   * A command line interface for utilities described above
-	(via the `clojure -A:datomic-pro -m clojure.main pseudoace.cli` command)
+	(via the `clj -A:datomic-pro -m pseudoace.cli` command)
 
 ## Installation
 
@@ -25,7 +25,10 @@ Features include:
 
  * [Clojure installer and CLI tools][3]
 
- * [Install datomic][14]
+ * [Install datomic][9]
+
+ * The deploy script requires the [xml2][10] utility, install with:
+ `sudo apt-get install libxml2`
 
 
 ## Development
@@ -56,7 +59,11 @@ clojure -A:datomic-pro:test
 Run `./scripts/dev-setup.sh` to configure Maven credentials.
 (Creates the file `~/.m2/settings.xml`)
 
-### Releasing to Clojars
+### Releasing
+
+#### Library release
+
+`pseudoace` is consumed as library by other WormBase applications.
 
 Clojars is a public repository for packaged clojure libraries.
 
@@ -101,7 +108,7 @@ Will create a release archive based on the latest git TAG.
 To override, pass TAG as first argument.
 
 ```bash
-./scripts/bundle-release.sh [TAG]
+make bundle-release
 ```
 
 An archive named `pseudoace-$GIT_RELEASE_TAG.tar.gz` will be created
@@ -111,10 +118,13 @@ The archive contains two artefacts:
 
    ```bash
    cd ./release-archives
-   tar tvf pseudoace-$GIT_RELEASE_TAG.tar.gz
+   tar tvf pseudoace-$GIT_RELEASE_TAG.tar.xz
    ./pseudoace-$GIT_RELEASE_TAG.jar
    ./sort-edn-log.sh
    ```
+
+1. Create a release on github
+2. Upload this tar.xz file as a release asset so the migration pipeline can use it.
 
 > **To ensure we comply with the datomic license
 >   ensure this tar file, and specifically  the jar file
@@ -132,7 +142,7 @@ A command line utility has been developed for ease of usage:
 ```bash
 
 URL_OF_TRANSACTOR="datomic:dev://localhost:4334/*"
-alias run-pace "clj -A:datomic-pro:aws-java-sdk-dynamodb -m pseudoace.cli"
+alias run-pace "clj -A:datomic-pro -m pseudoace.cli"
 run-pace --url "${URL_OF_TRANSACTOR}" <command>
 ```
 
@@ -146,7 +156,7 @@ from a repl session:
 
 ```bash
 # start the repl (Read Eval Print Loop)
-clj -A:datomic-pro:aws-java-sdk-dynamodb
+clj -A:datomic-pro
 ```
 
 Example of invoking a sub-command:
@@ -158,11 +168,10 @@ Example of invoking a sub-command:
 
 ### Staging/Production
 
-Run `pseudoace` with the same arguments as you would when using `lein
-run`:
+Run `pseudoace` with the same arguments as you would when using `clj`:
 
   ```bash
-  java -jar pseudoace-$GIT_RELEASE_TAG.jar -v
+  java -cp pseudoace-$GIT_RELEASE_TAG.jar clojure.main -m pseudoace.cli -v
   ```
 
 ### Import process
@@ -174,7 +183,8 @@ Create the database and parse .ace dump-files into EDN.
 Example:
 
 ```bash
-java -jar pseudoace-$GIT_RELEASE_TAG.jar \
+java -cp pseudoace-$GIT_RELEASE_TAG.jar clojure.main \
+     -m pseudoace.cli \
      --url $DATOMIC_URL \
 	 --acedump-dir ACEDUMP_DIR \
 	 --log-dir LOG_DIR \
@@ -214,7 +224,9 @@ Transacts the EDN sorted by timestamp in `--log-dir` to the database
 specified with `--url`:
 
 ```bash
-java -jar pseudoace-$GIT_RELEASE_TAG.jar \
+java -cp pseudoace-$GIT_RELEASE_TAG.jar clojure.main \
+     -m pseudoace.cli \
+	 --url URL \
 	 --log-dir LOG_DIR \
 	 -v import-logs
 ```
@@ -231,9 +243,5 @@ dependent on the platform you run it on.
 [6]: https://datasift.github.io/gitflow/IntroducingGitFlow.html
 [7]: https://github.com/bbatsov/clojure-style-guide
 [8]: http://clojars.org
-[9]: https://github.com/technomancy/leiningen/blob/master/doc/DEPLOY.md#authentication
-[10]: https://github.com/jonase/kibit
-[11]: https://github.com/dakrone/lein-bikeshed
-[12]: https://github.com/technomancy/leiningen/blob/master/doc/DEPLOY.md#deployment
-[13]: http://docs.datomic.com/integrating-peer-lib.html
-[14]: http://docs.datomic.com/getting-started.html
+[9]: http://docs.datomic.com/getting-started.html
+[10]: https://askubuntu.com/questions/733169/how-to-install-libxml2-in-ubuntu-15-10
