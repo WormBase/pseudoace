@@ -32,11 +32,12 @@
     ring/ring-devel {:mvn/version "1.6.3"}
     peridot {:mvn/version "0.5.0"}
     vvvvalvalval/datomock {:mvn/version "0.2.2"}}}
-  :test {:extra-paths ["test" "test/resources"]
-         :extra-deps {com.cognitect/transcriptor {:mvn/version "0.1.5"}
-                      com.cognitect/test-runner {:git/url "https://github.com/cognitect-labs/test-runner.git"
-                                                 :sha "209b64504cb3bd3b99ecfec7937b358a879f55c1"}}
-         :main-opts ["-m" "cognitect.test-runner" "-r" "pseudoace.*"]}
+  :test
+  {:extra-paths ["test" "test/resources"]
+   :extra-deps {com.cognitect/transcriptor {:mvn/version "0.1.5"}
+                com.cognitect/test-runner {:git/url "https://github.com/cognitect-labs/test-runner.git"
+                                           :sha "209b64504cb3bd3b99ecfec7937b358a879f55c1"}}
+   :main-opts ["-m" "cognitect.test-runner" "-r" "pseudoace.*"]}
   :datomic-free
   {:extra-deps
    {com.datomic/datomic-free {:mvn/version "0.9.5703"
@@ -50,7 +51,6 @@
     com.amazonaws/aws-java-sdk-dynamodb {:mvn/version "1.11.82"
                                          :exclusions [joda-time]}}}
   :depstar {:extra-deps {seancorfield/depstar {:mvn/version "0.2.4"}}}}}
-
 
 
 
