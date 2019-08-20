@@ -21,16 +21,6 @@
 (def list-ace-files (filter #(or (= (fs/ext %) "ace")
                                  (str/ends-with? % ".ace.gz"))))
 
-(defn read-ace-patch
-  "Read an ACe file, uncompressing via gunzip if neccessary."
-  [filename]
-  (cond-> filename
-    (str/ends-with? filename ".ace.gz") (utils/gunzip)
-    :always
-    (-> (io/input-stream)
-        (ace/ace-reader)
-        (ace/ace-seq))))
-
 (defn santise-lookup-ref [datom]
   (let [op (first datom)]
     (cond
@@ -46,7 +36,7 @@
 
 (defn ace-patch-to-edn [imp db patch-file]
   (try
-    (->> (read-ace-patch patch-file)
+    (->> (utils/read-ace patch-file)
          (ts-import/patches->log imp db)
          (mapcat val)
          (map santise-lookup-ref)
