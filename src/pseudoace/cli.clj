@@ -441,7 +441,7 @@
   ;; then pull out objects from the pipeline in chunks of 20 objects.
   ;; Larger block size may be faster if
   ;; you have plenty of memory.
-  (doseq [blk (partition-all 20 (patching/read-ace-patch file))]
+  (doseq [blk (partition-all 20 (utils/read-ace file))]
     (loc-import/split-locatables-to-dir helper-db blk log-dir)))
 
 (defn run-locatables-importer-for-helper
