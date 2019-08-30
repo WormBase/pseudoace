@@ -315,7 +315,7 @@
      (println \tab "Converting" file))
    ;; then pull out objects from the pipeline in chunks of 20 objects.
    ;; Larger block size may be faster if you have plenty of memory
-   (doseq [blk (partition-all 20 (patching/read-ace-patch))]
+   (doseq [blk (partition-all 20 (patching/read-ace-patch file))]
      (ts-import/split-logs-to-dir imp blk log-dir))))
 
 (def helper-filename "helper.edn.gz")
