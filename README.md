@@ -80,6 +80,8 @@ This release process re-uses the [clojure CLI tools][3]:
 
 	* Commit and push all changes.
 
+	* Create git tag matching project version (e.g 0.6.3)
+
 	* Run: `clj -A:deploy`
 
     * Add a new changelog entry for the next release. commit back to master ("back to development").
