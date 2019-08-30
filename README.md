@@ -82,7 +82,7 @@ This release process re-uses the [clojure CLI tools][3]:
 
 	* Create git tag matching project version (e.g 0.6.3)
 
-	* Run: `clj -A:deploy`
+	* Run: `make deploy-clojars`
 
     * Add a new changelog entry for the next release. commit back to master ("back to development").
 
@@ -93,10 +93,10 @@ Will create a release archive based on the latest git TAG.
 To override, pass TAG as first argument.
 
 ```bash
-make bundle-release
+make uberjar
 ```
 
-An archive named `pseudoace-$GIT_RELEASE_TAG.tar.gz` will be created
+An archive named `pseudoace-$GIT_RELEASE_TAG.tar.xz` will be created
 in the `./release-archives` directory.
 
 The archive contains two artefacts:
