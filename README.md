@@ -76,31 +76,14 @@ This release process re-uses the [clojure CLI tools][3]:
 	* Replace "un-released" in the latest version entry with the
       current date.
 
-	* Change the version from `MAJOR.MINOR.PATCH-SNAPSHOT` to
-      `MAJOR.MINOR.PATCH` in `project.clj`.
+	* Update the version of psuedoace in pom.xml.
 
 	* Commit and push all changes.
 
 	* Run: `clj -A:deploy`
 
-  * Checkout the `develop` branch.
+    * Add a new changelog entry for the next release. commit back to master ("back to development").
 
-	* Merge the `master` branch back into `develop`.
-
-	* Change the version from `MAJOR.MINOR.PATCH` to
-      `MAJOR.MINOR.PATCH-SNAPSHOT` in `project.clj`.
-
-	* Update `CHANGELOG.md` with the next
-      version number and a "back to development" stanza, e.g:
-
-	```markdown
-	## 0.3.2 - (unreleased)
-	  - Nothing changed yet.
-	```
-
-    Commit and push these changes, typically with the message:
-
-		"Back to development"
 
 #### As a standalone jar file for running the import peer on a server
 
