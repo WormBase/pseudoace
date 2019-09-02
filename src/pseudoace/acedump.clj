@@ -8,7 +8,7 @@
 
 (defrecord Node [type ts value children])
 
-(def ^:private ace-date-format
+(def ace-date-format
   (tf/formatter "yyyy-MM-dd_hh:mm:ss"))
 
 (def ^{:dynamic true
