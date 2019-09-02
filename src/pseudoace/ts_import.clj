@@ -2,10 +2,12 @@
   (:require
    [clj-time.coerce :refer [from-date to-date]]
    [clj-time.core :as ctc]
+   [clj-time.format :as ctf]
    [clojure.instant :refer [read-instant-date]]
    [clojure.java.io :as io]
    [clojure.string :as str]
    [datomic.api :as d]
+   [pseudoace.acedump :refer [ace-date-format]]
    [pseudoace.aceparser :as ace]
    [pseudoace.binning :refer [bin]]
    [pseudoace.import :refer [datomize-objval get-tags]]
@@ -15,6 +17,7 @@
                             indexed
                             parse-double
                             parse-int
+                            strand
                             vmap]])
   (:import
    (java.io FileInputStream FileOutputStream)
@@ -50,6 +53,9 @@
 (def pmatch @#'ace/pmatch)
 
 (def assign-alloc-re #"__(ALLOCATE|ASSIGN)__(.+)?")
+
+(defn format-ace-date [date]
+  (ctf/unparse ace-date-format date))
 
 (defn- imp-tmp-ident [db alloc-name obj ex-msg]
   (if alloc-name
@@ -568,9 +574,7 @@
             [:db/add child :locatable/assembly-parent this]
             [:db/add child :locatable/min (dec start)]
             [:db/add child :locatable/max end]
-            [:db/add child
-             :locatable/murmur-bin
-             (bin (second this) (dec start) end)]))))
+            [:db/add child :locatable/murmur-bin (bin (second this) (dec start) end)]))))
      {}
      subseqs)))
 
@@ -620,12 +624,8 @@
             [:db/add child :locatable/parent this]
             [:db/add child :locatable/min (dec (min start end))]
             [:db/add child :locatable/max (max start end)]
-            [:db/add child
-             :locatable/strand
-             (if (<= start end)
-               :locatable.strand/positive
-               :locatable.strand/negative)]
-            (if (= (first this) :sequence/id)
+            [:db/add child :locatable/strand (strand start end)]
+            (when (= (first this) :sequence/id)
               [:db/add child
                :locatable/murmur-bin
                (bin (second this)
@@ -827,18 +827,23 @@
 (def log-fixups
   {nil (constantly "1977-01-01_01:01:01_nil")
    "original" (constantly "1970-01-02_01:01:01_original")
-   "patch" (partial ctc/now)})
+   "patch" (constantly (str (format-ace-date (ctc/now)) "patch"))
+   "homoology" (constantly (str (format-ace-date (ctc/now)) "_homoology_import"))})
 
 (defn clean-log-keys [log]
   (into {} (for [[k v] log]
              [(if-let [f (log-fixups k)]
-                (f) k)
+                (f)
+                k)
               v])))
 
 (defn logs-to-dir
   [logs dir]
   (doseq [[stamp logs] (clean-log-keys logs)
           :let [[_ date time name] (re-matches timestamp-pattern stamp)]]
+    ;; filename is date whatever is in 1st column of "edn" file.
+    ;; when it's helper.edn.gz, cli.clj moves this to the "helper" sub folder of `dir`
+    ;; after conversion.
     (with-open [w (-> (io/file dir (str (or date stamp) ".edn.gz"))
                       (FileOutputStream. true)
                       (GZIPOutputStream.)
@@ -892,9 +897,14 @@
         ffirst
         from-date)))
 
+(defn- ms->s [n]
+  (when n
+    (/ 1000 n)))
+
 (defn play-logfile
-  [con logfile max-count max-text & {:keys [use-with?]
-                                     :or {use-with? false}}]
+  [con logfile max-count max-text & {:keys [use-with? fixup-datoms?]
+                                     :or {use-with? false
+                                          fixup-datoms? true}}]
   (with-open [r (io/reader logfile)]
     (doseq [rblk (partition-log max-count max-text (logfile-seq r))]
       (doseq [sblk (partition-by first rblk)]
@@ -902,18 +912,32 @@
               blk (map second sblk)
               db (d/db con)
               fdatoms (filter (fn [[_ _ _ v]] (not (map? v))) blk)
+              datoms (if fixup-datoms?
+                       (fixup-datoms db fdatoms)
+                       fdatoms)
               tx-meta (txmeta stamp)
-              datoms (fixup-datoms db fdatoms)
-              ms->s #(/ 1000 %)
-              imp-tx-secs (ms->s (-> tx-meta :db/txInstant (.getTime)))
-              last-db-tx-secs (ms->s (-> db
-                                         latest-transaction-date
-                                         to-date
-                                         (.getTime)))]
-          (if (<= imp-tx-secs last-db-tx-secs)
-            (let [transact (if use-with?
-                             (partial d/with db)
-                             (fn [txes]
-                               @(d/transact-async con txes)))]
-              (transact (conj datoms tx-meta)))
-            (println "Skipping transaction with past-date:" stamp)))))))
+              imp-tx-secs (ms->s (some-> tx-meta :db/txInstant (.getTime)))
+              last-db-tx-secs (ms->s (some-> db
+                                             latest-transaction-date
+                                             to-date
+                                             (.getTime)))
+              has-timestamp? (number? stamp)]
+          (when has-timestamp?
+            (when (< imp-tx-secs last-db-tx-secs)
+              (println "Skipping transaction with past-date:" stamp)))
+          (let [has-tx-meta? (seq (dissoc tx-meta :db/id))
+                transact (if use-with?
+                           (partial d/with db)
+                           (fn [txes]
+                             @(d/transact-async con txes)))]
+            (let [tx-data (if has-tx-meta?
+                            (conj datoms tx-meta)
+                            datoms)]
+              (try
+                (transact tx-data)
+                (catch Exception ex
+                  (throw (ex-info (.getMessage ex)
+                                  {:orig-exception ex
+                                   :tx-data tx-data})))))))))))
+
+

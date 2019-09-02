@@ -82,6 +82,15 @@
    [nil
     "--verify-patch"
     "Verify ACe patch is valid (convertable to EDN AND transactable against the current DB URL."]
+   [nil
+    "--no-sorted-edn"
+    "Used in conjunction with --log-dir to indicate EDN files are un-sorted."]
+   [nil
+    "--no-fixup-datoms"
+    "Don't try to run the fixup-datoms fn when playing log files."]
+   [nil
+    "--homol-db-name NAME"
+    "Specify an alternate name for the homoolgy database. Defaults to \"homol\"."]
    ["-v" "--verbose"]
    ["-f" "--force"]
    ["-h" "--help"]])
@@ -212,7 +221,7 @@
   [& {:keys [url models-filename verbose]
       :or {verbose false}}]
   (when verbose
-    (println "Creating Helper Database"))
+    (println "Creating Helper Database with annotated models file:" models-filename))
   (generate-schema
    :models-filename models-filename
    :verbose verbose)
@@ -226,6 +235,10 @@
 
 (defn get-ace-files [directory]
   (map fs/file (directory-walk directory #".*\.ace.gz")))
+
+(defn get-edn-files [log-dir suffix]
+  (sort (filter #(str/ends-with? (fs/name %) suffix)
+                (fs/list-dir log-dir))))
 
 (defn get-sorted-edn-log-files
   "Sort EDN log files for import.
@@ -242,8 +255,7 @@
                  ct/date-time
                  (map #(% latest-tx-dt) [ct/year ct/month ct/day]))
         day-before-tx-dt (ct/minus tx-date (ct/days 1))
-        edn-files (filter #(str/ends-with? (fs/name %) ".edn.sort.gz")
-                          (fs/list-dir log-dir))
+        edn-files (get-edn-files log-dir ".edn.sort.gz")
         edn-file-map (reduce
                       (fn [m f]
                         (assoc m (fs/name f) f))
@@ -356,26 +368,35 @@
 
 (defn import-logs
   "Import the sorted EDN log files."
-  [& {:keys [url log-dir partition-max-count partition-max-text verbose]
-      :or {verbose false
-           partition-max-count *partition-max-count*
-           partition-max-text *partition-max-text*}}]
+  [& {:keys
+      [url log-dir partition-max-count partition-max-text no-sorted-edn no-fixup-datoms verbose]
+      :or
+      {verbose false
+       partition-max-count *partition-max-count*
+       partition-max-text *partition-max-text*
+       no-sorted-edn false
+       no-fixup-datoms false}}]
   (when verbose
     (println "Importing logs into datomic database" url "from log files in" log-dir))
   (let [conn (d/connect url)
         db (d/db conn)
         latest-tx-dt (ts-import/latest-transaction-date db)
-        log-files (get-sorted-edn-log-files log-dir db latest-tx-dt)]
+        log-files (if no-sorted-edn
+                    (get-edn-files log-dir ".edn.gz")
+                    (get-sorted-edn-log-files log-dir db latest-tx-dt))]
     (when verbose
-      (println "Importing" (count log-files) "log files"))
+      (println "Importing" (count log-files)
+               "log files from" log-dir
+               " with latest-tx-dt:" latest-tx-dt))
     (doseq [file log-files]
       (when verbose
-        (println \tab "importing: " (.getName file)))
+        (println \tab "importing: " (fs/name file)))
       (ts-import/play-logfile
        conn
        (GZIPInputStream. (io/input-stream file))
        partition-max-count
-       partition-max-text))
+       partition-max-text
+       :fixup-datoms? (not no-fixup-datoms)))
     (d/release conn)))
 
 (defn excise-tmp-data
@@ -437,29 +458,43 @@
 
 (defn helper-file-to-datalog [helper-db file log-dir verbose]
   (when verbose
-    (println \tab "Adding extra data from: " file))
-  ;; then pull out objects from the pipeline in chunks of 20 objects.
-  ;; Larger block size may be faster if
-  ;; you have plenty of memory.
+    (println \tab "Processing locatable data from: " file))
   (doseq [blk (partition-all 20 (utils/read-ace file))]
     (loc-import/split-locatables-to-dir helper-db blk log-dir)))
 
+
+(def ace-by-cls-dump-pattern #"^dump_\d{4}-\d{2}-\d{2}_A_(\w.+)\.\d+\.ace\.gz")
+
+(def include-locatable-ace-classes #{"Protein" "Motif" "Method"})
+
+(defn include-for-locatable-run? [filename]
+  (->> filename
+       (.getName)
+       (re-find ace-by-cls-dump-pattern)
+       (last)
+       (include-locatable-ace-classes)))
+
+(defn get-ace-files-for-locatable-import
+  [acedump-dir]
+  (->> acedump-dir
+       (get-ace-files)
+       (filter include-for-locatable-run?)))
+
 (defn run-locatables-importer-for-helper
-  ([url acedump-dir]
-   (run-locatables-importer-for-helper url acedump-dir :verbose false))
-  ([url log-dir acedump-dir verbose]
-   (when verbose
-     (println (str "Importing logs with loactables "
-                   "importer into helper database")))
-   (let [helper-uri (uri-to-helper-uri url)
-         helper-connection (d/connect helper-uri)
-         helper-db (d/db helper-connection)
-         files (get-ace-files acedump-dir)]
-     (doseq [file files]
-       (helper-file-to-datalog helper-db file log-dir verbose))
-     (when verbose
-       (println \tab "Releasing helper database connection"))
-     (d/release helper-connection))))
+  [& {:keys [url acedump-dir log-dir verbose]
+      :or {verbose false}}]
+  (when verbose
+    (println (str "Importing logs with loactables "
+                  "importer into helper database")))
+  (let [helper-uri (uri-to-helper-uri url)
+        helper-connection (d/connect helper-uri)
+        helper-db (d/db helper-connection)
+        files (get-ace-files-for-locatable-import acedump-dir)]
+    (doseq [file files]
+      (helper-file-to-datalog helper-db file log-dir verbose))
+    (when verbose
+      (println \tab "Releasing helper database connection"))
+    (d/release helper-connection)))
 
 (defn delete-helper-database
   "Delete the \"helper\" database."
@@ -533,6 +568,22 @@
         (d/release conn)))
     nil))
 
+(defn import-locatable-refs
+  "Copy Protein and Motif identifiers into the h omology database."
+  [& {:keys [url acedump-dir homol-db-name verbose]
+      :or {verbose false
+           homol-db-name "homol"}}]
+  (let [conn (d/connect url)
+        files (get-ace-files-for-locatable-import acedump-dir)]
+    (doseq [file files]
+      (doseq [tx-block (partition-all 500 (utils/read-ace file))]
+        (let [tx-data (map (fn [obj]
+                             (let [ident-ns (-> obj :class str/lower-case)
+                                   ident (keyword ident-ns "id")]
+                               {ident (:id obj)}))
+                           tx-block)]
+          @(d/transact conn tx-data))))))
+
 (def cli-actions [#'acedump-to-edn-logs
                   #'apply-patch
                   #'apply-patches
@@ -543,7 +594,9 @@
                   #'generate-report
                   #'generate-schema-view
                   #'import-helper-edn-logs
+                  #'import-locatable-refs
                   #'import-logs
+                  #'import-locatable-refs
                   #'list-databases
                   #'prepare-import
                   #'run-locatables-importer-for-helper
