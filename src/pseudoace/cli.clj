@@ -381,12 +381,11 @@
   "Import the sorted EDN log files."
   [& {:keys
       [url log-dir partition-max-count partition-max-text no-sorted-edn no-fixup-datoms verbose]
-      :or
-      {verbose false
-       partition-max-count *partition-max-count*
-       partition-max-text *partition-max-text*
-       no-sorted-edn false
-       no-fixup-datoms false}}]
+      :or {verbose false
+           partition-max-count *partition-max-count*
+           partition-max-text *partition-max-text*
+           no-sorted-edn false
+           no-fixup-datoms false}}]
   (when verbose
     (println "Importing logs into datomic database" url "from log files in" log-dir))
   (let [conn (d/connect url)
