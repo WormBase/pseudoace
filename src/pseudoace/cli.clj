@@ -188,6 +188,9 @@
                        :no-fixups no-fixups)
      (d/release conn))))
 
+(defn- db-name-from-url [url]
+  (last (str/split url #"/")))
+
 (defn create-database
   "Create a Datomic database from a schema generated
   and an annotated ACeDB models file."
@@ -200,7 +203,7 @@
            no-fixups false
            verbose false}}]
   (when verbose
-    (println "Creating Database")
+    (println "Creating Database:" (db-name-from-url url))
     (if no-locatable-schema
       (println "Locatable schema will not be applied"))
     (if no-fixups
@@ -228,6 +231,14 @@
   (let [helper-uri (uri-to-helper-uri url)]
     (d/create-database helper-uri)
     (load-schema helper-uri models-filename verbose)))
+
+(defn create-homology-database
+  [& {:keys [url models-filename homol-db-name verbose]
+      :or {homol-db-name "homology"
+           verbose false}}]
+  (let [main-db-name (db-name-from-url url)
+        homol-url (str/replace url (str  "/" main-db-name) (str "/" homol-db-name))]
+    (create-database :url homol-url :models-filename models-filename :verbose verbose)))
 
 (defn directory-walk [directory pattern]
   (doall (filter #(re-matches pattern (fs/name %))
@@ -480,12 +491,9 @@
        (get-ace-files)
        (filter include-for-locatable-run?)))
 
-(defn run-locatables-importer-for-helper
+(defn run-locatables-importer
   [& {:keys [url acedump-dir log-dir verbose]
       :or {verbose false}}]
-  (when verbose
-    (println (str "Importing logs with loactables "
-                  "importer into helper database")))
   (let [helper-uri (uri-to-helper-uri url)
         helper-connection (d/connect helper-uri)
         helper-db (d/db helper-connection)
@@ -589,6 +597,7 @@
                   #'apply-patches
                   #'create-database
                   #'create-helper-database
+                  #'create-homology-database
                   #'delete-database
                   #'excise-tmp-data
                   #'generate-report
@@ -596,10 +605,9 @@
                   #'import-helper-edn-logs
                   #'import-locatable-refs
                   #'import-logs
-                  #'import-locatable-refs
                   #'list-databases
                   #'prepare-import
-                  #'run-locatables-importer-for-helper
+                  #'run-locatables-importer
                   #'run-test-query])
 
 (def cli-action-metas (map meta cli-actions))
