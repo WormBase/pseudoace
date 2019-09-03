@@ -827,7 +827,7 @@
 (def log-fixups
   {nil (constantly "1977-01-01_01:01:01_nil")
    "original" (constantly "1970-01-02_01:01:01_original")
-   "patch" (partial ctc/now)})
+   "patch" (constantly (str (ctc/now)))})
 
 (defn clean-log-keys [log]
   (into {} (for [[k v] log]
