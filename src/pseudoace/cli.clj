@@ -397,7 +397,7 @@
     (when verbose
       (println "Importing" (count log-files)
                "log files from" log-dir
-               " with latest-tx-dt:" latest-tx-dt))
+               "with latest-tx-dt:" latest-tx-dt))
     (doseq [file log-files]
       (when verbose
         (println \tab "importing: " (fs/name file)))
@@ -471,7 +471,6 @@
     (println \tab "Processing locatable data from: " file))
   (doseq [blk (partition-all 20 (utils/read-ace file))]
     (loc-import/split-locatables-to-dir helper-db blk log-dir)))
-
 
 (def ace-by-cls-dump-pattern #"^dump_\d{4}-\d{2}-\d{2}_A_(\w.+)\.\d+\.ace\.gz")
 
