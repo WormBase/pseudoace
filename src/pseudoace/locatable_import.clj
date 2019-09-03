@@ -36,7 +36,7 @@
 ;; - Structure_homol
 ;; - RNAi_homol
 ;; - Oligo_set_homol
-xo;; - Expr_homol
+;; - Expr_homol
 ;; - MSPeptide_homol
 ;; - SAGE_homol
 ;; - Homol_homol
