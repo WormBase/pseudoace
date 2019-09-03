@@ -828,7 +828,7 @@
   {nil (constantly "1977-01-01_01:01:01_nil")
    "original" (constantly "1970-01-02_01:01:01_original")
    "patch" (constantly (str (format-ace-date (ctc/now)) "patch"))
-   "homoology" (constantly (str (format-ace-date (ctc/now)) "_homoology_import"))})
+   "homology" (constantly (str (format-ace-date (ctc/now)) "_homology_import"))})
 
 (defn clean-log-keys [log]
   (into {} (for [[k v] log]
