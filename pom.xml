@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>wormbase</groupId>
   <artifactId>pseudoace</artifactId>
-  <version>0.6.2</version>
+  <version>0.6.5</version>
   <name>pseudoace</name>
 
   <dependencies>
@@ -83,6 +83,10 @@
     <repository>
       <id>clojars</id>
       <url>https://repo.clojars.org/</url>
+    </repository>
+    <repository>
+      <id>sonatype</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
     </repository>
   </repositories>
 

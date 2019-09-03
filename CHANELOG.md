@@ -1,4 +1,14 @@
 # Change-log
+
+## [0.6.5] - (2019-09-03)
+  - Fixed bug with refactoring done for ACe patching.
+
+## [0.6.4] - (2019-09-03)
+  - Fixed bug with log fixups.
+  
+## [0.6.3] - (2019-08-30)
+  - Fixed missing paramter in function call.
+
 ## [0.6.2] - (2019-07-18)
   - Another redeploy due to issues with mvn deploy.
 

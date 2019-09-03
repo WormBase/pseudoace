@@ -202,13 +202,13 @@
             lines)
            log)
          (let [cvals (take-ts (count concs) (first lines))
-               cdata (map
-                      (fn [conc val stamp]
-                        (log-datomize-value conc current-db imp [val])
-                        stamp)
-                      concs cvals (lazy-cat
-                                   (:timestamps (meta cvals))
-                                   (repeat nil)))]
+               cdata (map (fn [conc val stamp]
+                            [conc
+                             (log-datomize-value conc current-db imp [val])
+                             stamp])
+                          concs
+                          cvals
+                          (lazy-cat (:timestamps (meta cvals)) (repeat nil)))]
            (if-let [current-comp (cbc (mapv second cdata))]
              ;; Component with these concrete values already exists
              (log-nodes
