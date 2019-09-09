@@ -374,7 +374,7 @@
       (println "Importing" (count log-files) "log files"))
     (doseq [file log-files]
       (if verbose
-        (println \tab "importing: " (.getName file)))
+        (println \tab "importing: " file))
       (ts-import/play-logfile
        conn
        (GZIPInputStream. (io/input-stream file))
