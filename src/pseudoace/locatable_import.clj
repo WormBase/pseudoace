@@ -100,9 +100,9 @@
                                        [:db/add tid :homology/max (utils/parse-int target-end-s)])
                                      (when (some? score-s)
                                        [:db/add tid :locatable/score (utils/parse-double score-s)]))]
-                           (homol-tx-data db tag base tid target protein?))))))))
+                           (homol-tx-data db tag base tid target protein?)))))))
      {}
-     (group-by (partial ts-imp/take-ts 8) homol-lines)))
+     (group-by (partial ts-imp/take-ts 8) homol-lines))))
 
 (defmulti log-locatables (fn [_ obj] (:class obj)))
 
