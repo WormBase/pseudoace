@@ -399,8 +399,8 @@
                "log files from" log-dir
                "with latest-tx-dt:" latest-tx-dt))
     (doseq [file log-files]
-      (when verbose
-        (println \tab "importing: " (fs/name file)))
+      (if verbose
+        (println \tab "importing: " file))
       (ts-import/play-logfile
        conn
        (GZIPInputStream. (io/input-stream file))

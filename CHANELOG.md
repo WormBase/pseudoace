@@ -1,5 +1,8 @@
 # Change-log
 
+## [0.6.6] - (2019-09-08)
+  - Fixed bug with printing path in import-logs phase.
+
 ## [0.6.5] - (2019-09-03)
   - Fixed bug with refactoring done for ACe patching.
 
