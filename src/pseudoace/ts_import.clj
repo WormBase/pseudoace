@@ -793,16 +793,13 @@
     `[:db/add [:importer/temp tmpid part] ...]`."
   [db datoms]
   (->> (reduce
-        (fn [{:keys [done temps] :as last-d} datom]
-          (let [eid (second datom)]
-            (if (and (vector? eid) (= (count eid) 3))
-              (if-let [[datom temps ex1] (temp-datom db datom temps 1)]
-                (if-let [[datom temps ex2] (temp-datom db datom temps 3)]
-                  {:done  (conj-if done datom ex1 ex2)
-                   :temps temps}
-                  last-d)
-                last-d)
-              {:done [datom] :temps {}})))
+        (fn [{:keys [done temps] :as last} datom]
+          (if-let [[datom temps ex1] (temp-datom db datom temps 1)]
+            (if-let [[datom temps ex2] (temp-datom db datom temps 3)]
+              {:done  (conj-if done datom ex1 ex2)
+               :temps temps}
+              last)
+            last))
         {:done [] :temps {}}
         (mapcat
          (fn [[op e a v :as datom]]
