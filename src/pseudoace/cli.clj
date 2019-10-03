@@ -521,6 +521,8 @@
              no-fixups
              verbose]
       :or {schema-filename nil
+           no-locatable-schema false
+           no-fixups false
            verbose false}}]
   (create-database :url url
                    :models-filename models-filename
