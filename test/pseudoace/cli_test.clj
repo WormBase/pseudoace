@@ -1,4 +1,4 @@
-(ns pseudoace.test-cli
+(ns pseudoace.cli-test
   (:require
    [clojure.java.io :as io]
    [clojure.test :refer (deftest is)]

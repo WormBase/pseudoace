@@ -1,4 +1,4 @@
-(ns pseudoace.test-transcripts
+(ns pseudoace.transcripts-test
   (:require
    [clojure.test :as t]
    [cognitect.transcriptor :as xr]))

@@ -1,4 +1,4 @@
-(ns pseudoace.test-utils
+(ns pseudoace.utils-test
   (:require
    [clj-time.coerce :refer (from-date)]
    [clj-time.core :refer (before? after?)]
