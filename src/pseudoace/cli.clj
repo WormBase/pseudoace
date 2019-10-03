@@ -575,7 +575,7 @@
     nil))
 
 (defn import-locatable-refs
-  "Copy Protein and Motif identifiers into the h omology database."
+  "Copy Protein and Motif identifiers into the homology database."
   [& {:keys [url acedump-dir homol-db-name verbose]
       :or {verbose false
            homol-db-name "homol"}}]
