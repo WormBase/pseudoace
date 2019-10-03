@@ -917,27 +917,25 @@
                        fdatoms)
               tx-meta (txmeta stamp)
               imp-tx-secs (ms->s (some-> tx-meta :db/txInstant (.getTime)))
-              last-db-tx-secs (ms->s (some-> db
-                                             latest-transaction-date
-                                             to-date
-                                             (.getTime)))
-              has-timestamp? (number? stamp)]
-          (when has-timestamp?
-            (when (< imp-tx-secs last-db-tx-secs)
-              (println "Skipping transaction with past-date:" stamp)))
-          (let [has-tx-meta? (seq (dissoc tx-meta :db/id))
-                transact (if use-with?
-                           (partial d/with db)
-                           (fn [txes]
-                             @(d/transact-async con txes)))]
-            (let [tx-data (if has-tx-meta?
-                            (conj datoms tx-meta)
-                            datoms)]
-              (try
-                (transact tx-data)
-                (catch Exception ex
-                  (throw (ex-info (.getMessage ex)
-                                  {:orig-exception ex
-                                   :tx-data tx-data})))))))))))
+              last-db-tx-secs (ms->s (some-> (latest-transaction-date db)
+                                             (to-date)
+                                             (.getTime)))]
+          (if (and (number? stamp)
+                   (< imp-tx-secs last-db-tx-secs))
+            (println "Skipping transaction with past-date:" stamp)
+            (let [has-tx-meta? (seq (dissoc tx-meta :db/id))
+                  transact (if use-with?
+                             (partial d/with db)
+                             (fn [txes]
+                               @(d/transact-async con txes)))]
+              (let [tx-data (if has-tx-meta?
+                              (conj datoms tx-meta)
+                              datoms)]
+                (try
+                  (transact tx-data)
+                  (catch Exception ex
+                    (throw (ex-info (.getMessage ex)
+                                    {:orig-exception ex
+                                     :tx-data tx-data}))))))))))))
 
 
