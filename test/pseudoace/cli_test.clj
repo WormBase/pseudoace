@@ -1,4 +1,4 @@
-(ns pseudoace.test-cli
+(ns pseudoace.cli-test
   (:require
    [clojure.java.io :as io]
    [clojure.test :refer (deftest is)]
@@ -10,12 +10,10 @@
                             (System/getProperty "java.io.tmpdir")
                             "dummy-edn-log-dir")]
     (.mkdir dummy-log-dir)
-    (let [dummy-helper-file (io/file dummy-log-dir cli/helper-filename)]
+    (let [dummy-helper-file (io/file dummy-log-dir "helper.edn.gz")]
       (utils/with-outfile dummy-helper-file
         (println "dummy help edn content"))
-      ;; Call function under test
       (cli/move-helper-log-file (.getParent dummy-helper-file))
-      ;; Check expectations
       (let [dummy-log-dir (.getParent dummy-helper-file)
             expected-dest-file (cli/helper-dest-file dummy-log-dir)]
         (is (.exists expected-dest-file))

@@ -1,4 +1,4 @@
-(ns pseudoace.test-schemata
+(ns pseudoace.schemata-test
   (:require
    [clj-time.coerce :refer [to-date]]
    [clojure.java.io :as io]

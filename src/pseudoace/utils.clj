@@ -5,7 +5,8 @@
    [clojure.set :refer [union]]
    [clojure.java.io :as io]
    [clojure.string :as str]
-   [clojure.walk :as walk])
+   [clojure.walk :as walk]
+   [pseudoace.aceparser :as ace])
   (:import
    (java.util Properties)
    (java.io FileInputStream)
@@ -238,6 +239,21 @@
        str
        (FileInputStream.)
        (GZIPInputStream.)))
+
+(defn read-ace
+  "Read an ACe file, uncompressing via gunzip if neccessary."
+  [filename]
+  (cond-> filename
+    (str/ends-with? filename ".ace.gz") (gunzip)
+    :always
+    (-> (io/input-stream)
+        (ace/ace-reader)
+        (ace/ace-seq))))
+
+(defn strand [start end]
+  (if (<= start end)
+    :locatable.strand/positive
+    :locatable.strand/negative))
 
 (load "utils_wbdb")
 

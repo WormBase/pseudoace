@@ -1,4 +1,4 @@
-(ns pseudoace.test-utils-wbdb
+(ns pseudoace.utils-wbdb-test
   (:require
    [clojure.java.io :as io]
    [clojure.test :refer :all]
