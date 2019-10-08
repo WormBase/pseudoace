@@ -8,7 +8,7 @@
 
 ## [0.6.4] - (2019-09-03)
   - Fixed bug with log fixups.
-  
+
 ## [0.6.3] - (2019-08-30)
   - Fixed missing paramter in function call.
 
