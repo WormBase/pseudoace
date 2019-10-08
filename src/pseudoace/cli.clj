@@ -31,7 +31,7 @@
 
 (def ^{:dynamic true} *partition-max-text* 5000)
 
-(def ^{:dynamic true} *homol-db-name "homol")
+(def ^{:dynamic true} *homol-db-name* "homol")
 
 ;; First three strings describe a short-option, long-option with optional
 ;; example argument description, and a description. All three are optional
@@ -235,6 +235,7 @@
    :models-filename models-filename
    :verbose verbose)
   (let [helper-uri (uri-to-helper-uri url)]
+    (println "Helper DB URI:" helper-uri)
     (d/create-database helper-uri)
     (load-schema helper-uri models-filename verbose)))
 
@@ -248,6 +249,7 @@
 (defn create-homol-database
   [& {:keys [url models-filename verbose]
       :or {verbose false}}]
+  (println "Homol DB URI:" url)
   (create-database :url url :models-filename models-filename :verbose verbose))
 
 (defn directory-walk [directory pattern]
@@ -466,6 +468,7 @@
     (println "Importing helper log into helper database"))
   (let [helper-uri (uri-to-helper-uri url)
         helper-connection (d/connect helper-uri)]
+    (println "Helper DB URI:" helper-uri)
     (binding [ts-import/*suppress-timestamps* true]
       (ts-import/play-logfile
        helper-connection
@@ -517,8 +520,9 @@
   [& {:keys [url verbose]}]
   (when verbose
     (println "Deleting helper database"))
-  (let [helper_uri (uri-to-helper-uri url)]
-    (d/delete-database helper_uri)))
+  (let [helper-uri (uri-to-helper-uri url)]
+    (println "Deleting DB:" helper-uri)
+    (d/delete-database helper-uri)))
 
 (defn prepare-import
   "Setup the database schema and parse the acedb files for later sorting."
@@ -601,10 +605,11 @@
                            tx-block)]
           @(d/transact conn tx-data))))))
 
-(defn homol-import [& {:keys [url models-filename acedump-dir log-dir homol-log-dir verbose]
-                       :or [verbose false]}]
-  (create-helper-database :url url :models-filenamen models-filename :verbose verbose)
-  (import-helper-edn-logs :url :log-dir log-dir :verbose verbose)
+(defn homol-import
+  [& {:keys [url models-filename acedump-dir log-dir homol-log-dir verbose]
+      :or {verbose false}}]
+  (create-helper-database :url url :models-filename models-filename :verbose verbose)
+  (import-helper-edn-logs :url url :log-dir log-dir :verbose verbose)
   (create-homol-database :url url :models-filename models-filename :verbose verbose)
   (import-homol-refs :url url :acedump-dir acedump-dir :verbose verbose)
   (run-homol-importer :url url :acedump-dir acedump-dir :log-dir homol-log-dir :verbose verbose)
