@@ -31,6 +31,8 @@
 
 (def ^{:dynamic true} *partition-max-text* 5000)
 
+(def ^{:dynamic true} *homol-db-name "homol")
+
 ;; First three strings describe a short-option, long-option with optional
 ;; example argument description, and a description. All three are optional
 ;; and positional.
@@ -49,6 +51,10 @@
     "--log-dir PATH"
     (str "Path to an empty directory to store the Datomic logs in; "
          "Example: /datastore/datomic/tmp/datomic/import-logs-WS250/")]
+   [nil
+    "--homol-log-dir PATH"
+    (str "Path to an empty directory to store the Datomic logs for homology in; "
+         "Example: /datastore/datomic/tmp/datomic/WS274-homol-logs/")]
    [nil
     "--acedump-dir PATH"
     (str "Path to the directory of the desired acedump; "
@@ -232,13 +238,17 @@
     (d/create-database helper-uri)
     (load-schema helper-uri models-filename verbose)))
 
-(defn create-homology-database
-  [& {:keys [url models-filename homol-db-name verbose]
-      :or {homol-db-name "homology"
-           verbose false}}]
-  (let [main-db-name (db-name-from-url url)
-        homol-url (str/replace url (str  "/" main-db-name) (str "/" homol-db-name))]
-    (create-database :url homol-url :models-filename models-filename :verbose verbose)))
+(defn homol-db-uri
+  ([url db-name]
+   (let [main-db-name (db-name-from-url url)]
+     (str/replace url (str  "/" main-db-name) (str "/" db-name))))
+  ([url]
+   (homol-db-uri url *homol-db-name*)))
+
+(defn create-homol-database
+  [& {:keys [url models-filename verbose]
+      :or {verbose false}}]
+  (create-database :url url :models-filename models-filename :verbose verbose))
 
 (defn directory-walk [directory pattern]
   (doall (filter #(re-matches pattern (fs/name %))
@@ -474,28 +484,28 @@
 
 (def ace-by-cls-dump-pattern #"^dump_\d{4}-\d{2}-\d{2}_A_(\w.+)\.\d+\.ace\.gz")
 
-(def include-locatable-ace-classes #{"Protein" "Motif" "Method"})
+(def include-homol-ace-classes #{"Protein" "Motif" "Method"})
 
-(defn include-for-locatable-run? [filename]
-  (->> filename
-       (.getName)
-       (re-find ace-by-cls-dump-pattern)
-       (last)
-       (include-locatable-ace-classes)))
+(defn include-for-homol-import? [filename]
+  (some->> filename
+           (.getName)
+           (re-find ace-by-cls-dump-pattern)
+           (last)
+           (include-homol-ace-classes)))
 
-(defn get-ace-files-for-locatable-import
+(defn get-ace-files-for-homol-import
   [acedump-dir]
   (->> acedump-dir
        (get-ace-files)
-       (filter include-for-locatable-run?)))
+       (filter include-for-homol-import?)))
 
-(defn run-locatables-importer
+(defn run-homol-importer
   [& {:keys [url acedump-dir log-dir verbose]
       :or {verbose false}}]
   (let [helper-uri (uri-to-helper-uri url)
         helper-connection (d/connect helper-uri)
         helper-db (d/db helper-connection)
-        files (get-ace-files-for-locatable-import acedump-dir)]
+        files (get-ace-files-for-homol-import acedump-dir)]
     (doseq [file files]
       (helper-file-to-datalog helper-db file log-dir verbose))
     (when verbose
@@ -533,7 +543,7 @@
                        :log-dir log-dir
                        :acedump-dir acedump-dir
                        :verbose verbose)
-  (if-not (nil? schema-filename)
+  (when schema-filename
     (generate-schema-view
      :url url
      :schema-filename schema-filename
@@ -576,13 +586,12 @@
         (d/release conn)))
     nil))
 
-(defn import-locatable-refs
+(defn import-homol-refs
   "Copy Protein and Motif identifiers into the homology database."
-  [& {:keys [url acedump-dir homol-db-name verbose]
-      :or {verbose false
-           homol-db-name "homol"}}]
+  [& {:keys [url acedump-dir verbose]
+      :or {verbose false}}]
   (let [conn (d/connect url)
-        files (get-ace-files-for-locatable-import acedump-dir)]
+        files (get-ace-files-for-homol-import acedump-dir)]
     (doseq [file files]
       (doseq [tx-block (partition-all 500 (utils/read-ace file))]
         (let [tx-data (map (fn [obj]
@@ -592,22 +601,31 @@
                            tx-block)]
           @(d/transact conn tx-data))))))
 
+(defn homol-import [& {:keys [url models-filename acedump-dir log-dir homol-log-dir verbose]
+                       :or [verbose false]}]
+  (create-helper-database :url url :models-filenamen models-filename :verbose verbose)
+  (import-helper-edn-logs :url :log-dir log-dir :verbose verbose)
+  (create-homol-database :url url :models-filename models-filename :verbose verbose)
+  (import-homol-refs :url url :acedump-dir acedump-dir :verbose verbose)
+  (run-homol-importer :url url :acedump-dir acedump-dir :log-dir homol-log-dir :verbose verbose)
+  (delete-helper-database :url url :verbose verbose))
+
 (def cli-actions [#'acedump-to-edn-logs
                   #'apply-patch
                   #'apply-patches
                   #'create-database
                   #'create-helper-database
-                  #'create-homology-database
+                  #'create-homol-database
                   #'delete-database
                   #'excise-tmp-data
                   #'generate-report
                   #'generate-schema-view
                   #'import-helper-edn-logs
-                  #'import-locatable-refs
+                  #'import-homol-refs
                   #'import-logs
                   #'list-databases
                   #'prepare-import
-                  #'run-locatables-importer
+                  #'homol-import
                   #'run-test-query])
 
 (def cli-action-metas (map meta cli-actions))
