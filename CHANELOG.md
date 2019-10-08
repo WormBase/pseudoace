@@ -1,5 +1,9 @@
 # Change-log
 
+## [0.6.7] - (2019-10-08)
+  - Fixed breaking WS273 import due to work done feature/patching.
+  - Added homology import support (separate database).
+
 ## [0.6.6] - (2019-09-08)
   - Fixed bug with printing path in import-logs phase.
 
@@ -7,7 +11,7 @@
   - Fixed bug with refactoring done for ACe patching.
 
 ## [0.6.4] - (2019-09-03)
-  - Fixed bug with log fixups.
+  - Fixed bug with log fix-ups.
 
 ## [0.6.3] - (2019-08-30)
   - Fixed missing paramter in function call.
