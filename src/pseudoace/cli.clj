@@ -608,12 +608,13 @@
 (defn homol-import
   [& {:keys [url models-filename acedump-dir log-dir homol-log-dir verbose]
       :or {verbose false}}]
-  (create-helper-database :url url :models-filename models-filename :verbose verbose)
-  (import-helper-edn-logs :url url :log-dir log-dir :verbose verbose)
-  (create-homol-database :url url :models-filename models-filename :verbose verbose)
-  (import-homol-refs :url url :acedump-dir acedump-dir :verbose verbose)
-  (run-homol-importer :url url :acedump-dir acedump-dir :log-dir homol-log-dir :verbose verbose)
-  (delete-helper-database :url url :verbose verbose))
+  (let [homol-uri (homol-db-uri url)]
+    (create-helper-database :url url :models-filename models-filename :verbose verbose)
+    (import-helper-edn-logs :url url :log-dir log-dir :verbose verbose)
+    (create-homol-database :url homol-uri :models-filename models-filename :verbose verbose)
+    (import-homol-refs :url homol-uri :acedump-dir acedump-dir :verbose verbose)
+    (run-homol-importer :url homol-uri :acedump-dir acedump-dir :log-dir homol-log-dir :verbose verbose)
+    (delete-helper-database :url url :verbose verbose)))
 
 (def cli-actions [#'acedump-to-edn-logs
                   #'apply-patch
@@ -631,6 +632,7 @@
                   #'list-databases
                   #'prepare-import
                   #'homol-import
+                  #'run-homol-importer
                   #'run-test-query])
 
 (def cli-action-metas (map meta cli-actions))
