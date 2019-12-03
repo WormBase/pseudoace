@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
   <modelVersion>4.0.0</modelVersion>
   <groupId>wormbase</groupId>
   <artifactId>pseudoace</artifactId>
-  <version>0.6.7</version>
+  <version>0.6.8</version>
   <name>pseudoace</name>
-
   <dependencies>
     <dependency>
       <groupId>org.clojure</groupId>
@@ -69,7 +67,6 @@
       <version>2.0.2</version>
     </dependency>
   </dependencies>
-
   <build>
     <sourceDirectory>src</sourceDirectory>
     <resources>
@@ -78,7 +75,6 @@
       </resource>
     </resources>
   </build>
-
   <repositories>
     <repository>
       <id>clojars</id>
@@ -89,7 +85,6 @@
       <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
     </repository>
   </repositories>
-
   <!-- for clojars -->
   <distributionManagement>
     <repository>
@@ -98,5 +93,4 @@
       <url>https://clojars.org/repo</url>
     </repository>
   </distributionManagement>
-
 </project>
