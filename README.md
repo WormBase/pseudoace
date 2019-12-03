@@ -63,7 +63,7 @@ Run `./scripts/dev-setup.sh` to configure Maven credentials.
 
 #### Library release
 
-`pseudoace` is consumed as library by other WormBase applications.
+`pseudoace` is both a command line application and a library, which is consumed by other WormBase applications.
 
 Clojars is a public repository for packaged clojure libraries.
 
