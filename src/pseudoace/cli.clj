@@ -607,7 +607,7 @@
 
 (defn homol-import
   "Creates a separate database containing homology data.
-  URL shoudl be the `main` database URL (e.g datomic:free://localhost:4334/WS274)."
+  URL should be the `main` database URL (e.g datomic:free://localhost:4334/WS274)."
   [& {:keys [url models-filename acedump-dir log-dir homol-log-dir verbose]
       :or {verbose false}}]
   (let [homol-url (homol-db-url url)]
