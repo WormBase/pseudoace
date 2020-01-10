@@ -610,13 +610,13 @@
   URL shoudl be the `main` database URL (e.g datomic:free://localhost:4334/WS274)."
   [& {:keys [url models-filename acedump-dir log-dir homol-log-dir verbose]
       :or {verbose false}}]
-  (let [homol-uri (homol-db-uri url)]
+  (let [homol-url (homol-db-url url)]
     (create-helper-database :url url :models-filename models-filename :verbose verbose)
     (import-helper-edn-logs :url url :log-dir log-dir :verbose verbose)
-    (create-homol-database :url homol-uri :models-filename models-filename :verbose verbose)
-    (run-homol-importer :url homol-uri :acedump-dir acedump-dir :log-dir homol-log-dir :verbose verbose)
-    (import-homol-refs :url homol-uri :acedump-dir acedump-dir :verbose verbose)
-    (import-logs :url homol-uri :log-dir homol-log-dir :verbose verbose)
+    (create-homol-database :url homol-url :models-filename models-filename :verbose verbose)
+    (run-homol-importer :url url :acedump-dir acedump-dir :log-dir homol-log-dir :verbose verbose)
+    (import-homol-refs :url homol-url :acedump-dir acedump-dir :verbose verbose)
+    (import-logs :url homol-url :log-dir homol-log-dir :verbose verbose)
     (delete-helper-database :url url :verbose verbose)))
 
 (def cli-actions [#'acedump-to-edn-logs
