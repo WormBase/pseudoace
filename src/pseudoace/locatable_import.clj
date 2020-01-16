@@ -8,7 +8,7 @@
    [pseudoace.utils :as utils]))
 
 ;;
-;; TODO:
+;; TODO: (tad)
 ;;   - Reinstate strand and missing-parent checks once acedb is fixed.
 ;;   - More alignment reconstruction?
 ;;
@@ -17,16 +17,18 @@
   (if (= attr :sequence/id)
     [:db/add this :locatable/murmur-bin (binning/bin id min max)]))
 
-;
+;  (TAD notes)
 ;; For version 1, we're *not* going to try collapsing Homol lines into single gapped alignments,
 ;; since it seems that the blastp importer is only recording one line per sub-hit...
 ;;
 ;; this probably needs revisiting if we use this code for things other than ?Protein homols
 ;;
 
-;; In thomas's original implementation, Homol_homol was silently ignored, the rest generated tx-data.
-;; Here we are only chosing to process Pep_homol and Motif_homol as these are the ones needed by the website.
-;; Including the rest may lead to excessive database size (for not gain as the data is not used)
+;; In thomas's original implementation, Homol_homol was silently ignored, the
+;; rest generated tx-data.  Here we are only chosing to process Pep_homol
+;; (Protein Homology) and Motif_homol as these are the ones needed by the
+;; website.  Including the rest of homology containing ACe data may lead to
+;; excessive database size (for not gain as the data is not used)
 (defn conj-into-tx-data
   [db tx-data tid attr value]
   (conj tx-data [:db/add tid attr value]))
@@ -94,10 +96,10 @@
                                      (when (some? target-start-s)
                                        [:db/add
                                         tid
-                                        :homology/min
+                                        :locatable/min
                                         (dec (utils/parse-int target-start-s))])
                                      (when (some? target-end-s)
-                                       [:db/add tid :homology/max (utils/parse-int target-end-s)])
+                                       [:db/add tid :locatable/max (utils/parse-int target-end-s)])
                                      (when (some? score-s)
                                        [:db/add tid :locatable/score (utils/parse-double score-s)]))]
                            (homol-tx-data db tag base tid target protein?)))))))
