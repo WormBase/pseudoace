@@ -502,7 +502,7 @@
        (get-ace-files)
        (filter include-for-homol-import?)))
 
-(defn run-homol-importer
+(defn generate-homol-edn-logs
   [& {:keys [url acedump-dir log-dir verbose]
       :or {verbose false}}]
   (let [helper-uri (uri-to-helper-uri url)
@@ -636,7 +636,7 @@
                   #'list-databases
                   #'prepare-import
                   #'homol-import
-                  #'run-homol-importer
+                  #'generate-homol-edn-logs
                   #'run-test-query])
 
 (def cli-action-metas (map meta cli-actions))
