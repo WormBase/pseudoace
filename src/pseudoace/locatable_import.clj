@@ -96,10 +96,10 @@
                                      (when (some? target-start-s)
                                        [:db/add
                                         tid
-                                        :locatable/min
+                                        :homology/min
                                         (dec (utils/parse-int target-start-s))])
                                      (when (some? target-end-s)
-                                       [:db/add tid :locatable/max (utils/parse-int target-end-s)])
+                                       [:db/add tid :homology/max (utils/parse-int target-end-s)])
                                      (when (some? score-s)
                                        [:db/add tid :locatable/score (utils/parse-double score-s)]))]
                            (homol-tx-data db tag base tid target protein?)))))))
