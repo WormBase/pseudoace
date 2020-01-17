@@ -1,7 +1,7 @@
 # Change-log
 
 ## [0.6.8] - (un-released)
-  - Fixed homology import command.
+  - Fixed pipeline for homology database creation.
 
 ## [0.6.7] - (2019-10-08)
   - Fixed breaking WS273 import due to work done feature/patching.
