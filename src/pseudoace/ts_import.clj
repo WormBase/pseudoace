@@ -900,7 +900,7 @@
 
 (defn play-logfile
   [con logfile max-count max-text & {:keys [use-with? fixup-datoms?]
-                                     :or {use-with? false
+                                     :or {use-with? false  ; better name would be `simulate?`
                                           fixup-datoms? true}}]
   (with-open [r (io/reader logfile)]
     (doseq [rblk (partition-log max-count max-text (logfile-seq r))]
