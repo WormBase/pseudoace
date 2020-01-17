@@ -392,7 +392,7 @@
 (defn import-logs
   "Import the sorted EDN log files."
   [& {:keys
-      [url log-dir partition-max-count partition-max-text no-sorted-edn no-fixup-datoms verbose]
+      [url log-dir partition-max-count partition-max-text no-sorted-edn no-fixup-datoms latest-tx-date verbose]
       :or {verbose false
            partition-max-count *partition-max-count*
            partition-max-text *partition-max-text*
@@ -402,7 +402,7 @@
     (println "Importing logs into datomic database" url "from log files in" log-dir))
   (let [conn (d/connect url)
         db (d/db conn)
-        latest-tx-dt (ts-import/latest-transaction-date db)
+        latest-tx-dt (or latest-tx-date (ts-import/latest-transaction-date db))
         log-files (if no-sorted-edn
                     (get-edn-files log-dir ".edn.gz")
                     (get-sorted-edn-log-files log-dir db latest-tx-dt))]
