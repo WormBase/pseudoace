@@ -609,9 +609,9 @@
   "Creates a separate database containing homology data.
   URL should be the `main` database URL (e.g datomic:free://localhost:4334/WS274)."
   [& {:keys [url models-filename acedump-dir log-dir homol-log-dir verbose]
-      :or {verbose false}}]q
+      :or {verbose false}}]
   (let [homol-url (homol-db-url url)
-        now (to-date (ct/now)]
+        now (to-date (ct/now))]
     (create-helper-database :url url :models-filename models-filename :verbose verbose)
     (import-helper-edn-logs :url url :log-dir log-dir :verbose verbose)
     (create-homol-database :url homol-url :models-filename models-filename :verbose verbose)
