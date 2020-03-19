@@ -825,7 +825,7 @@
   {nil (constantly "1977-01-01_01:01:01_nil")
    "original" (constantly "1970-01-02_01:01:01_original")
    "patch" (fn [] (str (format-ace-date (ctc/now)) "patch"))
-   "homology" #(str (format-ace-date (ctc/now) "homology"))})
+   "homology" #(str (format-ace-date (ctc/now)) "homology")})
 
 (defn clean-log-keys [log]
   (into {} (for [[k v] log]
