@@ -1,6 +1,9 @@
 # Change-log
 
 ## [0.6.8] - (2020-01-20)
+  - Fixed misplaced parenthesis.
+
+## [0.6.8] - (2020-01-20)
   - Fixed pipeline for homology database creation.
 
 ## [0.6.7] - (2019-10-08)
