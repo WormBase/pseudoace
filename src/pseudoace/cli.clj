@@ -396,6 +396,7 @@
       :or {verbose false
            partition-max-count *partition-max-count*
            partition-max-text *partition-max-text*
+           latest-tx-date nil
            no-sorted-edn false
            no-fixup-datoms false}}]
   (when verbose
