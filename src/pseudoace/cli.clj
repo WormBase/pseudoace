@@ -504,8 +504,12 @@
        (filter include-for-homol-import?)))
 
 (defn generate-homol-edn-logs
-  [& {:keys [url acedump-dir log-dir verbose]
-      :or {verbose false}}]
+  [& {:keys [url acedump-dir log-dir reset-log-dir? verbose]
+      :or {reset-log-dir? true
+           verbose false}}]
+  (when reset-log-dir?
+    (utils/rm-tree log-dir)
+    (.mkdir (io/file log-dir)))
   (let [helper-uri (uri-to-helper-uri url)
         helper-connection (d/connect helper-uri)
         helper-db (d/db helper-connection)
@@ -616,7 +620,6 @@
     (create-helper-database :url url :models-filename models-filename :verbose verbose)
     (import-helper-edn-logs :url url :log-dir log-dir :verbose verbose)
     (create-homol-database :url homol-url :models-filename models-filename :verbose verbose)
-    (utils/rm-tree homol-log-dir)
     (generate-homol-edn-logs :url url :acedump-dir acedump-dir :log-dir homol-log-dir :verbose verbose)
     (import-homol-refs :url homol-url :acedump-dir acedump-dir :verbose verbose)
     (import-logs :url homol-url :log-dir homol-log-dir :latest-tx-date now :verbose verbose)
