@@ -9,7 +9,7 @@
    [pseudoace.aceparser :as ace])
   (:import
    (java.util Properties)
-   (java.io FileInputStream)
+   (java.io FileInputStream IOException)
    (java.util.zip GZIPInputStream)))
 
 (def not-nil? (complement nil?))
@@ -254,6 +254,18 @@
   (if (<= start end)
     :locatable.strand/positive
     :locatable.strand/negative))
+
+(defn rm-tree
+  "Delete the directory `dir` and all files under `dir` recursively.
+  Return true when all files deleted succesfully"
+  [dir & [silently]]
+  (when (.isDirectory (io/file dir))
+    (doseq [f (.listFiles (io/file dir))]
+      (rm-tree f silently)))
+  (try
+    (io/delete-file dir silently)
+    (catch IOException ex
+      false)))
 
 (load "utils_wbdb")
 

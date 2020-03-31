@@ -616,6 +616,7 @@
     (create-helper-database :url url :models-filename models-filename :verbose verbose)
     (import-helper-edn-logs :url url :log-dir log-dir :verbose verbose)
     (create-homol-database :url homol-url :models-filename models-filename :verbose verbose)
+    (utils/rm-tree homol-log-dir)
     (generate-homol-edn-logs :url url :acedump-dir acedump-dir :log-dir homol-log-dir :verbose verbose)
     (import-homol-refs :url homol-url :acedump-dir acedump-dir :verbose verbose)
     (import-logs :url homol-url :log-dir homol-log-dir :latest-tx-date now :verbose verbose)
