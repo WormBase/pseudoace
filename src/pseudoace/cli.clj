@@ -97,6 +97,9 @@
    [nil
     "--homol-db-name NAME"
     "Specify an alternate name for the homoolgy database. Defaults to \"homol\"."]
+   [nil
+    "--reset-log-dir"
+    "Remove contents of the log directory specified as --log-dir before processing."]
    ["-v" "--verbose"]
    ["-f" "--force"]
    ["-h" "--help"]])
@@ -504,10 +507,10 @@
        (filter include-for-homol-import?)))
 
 (defn generate-homol-edn-logs
-  [& {:keys [url acedump-dir log-dir reset-log-dir? verbose]
-      :or {reset-log-dir? true
+  [& {:keys [url acedump-dir log-dir reset-log-dir verbose]
+      :or {reset-log-dir true
            verbose false}}]
-  (when reset-log-dir?
+  (when reset-log-dir
     (utils/rm-tree log-dir)
     (.mkdir (io/file log-dir)))
   (let [helper-uri (uri-to-helper-uri url)
