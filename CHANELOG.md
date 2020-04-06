@@ -1,5 +1,8 @@
 # Change-log
 
+## [0.7.1] - (2020-04-06)
+  - Added option to reset log directory (recursively remove all contents).
+
 ## [0.7.0] - (2020-03-19)
   - Fixed misplaced parenthesis.
 
