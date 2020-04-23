@@ -33,18 +33,10 @@
   [db tx-data tid attr value]
   (conj tx-data [:db/add tid attr value]))
 
-;; Dispatch methods on ACe tag.
-;; possible homol tags to dispatch on are (at time of writing):
-;; - Structure_homol
-;; - RNAi_homol
-;; - Oligo_set_homol
-;; - Expr_homol
-;; - MSPeptide_homol
-;; - SAGE_homol
-;; - Homol_homol
+;; Dispatch on ACe tag
 (defmulti homol-tx-data (fn [db tag tx-data tid value protein?]
                           tag))
-
+;; Implementation per ACe tag.
 (defmethod homol-tx-data "Pep_homol" [db _ tx-data tid value _]
   (conj-into-tx-data db tx-data tid :homology/protein [:protein/id value]))
 
@@ -56,10 +48,13 @@
     (utils/throw-exc "Don't support protein->DNA homols")
     (conj-into-tx-data db tx-data tid :homology/dna [:dna/id value])))
 
+;; Default implementation is a no-op (no data to add)
 (defmethod homol-tx-data :default [_ _ _ _ _ _]
   nil)
 
-(defn- log-homols [db homol-lines parent offset protein?]
+(defn- log-homols
+  "Process the homology objects from a homol-lines given a parent, offset and boolean flag indicating if the lines represent a protein to form sequence of data suitable for transacting."
+  [db homol-lines parent offset protein?]
   (let [offset (or offset 0)]
     (reduce
      (fn update-homol [log [[tag
@@ -106,6 +101,7 @@
      {}
      (group-by (partial ts-imp/take-ts 8) homol-lines))))
 
+;; Dispatch on the (ACe) class of the object.
 (defmulti log-locatables (fn [_ obj] (:class obj)))
 
 (defmethod log-locatables "Protein" [db obj]
@@ -115,10 +111,12 @@
 (defmethod log-locatables :default [_ _]
   nil)
 
-(defn lobjs->log [db objs]
+(defn lobjs->log
+  [db objs]
   (reduce ts-imp/merge-logs (map (partial log-locatables db) objs)))
 
 (defn split-locatables-to-dir
+  "Serialize logs to disk."
   [db objs dir]
   (let [logs (lobjs->log db objs)]
     (ts-imp/logs-to-dir logs dir)))
