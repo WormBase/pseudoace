@@ -1,13 +1,9 @@
 (ns pseudoace.schema-datomic
+  "Provides functions for transforming native datomic schema into a datomic-schema representation."
   (:require [datomic.api :as d]))
 
-(defn thosev
-  "Return a vector consisting (only) of the true arguments,
-   or `nil` if no arguments are true"
-  [& args]
-  (vec (filter identity args)))
-
 (defn- enum-keys
+  "Return a sequence of idents in db matching key-ns."
   [db key-ns]
   (->>
    (d/q '[:find [?key ...]
@@ -20,46 +16,42 @@
    (seq)))
 
 (defn- field-schema
+  "Returns a the schema for attributes in datomic-schema format."
   [{ident :db/ident :as attr}]
   (let [enums (and (= (:db/valueType attr) :db.type/ref)
                    (not (:db/isComponent attr))
                    (enum-keys
                     (d/entity-db attr)
                     (str (namespace ident) "." (name ident))))]
-    (thosev
-     (symbol (name ident))
+    (->> [(symbol (name ident))
+          (if enums
+            :enum
+            (keyword (name (:db/valueType attr))))
+          (when enums
+            (vec (sort enums)))
+          (when-let [u (:db/unique attr)]
+            (if (= u :db.unique/identity)
+              :unique-identity
+              :unique-value))
+          (when (:db/index attr)
+            :indexed)
+          (when (= (:db/cardinality attr) :db.cardinality/many)
+            :many)
+          (when (:db/fulltext attr)
+            :fulltext)
+          (when (:db/isComponent attr)
+            :component)
+          (when (:db/noHistory attr)
+            :noHistory)
+          (let [doc (:db/doc attr)]
+            (when-not (empty? doc)
+              doc))]
+         (filter identity)
+         (vec))))
 
-     (if enums
-       :enum
-       (keyword (name (:db/valueType attr))))
-
-     (if enums
-       (vec (sort enums)))
-
-     (if-let [u (:db/unique attr)]
-       (if (= u :db.unique/identity)
-         :unique-identity
-         :unique-value))
-
-     (if (:db/index attr)
-       :indexed)
-
-     (if (= (:db/cardinality attr) :db.cardinality/many)
-       :many)
-
-     (if (:db/fulltext attr)
-       :fulltext)
-
-     (if (:db/isComponent attr)
-       :component)
-
-     (if (:db/noHistory attr)
-       :noHistory)
-
-     (let [doc (:db/doc attr)]
-       (if-not (empty? doc) doc)))))
-
-(defn raw-schema-from-db [db]
+(defn raw-schema-from-db
+  "Return the native datmoic schema, grouped by attribute namespace."
+  [db]
   (->> (d/q
         '[:find [?schema-attr ...]
           :where [:db.part/db :db.install/attribute ?schema-attr]]
@@ -68,7 +60,7 @@
        (group-by (comp namespace :db/ident))))
 
 (defn schema-from-db
-  "Return the current schema of `db` in datomic-schema form."
+  "Return the current db schema in datomic-schema form."
   [db]
   (->> (raw-schema-from-db db)
        (sort-by (fn [[namespace attrs]]
