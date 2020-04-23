@@ -38,7 +38,7 @@ make_release_jar () {
     mkdir -p "${jar_dir}"
     clj -Spom
     run_step "Preparing release jar" \
-	     clj -A:1.9:datomic-free:depstar -m hf.depstar.uberjar "${jar_dir}/${jar_name}" \
+	     clj -A:datomic-free:depstar -m hf.depstar.uberjar "${jar_dir}/${jar_name}" \
 	     &> "${LOGFILE}"
 }
 
