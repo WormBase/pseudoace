@@ -144,7 +144,7 @@
     (println "Not deleting database")))
 
 (defn generate-schema-view
-  "Export the geneated database schema to a file."
+  "Export the geneated database schema to a file in the \"datomic-schema\" format."
   [& {:keys [url schema-filename verbose]
       :or {verbose false}}]
   (when verbose
@@ -197,7 +197,9 @@
                        :no-fixups no-fixups)
      (d/release conn))))
 
-(defn- db-name-from-url [url]
+(defn- db-name-from-url
+  "Parse the datomic db name from the URI."
+  [url]
   (last (str/split url #"/")))
 
 (defn create-database
@@ -225,7 +227,9 @@
                verbose)
   true)
 
-(defn uri-to-helper-uri [uri]
+(defn uri-to-helper-uri
+  "Create a new URI for the helper db from the main datomic db URI. "
+  [uri]
   (str/join "-" [uri "helper"]))
 
 (defn create-helper-database
@@ -243,6 +247,7 @@
     (load-schema helper-uri models-filename verbose)))
 
 (defn homol-db-uri
+  "Create a URI for the homology db from the main datomic db URI."
   ([url db-name]
    (let [main-db-name (db-name-from-url url)]
      (str/replace url (str  "/" main-db-name) (str "/" db-name))))
