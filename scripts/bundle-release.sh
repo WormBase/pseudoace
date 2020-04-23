@@ -67,6 +67,7 @@ RELEASE_DIR="${PROJ_ROOT}/release-archives"
 RELEASE_ARCHIVE="${RELEASE_DIR}/${PROJ_NAME}-${RELEASE_TAG}.tar.xz"
 
 EXEC_CMD=$(cat <<-EOF
+Example:
 clojure -Sdeps \
 '{:deps {com.datomic/datomic-pro {:mvn/version "0.9.5703"}
          pseudoace {:local/root "target/pseudoace-0.6.0-SNAPSHOT/pseudoace-0.6.0-SNAPSHOT.jar"}}}' \
