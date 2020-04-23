@@ -27,7 +27,7 @@ pre_release_checks() {
          does not exist for ${PROJ_FQNAME}" \
 	git rev-parse --verify --quiet "${PROJ_VERSION}"
     pre_release_check \
-    	"All tests must pass!" clojure -A:datomic-pro:test
+    	"All tests must pass!" clojure -A:datomic-free:test
     return 0;
 }
 
