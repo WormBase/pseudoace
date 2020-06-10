@@ -2,19 +2,15 @@
   (:require
    [clj-time.core :as ct]
    [clj-time.coerce :refer [to-date]]
-   [clj-time.format :as tf]
    [clojure.java.io :as io]
    [clojure.pprint :as pp :refer [pprint]]
    [clojure.set :as set]
    [clojure.string :as str]
    [clojure.test :as t]
    [clojure.tools.cli :refer [parse-opts]]
-   [clojure.walk :as w]
    [datoteka.core :as fs]
    [datomic.api :as d]
-   [pseudoace.aceparser :as ace]
    [pseudoace.import :refer [importer]]
-   [pseudoace.liberal-txns :refer [resolve-liberal-tx]]
    [pseudoace.locatable-import :as loc-import]
    [pseudoace.model :as model]
    [pseudoace.model2schema :as model2schema]
@@ -169,9 +165,9 @@
     (println \tab "Read in annotated ACeDB models")
     (println \tab (str "Making the datomic schema from the acedb "
                        "annotated models")))
-  (if-let [stream (-> models-filename
-                      io/file
-                      io/input-stream)]
+  (when-let [stream (-> models-filename
+                        io/file
+                        io/input-stream)]
     (-> stream
         io/reader
         model/parse-models
@@ -215,9 +211,9 @@
            verbose false}}]
   (when verbose
     (println "Creating Database:" (db-name-from-url url))
-    (if no-locatable-schema
+    (when no-locatable-schema
       (println "Locatable schema will not be applied"))
-    (if no-fixups
+    (when no-fixups
       (println "Fixups will not be applied")))
   (d/create-database url)
   (load-schema url
@@ -281,7 +277,7 @@
       to latest transaction date.
 
   Returns a sequence of sorted files (earliest date first)."
-  [log-dir db latest-tx-dt]
+  [log-dir _ latest-tx-dt]
   (let [tx-date (apply
                  ct/date-time
                  (map #(% latest-tx-dt) [ct/year ct/month ct/day]))
@@ -301,7 +297,7 @@
 
 (defn apply-patch
   "Apply an ACe patch to the Datomic database specified by url or connection from a local file path."
-  [& {:keys [url patch-path verbose verify-patch conn] :as foo
+  [& {:keys [url patch-path verbose verify-patch conn]
       :or {verbose false
            verify-patch false
            conn nil}}]
@@ -333,7 +329,7 @@
   [& {:keys [url patches-ftp-url verify-patch verbose]
       :or {verbose false
            verify-patch false}}]
-  (let [[conn db imp] (from-datomic-conn :url url)
+  (let [[conn _ _] (from-datomic-conn :url url)
         rc (patching/find-release-code patches-ftp-url)
         patches-path (patching/fetch-ace-patches patches-ftp-url verbose)]
     (if patches-path
@@ -420,7 +416,7 @@
                "log files from" log-dir
                "with latest-tx-dt:" latest-tx-dt))
     (doseq [file log-files]
-      (if verbose
+      (when verbose
         (println \tab "importing: " file))
       (ts-import/play-logfile
        conn
@@ -461,7 +457,7 @@
       (println "Datalog query:" datalog-query)
       (print "Results: ")
       (pprint results))
-    (if-let [success (t/is (= n-results 1))]
+    (if (t/is (= n-results 1))
       (println "OK")
       (println "Failed to find record matching " datalog-query))
     (d/release conn)))
@@ -609,6 +605,8 @@
       :or {verbose false}}]
   (let [conn (d/connect url)
         files (get-ace-files-for-homol-import acedump-dir)]
+    (when verbose
+      (println "Importing stub objections"))
     (doseq [file files]
       (doseq [tx-block (partition-all 500 (utils/read-ace file))]
         (let [tx-data (map (fn [obj]
@@ -684,7 +682,7 @@
 
 (defn invoke-action
   "Invoke `action-name` with the options supplied."
-  [action options args]
+  [action options _]
   (let [supplied-opts (set (keys options))
         required-opts (set (required-kwds action))
         missing (set/difference required-opts supplied-opts)]
@@ -732,9 +730,9 @@
                 arguments
                 errors
                 summary]} (parse-opts args cli-options)]
-    (if errors
+    (when errors
       (exit 1 (error-msg errors)))
-    (if (:help options)
+    (when (:help options)
       (exit 0 (usage summary)))
     (if-let [action-name (first arguments)]
       (if-let [action (get cli-action-map action-name)]
