@@ -628,7 +628,7 @@
     (create-homol-database :url homol-url :models-filename models-filename :verbose verbose)
     (generate-homol-edn-logs :url url :acedump-dir acedump-dir :log-dir homol-log-dir :verbose verbose)
     (import-homol-refs :url homol-url :acedump-dir acedump-dir :verbose verbose)
-    (import-logs :url homol-url :log-dir homol-log-dir :latest-tx-date now :verbose verbose)
+    (import-logs :url homol-url :log-dir homol-log-dir :no-sorted-edn true :verbose verbose)
     (delete-helper-database :url url :verbose verbose)))
 
 (def cli-actions [#'acedump-to-edn-logs
