@@ -29,6 +29,10 @@
 
 (def ^{:dynamic true} *homol-db-name* "homol")
 
+(defn exit [status msg]
+  (println msg)
+  (System/exit status))
+
 ;; First three strings describe a short-option, long-option with optional
 ;; example argument description, and a description. All three are optional
 ;; and positional.
@@ -37,7 +41,9 @@
   [[nil
     "--url URL"
     (str "Datomic database URL; "
-         "Example: datomic:free://localhost:4334/WS250")]
+         "Example: datomic:free://localhost:4334/WS250")
+    :validate [#(re-seq #"datomic:[\-\w]+://[a-zA-Z0-9\.:].+" %)
+               "Must be a valid datomic URL."]]
    [nil
     "--schema-filename PATH"
     (str "Name of the file for the schema view "
@@ -85,9 +91,6 @@
     "--verify-patch"
     "Verify ACe patch is valid (convertable to EDN AND transactable against the current DB URL."]
    [nil
-    "--no-sorted-edn"
-    "Used in conjunction with --log-dir to indicate EDN files are un-sorted."]
-   [nil
     "--no-fixup-datoms"
     "Don't try to run the fixup-datoms fn when playing log files."]
    [nil
@@ -103,10 +106,6 @@
 (defn error-msg [errors]
   (str "The following errors occurred while parsing your command:\n\n"
        (str/join \newline errors)))
-
-(defn exit [status msg]
-  (println msg)
-  (System/exit status))
 
 (defn- run-delete-database
   ([url]
@@ -357,9 +356,10 @@
    (doseq [blk (partition-all 20 (utils/read-ace file))]
      (ts-import/split-logs-to-dir imp blk log-dir))))
 
-(defn helper-dest-file [log-dir & {:keys [helper-filename helper-folder-name]
-                                   :or {helper-filename "helper.edn.gz"
-                                        helper-folder-name "helper"}}]
+(defn helper-dest-file
+  [log-dir & {:keys [helper-filename helper-folder-name]
+              :or {helper-filename "helper.edn.gz"
+                   helper-folder-name "helper"}}]
   (io/file log-dir helper-folder-name helper-filename))
 
 (defn move-helper-log-file
@@ -393,38 +393,67 @@
     (move-helper-log-file log-dir verbose)
     (d/release conn)))
 
-(defn import-logs
-  "Import the sorted EDN log files."
-  [& {:keys
-      [url log-dir partition-max-count partition-max-text no-sorted-edn no-fixup-datoms latest-tx-date verbose]
-      :or {verbose false
-           partition-max-count *partition-max-count*
-           partition-max-text *partition-max-text*
-           latest-tx-date nil
-           no-sorted-edn false
-           no-fixup-datoms false}}]
-  (when verbose
-    (println "Importing logs into datomic database" url "from log files in" log-dir))
-  (let [conn (d/connect url)
-        db (d/db conn)
-        latest-tx-dt (or latest-tx-date (ts-import/latest-transaction-date db))
-        log-files (if no-sorted-edn
-                    (get-edn-files log-dir ".edn.gz")
-                    (get-sorted-edn-log-files log-dir db latest-tx-dt))]
+(defn- make-log-importer
+  [edn-file-lister-fn]
+  (fn [& {:keys [url log-dir partition-max-count partition-max-text no-fixup-datoms verbose]
+          :or {partition-max-count *partition-max-count*
+               partition-max-text *partition-max-text*
+               no-fixup-datoms false
+               verbose false}}]
     (when verbose
-      (println "Importing" (count log-files)
-               "log files from" log-dir
-               "with latest-tx-dt:" latest-tx-dt))
-    (doseq [file log-files]
+      (println "Importing logs into datomic database" url "from log files in" log-dir))
+    (let [conn (d/connect url)
+          db (d/db conn)
+          log-files (edn-file-lister-fn log-dir db verbose)]
       (when verbose
-        (println \tab "importing: " file))
-      (ts-import/play-logfile
-       conn
-       (GZIPInputStream. (io/input-stream file))
-       partition-max-count
-       partition-max-text
-       :fixup-datoms? (not no-fixup-datoms)))
-    (d/release conn)))
+        (println "Importing" (count log-files)
+                 "log files from" log-dir)
+      (doseq [file log-files]
+        (when verbose
+          (println \tab "importing: " file))
+        (ts-import/play-logfile
+         conn
+         (GZIPInputStream. (io/input-stream file))
+         partition-max-count
+         partition-max-text
+         :fixup-datoms? (not no-fixup-datoms)))
+      (d/release conn)))))
+
+(defn import-logs
+  [& {:keys [url log-dir partition-max-count partition-max-text no-fixup-datoms verbose]
+      :or {partition-max-count *partition-max-count*
+           partition-max-text *partition-max-text*
+           no-fixup-datoms false
+           verbose false}}]
+  ((make-log-importer
+    (fn [log-dir db verbose]
+      (let [latest-tx-dt (ts-import/latest-transaction-date db)]
+        (when verbose
+          (println "Importing logs with latest tx date: " latest-tx-dt))
+        (get-sorted-edn-log-files log-dir db latest-tx-dt))))
+   :url url
+   :log-dir log-dir
+   :partition-max-count partition-max-count
+   :partition-max-text partition-max-text
+   :no-fixup-datoms no-fixup-datoms
+   :verbose verbose))
+
+(defn import-homol-logs
+  [& {:keys [url log-dir partition-max-count partition-max-text no-fixup-datoms verbose]
+      :or {partition-max-count *partition-max-count*
+           partition-max-text *partition-max-text*
+           no-fixup-datoms false
+           verbose false}}]
+  ((make-log-importer
+    (fn [log-dir _ _]
+      (get-edn-files log-dir ".edn.gz")))
+   :url url
+   :log-dir log-dir
+   :partition-max-count partition-max-count
+   :partition-max-text partition-max-text
+   :no-fixup-datoms no-fixup-datoms
+   :verbose verbose))
+
 
 (defn excise-tmp-data
   "Remove all the temporary data created during processing."
@@ -621,14 +650,13 @@
   URL should be the `main` database URL (e.g datomic:free://localhost:4334/WS274)."
   [& {:keys [url models-filename acedump-dir log-dir homol-log-dir verbose]
       :or {verbose false}}]
-  (let [homol-url (homol-db-uri url)
-        now (to-date (ct/now))]
+  (let [homol-url (homol-db-uri url)]
     (create-helper-database :url url :models-filename models-filename :verbose verbose)
     (import-helper-edn-logs :url url :log-dir log-dir :verbose verbose)
     (create-homol-database :url homol-url :models-filename models-filename :verbose verbose)
     (generate-homol-edn-logs :url url :acedump-dir acedump-dir :log-dir homol-log-dir :verbose verbose)
     (import-homol-refs :url homol-url :acedump-dir acedump-dir :verbose verbose)
-    (import-logs :url homol-url :log-dir homol-log-dir :no-sorted-edn true :verbose verbose)
+    (import-homol-logs :url homol-url :log-dir homol-log-dir :verbose verbose)
     (delete-helper-database :url url :verbose verbose)))
 
 (def cli-actions [#'acedump-to-edn-logs
@@ -643,6 +671,7 @@
                   #'generate-schema-view
                   #'import-helper-edn-logs
                   #'import-homol-refs
+                  #'import-homol-logs
                   #'import-logs
                   #'list-databases
                   #'prepare-import
@@ -678,6 +707,8 @@
         kwds (last arglist)
         opt (apply sorted-set (-> kwds :or keys))
         req (apply sorted-set (:keys kwds))]
+    (println "Required args for " func-ref
+             (pr-str (map keyword (set/difference req opt))))
     (map keyword (set/difference req opt))))
 
 (defn invoke-action
@@ -688,7 +719,7 @@
         missing (set/difference required-opts supplied-opts)]
     (if (empty? missing)
       (apply action (flatten (into '() options)))
-      (println
+      (str
        "Missing required options:"
        (str/join " --" (conj (map name missing) nil))))))
 
@@ -736,8 +767,8 @@
       (exit 0 (usage summary)))
     (if-let [action-name (first arguments)]
       (if-let [action (get cli-action-map action-name)]
-        (do
-          (invoke-action action options (rest arguments))
+        (if-let [error (invoke-action action options (rest arguments))]
+          (exit 1 error)
           (exit 0 "OK"))
         (exit 1 (str "Unknown argument(s): " action-name)))
       (exit 0 (usage summary)))))
