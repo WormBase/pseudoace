@@ -1,5 +1,8 @@
 # Change-log
 
+## [0.7.2] - (2020-06-15)
+  - Homology import: fixes and refactoring.
+
 ## [0.7.1] - (2020-04-06)
   - Added option to reset log directory (recursively remove all contents).
 
