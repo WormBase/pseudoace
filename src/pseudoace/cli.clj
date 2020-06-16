@@ -219,8 +219,7 @@
                models-filename
                no-locatable-schema
                no-fixups
-               verbose)
-  true)
+               verbose))
 
 (defn uri-to-helper-uri
   "Create a new URI for the helper db from the main datomic db URI. "
