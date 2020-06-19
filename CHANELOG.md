@@ -1,8 +1,11 @@
 # Change-log
 
+## [0.7.5] - (2020-06-19)
+  - CLI error handling fix.
+
 ## [0.7.3] - (2020-06-16)
   - Bugfix for CLI function.
-  
+
 ## [0.7.2] - (2020-06-15)
   - Homology import: fixes and refactoring.
 
