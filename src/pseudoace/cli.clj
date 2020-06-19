@@ -706,8 +706,6 @@
         kwds (last arglist)
         opt (apply sorted-set (-> kwds :or keys))
         req (apply sorted-set (:keys kwds))]
-    (println "Required args for " func-ref
-             (pr-str (map keyword (set/difference req opt))))
     (map keyword (set/difference req opt))))
 
 (defn invoke-action
