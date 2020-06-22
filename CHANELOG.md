@@ -1,5 +1,8 @@
 # Change-log
 
+## [0.7.6] - (2020-06-22)
+  - CLI error handling fix.
+
 ## [0.7.5] - (2020-06-19)
   - CLI error handling fix.
 
