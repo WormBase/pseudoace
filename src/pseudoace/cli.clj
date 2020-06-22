@@ -765,8 +765,8 @@
     (if-let [action-name (first arguments)]
       (if-let [action (get cli-action-map action-name)]
         (let [error (invoke-action action options (rest arguments))]
-          (if (nil? error)
-            (exit 0 "OK")
-            (exit 1 error)))
+          (if (string? error)
+            (exit 1 error)
+            (exit 0 "OK")))
         (exit 1 (str "Unknown argument(s): " action-name)))
       (exit 0 (usage summary)))))
