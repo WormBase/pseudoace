@@ -49,7 +49,8 @@ Run all tests regularly, but in particular:
   * after checking out a feature-branch
 
 ```bash
-clojure -A:datomic-pro:test
+#Test using datomic pro and default clojure version
+make run-all-tests
 ```
 
 ## Releases
