@@ -214,6 +214,7 @@
       (println "Locatable schema will not be applied"))
     (when no-fixups
       (println "Fixups will not be applied")))
+  (d/delete-database url)
   (d/create-database url)
   (load-schema url
                models-filename
@@ -237,6 +238,7 @@
    :verbose verbose)
   (let [helper-uri (uri-to-helper-uri url)]
     (println "Helper DB URI:" helper-uri)
+    (d/delete-database helper-uri)
     (d/create-database helper-uri)
     (load-schema helper-uri models-filename verbose)))
 
