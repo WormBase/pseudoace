@@ -1,6 +1,6 @@
 # Change-log
 
-## [0.7.6] - (2020-07-16)
+## [0.7.7] - (2020-07-16)
   - Attempt to delete databases before creating
 
 ## [0.7.6] - (2020-06-22)
