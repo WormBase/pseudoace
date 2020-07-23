@@ -57,6 +57,11 @@
       <version>1.2.0</version>
     </dependency>
     <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-dynamodb</artifactId>
+      <version>1.11.600</version>
+    </dependency>
+    <dependency>
       <groupId>lambdaisland</groupId>
       <artifactId>uri</artifactId>
       <version>1.4.49</version>
