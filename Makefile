@@ -18,7 +18,7 @@ run-all-tests: $(call print-help,run-all-tests,"Run all test against each flavou
 setup-mvn-creds: $(call print-help,setup-mvn-creds,"Setup credentials for maven/clojars")
 	@./scripts/dev-setup.sh
 
-uberjar: $(call print-help,uberjar,"Create uberjar for use in by DB migration pipeline")
+uberjar: $(call print-help,uberjar,"Create uberjar for use in DB migration pipeline")
 	@./scripts/bundle-release.sh
 
 .PHONY: uberjar-for-db-mig deploy-clojars setup-mvn-creds

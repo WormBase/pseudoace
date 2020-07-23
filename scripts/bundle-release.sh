@@ -81,7 +81,7 @@ mkdir -p "${BUILD_DIR}/${PROJ_FQNAME}"
 mkdir -p "${RELEASE_DIR}"
 release_file "${RELEASE_TAG}" "${LOG_SORT_SCRIPT}" "${BUILD_DIR}/${PROJ_FQNAME}/$(basename ${LOG_SORT_SCRIPT})"
 make_release_jar "${PWD}" "${JAR_NAME}"
-mv "$(find ./target -name ${PROJ_NAME}-${RELEASE_TAG}-standalone.jar)" "${DEPLOY_JAR}"
+mv "$(find ./target -name ${JAR_NAME})" "${DEPLOY_JAR}"
 cd "${BUILD_DIR}"
 run_step "Creating release archive: ${RELEASE_ARCHIVE}" \
 	 tar cpJf "${RELEASE_ARCHIVE}" "${PROJ_FQNAME}"
