@@ -2,6 +2,8 @@
 
 ## [0.7.8] - (unreleased)
   - Use provided URL as homology DB datomic URI in homol-import
+  - Minor README and code cleanup and improvements
+
 ## [0.7.7] - (2020-07-16)
   - Attempt to delete databases before creating
 
