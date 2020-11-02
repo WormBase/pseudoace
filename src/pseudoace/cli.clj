@@ -27,8 +27,6 @@
 
 (def ^{:dynamic true} *partition-max-text* 5000)
 
-(def ^{:dynamic true} *homol-db-name* "homol")
-
 (defn exit [status msg]
   (println msg)
   (System/exit status))
@@ -93,9 +91,6 @@
    [nil
     "--no-fixup-datoms"
     "Don't try to run the fixup-datoms fn when playing log files."]
-   [nil
-    "--homol-db-name NAME"
-    "Specify an alternate name for the homoolgy database. Defaults to \"homol\"."]
    [nil
     "--reset-log-dir"
     "Remove contents of the log directory specified as --log-dir before processing."]
@@ -236,19 +231,10 @@
   (generate-schema
    :models-filename models-filename
    :verbose verbose)
-  (let [helper-uri (uri-to-helper-uri url)]
-    (println "Helper DB URI:" helper-uri)
-    (d/delete-database helper-uri)
-    (d/create-database helper-uri)
-    (load-schema helper-uri models-filename verbose)))
-
-(defn homol-db-uri
-  "Create a URI for the homology db from the main datomic db URI."
-  ([url db-name]
-   (let [main-db-name (db-name-from-url url)]
-     (str/replace url (str  "/" main-db-name) (str "/" db-name))))
-  ([url]
-   (homol-db-uri url *homol-db-name*)))
+  (println "Helper DB URI:" url)
+  (d/delete-database url)
+  (d/create-database url)
+  (load-schema url models-filename verbose))
 
 (defn create-homol-database
   [& {:keys [url models-filename verbose]
@@ -501,9 +487,8 @@
            verbose false}}]
   (when verbose
     (println "Importing helper log into helper database"))
-  (let [helper-uri (uri-to-helper-uri url)
-        helper-connection (d/connect helper-uri)]
-    (println "Helper DB URI:" helper-uri)
+  (let [helper-connection (d/connect url)]
+    (println "Helper DB URI:" url)
     (binding [ts-import/*suppress-timestamps* true]
       (ts-import/play-logfile
        helper-connection
@@ -544,8 +529,7 @@
   (when reset-log-dir
     (utils/rm-tree log-dir)
     (.mkdir (io/file log-dir)))
-  (let [helper-uri (uri-to-helper-uri url)
-        helper-connection (d/connect helper-uri)
+  (let [helper-connection (d/connect url)
         helper-db (d/db helper-connection)
         files (get-ace-files-for-homol-import acedump-dir)]
     (doseq [file files]
@@ -559,9 +543,8 @@
   [& {:keys [url verbose]}]
   (when verbose
     (println "Deleting helper database"))
-  (let [helper-uri (uri-to-helper-uri url)]
-    (println "Deleting DB:" helper-uri)
-    (d/delete-database helper-uri)))
+  (println "Deleting DB:" url)
+  (d/delete-database url))
 
 (defn prepare-import
   "Setup the database schema and parse the acedb files for later sorting."
@@ -648,17 +631,17 @@
 
 (defn homol-import
   "Creates a separate database containing homology data.
-  URL should be the `main` database URL (e.g datomic:free://localhost:4334/WS274)."
+  URL should be the `homology` database URL (e.g datomic:free://localhost:4334/WS274-homol)."
   [& {:keys [url models-filename acedump-dir log-dir homol-log-dir verbose]
       :or {verbose false}}]
-  (let [homol-url (homol-db-uri url)]
-    (create-helper-database :url url :models-filename models-filename :verbose verbose)
-    (import-helper-edn-logs :url url :log-dir log-dir :verbose verbose)
-    (create-homol-database :url homol-url :models-filename models-filename :verbose verbose)
-    (generate-homol-edn-logs :url url :acedump-dir acedump-dir :log-dir homol-log-dir :verbose verbose)
-    (import-homol-refs :url homol-url :acedump-dir acedump-dir :verbose verbose)
-    (import-homol-logs :url homol-url :log-dir homol-log-dir :verbose verbose)
-    (delete-helper-database :url url :verbose verbose)))
+  (let [helper-uri (uri-to-helper-uri url)]
+    (create-helper-database :url helper-uri :models-filename models-filename :verbose verbose)
+    (import-helper-edn-logs :url helper-uri :log-dir log-dir :verbose verbose)
+    (create-homol-database :url url :models-filename models-filename :verbose verbose)
+    (generate-homol-edn-logs :url helper-uri :acedump-dir acedump-dir :log-dir homol-log-dir :verbose verbose)
+    (import-homol-refs :url url :acedump-dir acedump-dir :verbose verbose)
+    (import-homol-logs :url url :log-dir homol-log-dir :verbose verbose)
+    (delete-helper-database :url helper-uri :verbose verbose)))
 
 (def cli-actions [#'acedump-to-edn-logs
                   #'apply-patch
