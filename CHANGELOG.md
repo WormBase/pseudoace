@@ -1,6 +1,6 @@
 # Change-log
 
-## [0.7.8] - (unreleased)
+## [0.7.8] - (2020-11-03)
   - Use provided URL as homology DB datomic URI in homol-import
   - Minor README and code cleanup and improvements
 
