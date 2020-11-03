@@ -73,9 +73,20 @@ Before being able to start any pseudoace deployment, you'll need to do some (man
       * Replace "un-released" in the latest version entry with the current date
         (or add a new section if there's no section yet for the current release)
       * Represent all changes made for this release.
-  4. Update the version of pseudoace in the `pom.xml` file.
-  5. Commit and push all changes.
-  6. Create git tag matching project version (e.g 0.6.3). Use annotated tags (git CLI option `-a`).
+  3. Update the `pom.xml` file:
+    * If the [`deps.edn`](./deps.edn) file has changed, Update the entire [`pom.xml`](./pom.xml) file:
+      ```bash
+      rm pom.xml
+      clj -Spom
+      # Update pom.xml to
+      #   * pseudoace release to be created in the <version> tag value
+      #   * have "wormbase" (unquoted) as <groupId> tag value
+      #   * have "pseudoace" (unquoted) as <artifactId> tag value
+      $EDITOR pom.xml
+      ```
+    * Otherwise, only edit the pseudoace version in the `<version>` tag to match the version-nr to be created.
+  4. Commit and push all changes.
+  5. Create git tag matching project version (e.g 0.6.3). Use annotated tags (git CLI option `-a`).
 
 
 ### Deploy standalone application
