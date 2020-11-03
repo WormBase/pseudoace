@@ -74,9 +74,8 @@ Before being able to start any pseudoace deployment, you'll need to do some (man
         (or add a new section if there's no section yet for the current release)
       * Represent all changes made for this release.
   3. Update the `pom.xml` file:
-    * If the [`deps.edn`](./deps.edn) file has changed, Update the entire [`pom.xml`](./pom.xml) file:
+    * If the [`deps.edn`](./deps.edn) file has changed, update the [`pom.xml`](./pom.xml) dependencies:
       ```bash
-      rm pom.xml
       clj -Spom
       # Update pom.xml to
       #   * pseudoace release to be created in the <version> tag value
