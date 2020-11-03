@@ -57,11 +57,6 @@
       <version>1.2.0</version>
     </dependency>
     <dependency>
-      <groupId>com.amazonaws</groupId>
-      <artifactId>aws-java-sdk-dynamodb</artifactId>
-      <version>1.11.600</version>
-    </dependency>
-    <dependency>
       <groupId>lambdaisland</groupId>
       <artifactId>uri</artifactId>
       <version>1.4.49</version>
@@ -74,11 +69,6 @@
   </dependencies>
   <build>
     <sourceDirectory>src</sourceDirectory>
-    <resources>
-      <resource>
-        <directory>src</directory>
-      </resource>
-    </resources>
   </build>
   <repositories>
     <repository>
@@ -90,12 +80,4 @@
       <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
     </repository>
   </repositories>
-  <!-- for clojars -->
-  <distributionManagement>
-    <repository>
-      <id>clojars</id>
-      <name>Clojars repository</name>
-      <url>https://clojars.org/repo</url>
-    </repository>
-  </distributionManagement>
 </project>
