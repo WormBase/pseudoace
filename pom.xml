@@ -59,7 +59,7 @@
     <dependency>
       <groupId>lambdaisland</groupId>
       <artifactId>uri</artifactId>
-      <version>1.4.49</version>
+      <version>1.14.120</version>
     </dependency>
     <dependency>
       <groupId>clojure-csv</groupId>
